@@ -1,0 +1,145 @@
+
+import pandas as pd
+
+from pandas.testing import assert_frame_equal
+from dukit import (
+    get_df,
+    log,
+    qr,
+    )
+
+
+
+df = get_df()
+
+def check_message(expected_strings):
+
+    if isinstance(expected_strings, str):
+        expected_strings = (expected_strings,)
+
+    logs = log().data  #type: ignore (using no args, log() always returns a styler)
+    logs['text_full'] = logs['level'] + ': ' + logs['text']
+    text_full = '\n'.join(logs['text_full'].to_list())
+
+    for string in expected_strings:
+        error = f'did not find string "{string}" in logs:\n{text_full}'
+        assert string in text_full, error
+
+
+
+
+def test_basic1():
+    code = r"""
+    .tag('')
+    %
+    """
+    result = qr(df, code).result
+    expected = get_df()
+    expected['_meta'] = ''
+    expected['_meta'] = expected['_meta'].astype('string')
+    assert_frame_equal(result, expected)
+
+
+
+def test_basic2():
+    code = r"""
+    .tag('', _meta1)
+    %
+    """
+    result = qr(df, code).result
+    expected = get_df()
+    expected['_meta1'] = ''
+    expected['_meta1'] = expected['_meta1'].astype('string')
+    assert_frame_equal(result, expected)
+
+
+
+def test_basic3():
+    code = r"""
+    .tag(a, _meta1)
+    %
+    """
+    result = qr(df, code).result
+    expected = get_df()
+    expected['_meta1'] = 'a'
+    expected['_meta1'] = expected['_meta1'].astype('string')
+    assert_frame_equal(result, expected)
+
+
+
+def test_basic4():
+    code = r"""
+    age  <0  .tag('INVALID')
+    %
+    %%
+    """
+    result = qr(df, code).result
+    expected = get_df()
+    vals = [
+        'INVALID',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ]
+    expected['_meta'] = pd.Series(vals, dtype='string')
+    assert_frame_equal(result, expected)
+
+
+
+def test_basic5():
+    code = r"""
+    age  <0  //!:isnum  .tag('INVALID')
+    %
+    %%
+    """
+    result = qr(df, code).result
+    expected = get_df()
+    vals = [
+        'INVALID',
+        '',
+        '',
+        'INVALID',
+        '',
+        'INVALID',
+        'INVALID',
+        'INVALID',
+        '',
+        'INVALID',
+        '',
+        ]
+    expected['_meta'] = pd.Series(vals, dtype='string')
+    assert_frame_equal(result, expected)
+
+
+
+def test_basic6():
+    code = r"""
+    age  <0  //!:isnum  .tag('INVALID age;  ')
+    height <0  //!:isnum  //>220  .tag('INVALID height;  ')
+    %
+    %%
+    """
+    result = qr(df, code).result
+    expected = get_df()
+    vals = [
+        'INVALID age;  ',
+        'INVALID height;  ',
+        '',
+        'INVALID age;  INVALID height;  ',
+        'INVALID height;  ',
+        'INVALID age;  ',
+        'INVALID age;  ',
+        'INVALID age;  INVALID height;  ',
+        'INVALID height;  ',
+        'INVALID age;  ',
+        '',
+        ]
+    expected['_meta'] = pd.Series(vals, dtype='string')
+    assert_frame_equal(result, expected)
