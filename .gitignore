@@ -1,0 +1,30 @@
+#python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+#virtual environments
+.venv
+
+#bloated
+**/dat/*
+
+#too large
+**cards.csv  
+**cards.xlsx
+
+#not needed
+.vscode
+*.bkp
+~$*
+**/temp/**
+*.complexipy_cache
+
+#should be added manually if needed
+*.xlsx
+*.csv
+*.html
+*.asc
