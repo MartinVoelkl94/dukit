@@ -271,3 +271,16 @@ def ensure_unique_string(
         raise ValueError(f'Unknown strategy: {strategy}')
 
     return string
+
+
+
+def _arg_to_list(arg):
+    """
+    converts a non interable argument to a list
+    """
+    if arg is None:
+        return []
+    elif hasattr(arg, '__iter__') and not isinstance(arg, str):
+        return list(arg)
+    else:
+        return [arg]
