@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import datetime
+from .util import log
 
 
 def get_df() -> pd.DataFrame:
@@ -170,3 +171,206 @@ def get_df() -> pd.DataFrame:
     df.columns = df.columns.to_series().convert_dtypes()
     df.index = df.index.to_series().convert_dtypes()
     return df
+
+
+
+
+def get_dfs():
+    df1 = pd.DataFrame({
+        'id': [
+            10001,
+            10002,
+            20001,
+            30001,
+            ],
+        'name': [
+            'John Doe',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            ],
+        'age': [
+            25,
+            30,
+            35,
+            40,
+            ],
+        })
+    df2 = pd.DataFrame({
+        'id': [
+            10001,
+            10001,
+            20001,
+            20001,
+            20001,
+            30001,
+            ],
+        'name': [
+            'Aspirin',
+            'Ibuprofen',
+            'Paracetamol',
+            'Amoxicillin',
+            'Ciprofloxacin',
+            'Metformin',
+            ],
+        'dose': [
+            100,
+            200,
+            pd.NA,
+            250,
+            500,
+            1000,
+            ],
+        'unit': [
+            'mg',
+            'mg',
+            '',
+            'mg',
+            'ml',
+            'mg',
+            ]
+        })
+    return df1, df2
+
+
+
+
+def merge(
+        left: pd.DataFrame,
+        right: pd.DataFrame,
+        on='uid',
+        mode='flat',
+        prefix='',
+        line_start='',
+        line_stop='\n',
+        verbosity=3,
+        ):
+    r"""
+    left join on 2 dfs with preprocessing
+    to deal with non-unique keys in right df[on].
+    """
+
+    left = left.copy()
+    right = right.copy()
+    context = 'dk.merge'
+
+    if on not in left.columns:
+        msg = f'ERROR: "{on}" is not in left df'
+        log(msg, context, verbosity)
+        return left
+
+    if on not in right.columns:
+        msg = f'Error: "{on}" is not in right df'
+        log(msg, context, verbosity)
+        return left
+
+    if not left[on].is_unique:
+        msg = f'WARNING: "{on}" is not unique in left df'
+        log(msg, context, verbosity)
+
+
+    if mode == 'flat' and not right[on].is_unique:
+        right = _flatten(
+            right,
+            on,
+            prefix,
+            )
+
+    elif mode == 'vertical':
+        right = _embed(
+            right,
+            on,
+            prefix,
+            line_start=line_start,
+            line_stop=line_stop,
+            )
+
+    elif mode == 'horizontal':
+        right = right.groupby(on).agg(list)
+        right = right.map(lambda x: _to_lines(x, line_start, line_stop))
+        right.columns = [f'{prefix}{col}' for col in right.columns]
+
+    result = pd.merge(
+        left,
+        right,
+        how='left',
+        on=on,
+        )
+
+    return result
+
+
+
+def _flatten(
+        df: pd.DataFrame,
+        on: str,
+        prefix='',
+        ):
+
+    #aggregate repeating rows into lists
+    df = df.groupby(on).agg(list)
+
+    #create new cols from lists
+    cols_new = []
+    for col in df.columns:
+        n_max = df[col].apply(lambda x: len(x)).max()
+        cols_flat = [f'{prefix}{col}{i + 1}' for i in range(n_max)]
+        split = pd.DataFrame(df[col].to_list(), columns=cols_flat)
+        split.index = df.index
+        df = df.merge(
+            split,
+            left_index=True,
+            right_index=True,
+            how='left',
+            )
+        cols_new += cols_flat
+
+    df = df[cols_new]
+
+    return df
+
+
+
+def _embed(
+        df: pd.DataFrame,
+        on: str,
+        prefix='',
+        line_start='',
+        line_stop='\n',
+        ):
+
+    combined_cols_str = pd.DataFrame({
+        on: df[on],
+        prefix: ''
+        })
+
+    for col in df.columns:
+        if col == on:
+            continue
+        combined_cols_str[prefix] += (
+            line_start
+            + str(col)
+            + ': '
+            + df[col].apply(str)
+            + line_stop
+            )
+
+    df_new = _flatten(combined_cols_str, on)
+    return df_new
+
+
+
+def _to_lines(
+        x,
+        line_start='',
+        line_stop='\n',
+        ):
+    if not isinstance(x, list):
+        return x
+    if len(x) == 1:
+        return x[0]
+    else:
+        x_str = ''
+        for i, item in enumerate(x):
+            x_str += f'{line_start}{i + 1}: {item}{line_stop}'
+    return x_str

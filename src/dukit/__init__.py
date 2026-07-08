@@ -9,6 +9,8 @@ from .util import (
     )
 from .pandas import (
     get_df,
+    get_dfs,
+    merge,
     )
 from .typing import (
     Box,
@@ -33,6 +35,8 @@ __all__ = (
     'qs',
     'log',
     'get_df',
+    'get_dfs',
+    'merge',
     'Box',
     'int',
     'float',
