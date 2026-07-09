@@ -3686,6 +3686,61 @@ class SetToYN(Symbol):
 
 
 
+class SetStringReplace(Symbol):
+    """
+    set selected cols/rows/vals
+    to string and replace substrings.
+
+    Examples
+    --------
+    >>> qs(df, r'name  .replace(old, new)')
+    """
+
+    #symbol attributes
+    name = 'SetStringReplace'
+    category = 'setter'
+    regex = (r'\.replace',)
+
+    #used to build the current op
+    op_flags = {}
+
+    #used to validate the current op
+    op_args_min = 2
+    op_args_max = 2
+    op_connectors_allowed = {
+        'new': 'start a new op',
+        }
+    op_scopes_allowed = {
+        'cols': 'get or set cols/headers',
+        'rows': 'get or set rows/index',
+        'vals': 'get or set vals within current row and col selection',
+        }
+    op_flags_allowed = {}
+    op_args_allowed = {}
+
+    def parse(self, q: Query) -> Query:
+        q = _preparse_for_setter(q)
+        q = _parse_setter(self, q)
+        return q
+
+    def setter(
+            self,
+            op: Operation,
+            series: pd.Series,
+            mask: pd.Series,
+            args: list,
+            q: Query,
+            ) -> pd.Series:
+        series_new = series[mask].astype('string').str.replace(args[0], args[1])
+        if mask.all():
+            series = series_new
+        else:
+            series[mask] = series_new
+        return series
+
+
+
+
 class SetUpper(Symbol):
     """
     set selected cols/rows/vals
