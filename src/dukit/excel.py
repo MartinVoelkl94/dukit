@@ -1,3 +1,4 @@
+
 import openpyxl
 import pandas as pd
 from .util import (
@@ -6,7 +7,7 @@ from .util import (
     )
 
 
-def format_excel(
+def format(
         path,
         sheet=None,
         freeze_panes='B2',
@@ -95,3 +96,60 @@ def format_excel(
 
     wb.save(path)
     wb.close()
+
+
+
+
+def save(
+        df: pd.DataFrame,
+        path: str,
+        sheet_name='df',
+        index=True,
+        format_excel=True,
+        **kwargs,
+        ):
+    writer = pd.ExcelWriter(
+        path,
+        mode='a',
+        if_sheet_exists='replace',
+        )
+    with writer:
+        df.to_excel(
+            writer,
+            sheet_name=sheet_name,
+            index=index,
+            **kwargs,
+            )
+    if format_excel:
+        format(path, sheet=sheet_name)
+
+
+
+@pd.api.extensions.register_dataframe_accessor('save')
+class QueryAccessor():
+
+    def __init__(
+            self,
+            df: pd.DataFrame,
+            ):
+        self.df = df
+
+    def __call__(
+            self,
+            path='temp.xlsx',
+            sheet_name='df',
+            index=True,
+            format_excel=True,
+            **kwargs,
+            ):
+
+        save(
+            df=self.df,
+            path=path,
+            sheet_name=sheet_name,
+            index=index,
+            format_excel=format_excel,
+            **kwargs,
+            )
+
+        return None

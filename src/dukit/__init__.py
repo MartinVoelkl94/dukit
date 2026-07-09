@@ -13,7 +13,8 @@ from .pandas import (
     merge,
     )
 from .excel import (
-    format_excel,
+    format,
+    save,
     )
 from .typing import (
     Box,
@@ -40,7 +41,8 @@ __all__ = (
     'get_df',
     'get_dfs',
     'merge',
-    'format_excel',
+    'format',
+    'save',
     'Box',
     'int',
     'float',
