@@ -10,7 +10,10 @@ from .util import (
 from .pandas import (
     get_df,
     get_dfs,
-    merge,
+    flatten,
+    stagger,
+    embed,
+    collapse,
     )
 from .excel import (
     format,
@@ -40,7 +43,10 @@ __all__ = (
     'log',
     'get_df',
     'get_dfs',
-    'merge',
+    'flatten',
+    'stagger',
+    'embed',
+    'collapse',
     'format',
     'save',
     'Box',

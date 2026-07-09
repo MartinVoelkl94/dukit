@@ -2,7 +2,6 @@
 import pandas as pd
 import numpy as np
 import datetime
-from .util import log
 
 
 def get_df() -> pd.DataFrame:
@@ -205,7 +204,7 @@ def get_dfs():
             20001,
             30001,
             ],
-        'name': [
+        'medication': [
             'Aspirin',
             'Ibuprofen',
             'Paracetamol',
@@ -231,102 +230,15 @@ def get_dfs():
             ]
         })
     return df1, df2
-def merge(
-        left: pd.DataFrame,
-        right: pd.DataFrame,
-        on='uid',
-        mode='flat',
-        prefix='',
-        line_start='',
-        line_stop='\n',
-        transpose=False,
-        verbosity=3,
-        ):
-    r"""
-    left join on 2 dfs with preprocessing
-    to deal with non-unique keys in right df[on].
-    """
-
-    left = left.copy()
-    right = right.copy()
-    context = 'dk.merge'
-
-    if on not in left.columns:
-        msg = f'ERROR: "{on}" is not in left df'
-        log(msg, context, verbosity)
-        return left
-
-    if on not in right.columns:
-        msg = f'Error: "{on}" is not in right df'
-        log(msg, context, verbosity)
-        return left
-
-    if not left[on].is_unique:
-        msg = f'WARNING: "{on}" is not unique in left df'
-        log(msg, context, verbosity)
-
-    if right[on].is_unique:
-        right.columns = [
-            f'{prefix}{col}'
-            if col != on
-            else col
-            for col in right.columns
-            ]
-
-    elif mode == 'flat':
-        right = _flatten(
-            right,
-            on,
-            prefix,
-            )
-
-    elif mode == 'staggered':
-        right = _stagger(
-            right,
-            on,
-            prefix,
-            )
-
-    elif mode == 'vertical':
-        right = _embed(
-            right,
-            on,
-            prefix,
-            line_start=line_start,
-            line_stop=line_stop,
-            )
-
-    elif mode == 'horizontal':
-        right = right.groupby(on).agg(list)
-        right = right.map(lambda x: _to_lines(x, line_start, line_stop))
-        right.columns = [f'{prefix}{col}' for col in right.columns]
-
-    else:
-        msg = f'ERROR: unknown mode "{mode}"'
-        log(msg, context, verbosity)
-        return left
-
-
-    result = pd.merge(
-        left,
-        right,
-        how='left',
-        on=on,
-        )
-
-    if transpose:
-        result = result.T
-        result.columns = result.iloc[0]
-        result = result.iloc[1:]
-
-    return result
 
 
 
-def _flatten(
+
+def flatten(
         df: pd.DataFrame,
-        on: str,
+        on: str = 'id',
         prefix='',
+        spacer=''
         ):
 
     #aggregate repeating rows into lists
@@ -336,7 +248,7 @@ def _flatten(
     cols_new = []
     for col in df.columns:
         n_max = df[col].apply(lambda x: len(x)).max()
-        cols_flat = [f'{prefix}{col}_{i + 1}' for i in range(n_max)]
+        cols_flat = [f'{prefix}{col}{spacer}{i + 1}' for i in range(n_max)]
         split = pd.DataFrame(df[col].to_list(), columns=cols_flat)
         split.index = df.index
         df = df.merge(
@@ -348,16 +260,56 @@ def _flatten(
         cols_new += cols_flat
 
     df = df[cols_new]
+    df.insert(0, on, df.index)
+    df.reset_index(drop=True, inplace=True)
 
     return df
 
 
 
-def _embed(
+def stagger(
         df: pd.DataFrame,
-        on: str,
+        on: str = 'id',
         prefix='',
+        spacer='',
+        ):
+
+    duplicates_max = df[on].value_counts().max()
+    df = df.groupby(on).agg(list)
+    cols = df.columns.tolist()
+    df_new = pd.DataFrame(
+        df.index,
+        index=df.index,
+        )
+
+    for i in range(duplicates_max):
+        for col in cols:
+            if col == on:
+                continue
+            col_new = df[col].apply(lambda x: _get_from_list(x, i))
+            col_new.name = f'{prefix}{col}{spacer}{i + 1}'
+            df_new = pd.concat([df_new, col_new], axis=1)
+
+    df_new.reset_index(drop=True, inplace=True)
+    return df_new
+
+
+def _get_from_list(x, i):
+    if len(x) > i:
+        return x[i]
+    else:
+        return None
+
+
+
+def embed(
+        df: pd.DataFrame,
+        on: str = 'id',
+        prefix='',
+        spacer='',
         line_start='',
+        separator=':',
+        padding='\u00A0',  #non-breaking space
         line_stop='\n',
         ):
 
@@ -366,20 +318,56 @@ def _embed(
         prefix: ''
         })
 
+    len_max_cols = (
+        df
+        .columns
+        .to_series()
+        .astype('string')
+        .str
+        .len()
+        .max()
+        )
     for col in df.columns:
         if col == on:
             continue
+        len_padding = (
+            len_max_cols
+            - len(str(col))
+            + 1
+            )
         combined_cols_str[prefix] += (
             line_start
             + str(col)
-            + ': '
+            + separator
+            + padding * len_padding
             + df[col].apply(str)
             + line_stop
             )
 
-    df_new = _flatten(combined_cols_str, on)
+    df_new = flatten(
+        combined_cols_str,
+        on=on,
+        spacer=spacer,
+        )
+
     return df_new
 
+
+
+def collapse(
+        df: pd.DataFrame,
+        on: str = 'id',
+        prefix='',
+        spacer='',
+        line_start='',
+        line_stop='\n',
+        ):
+    df = df.groupby(on).agg(list)
+    df = df.map(lambda x: _to_lines(x, line_start, line_stop))
+    df.columns = [f'{prefix}{spacer}{col}' for col in df.columns]
+    df.insert(0, on, df.index)
+    df.reset_index(drop=True, inplace=True)
+    return df
 
 
 def _to_lines(
@@ -396,38 +384,3 @@ def _to_lines(
         for i, item in enumerate(x):
             x_str += f'{line_start}{i + 1}: {item}{line_stop}'
     return x_str
-
-
-
-def _get_from_list(x, i):
-    if len(x) > i:
-        return x[i]
-    else:
-        return None
-
-
-
-def _stagger(
-        df: pd.DataFrame,
-        on: str,
-        prefix='',
-        ):
-
-    duplicates_max = df[on].value_counts().max()
-    df = df.groupby(on).agg(list)
-    cols = df.columns.tolist()
-    df_new = pd.DataFrame(
-        df.index,
-        index=df.index,
-        )
-
-    for i in range(duplicates_max):
-        for col in cols:
-            if col == on:
-                continue
-            col_new = df[col].apply(lambda x: _get_from_list(x, i))
-            col_new.name = f'{prefix}{col}_{i + 1}'
-            df_new = pd.concat([df_new, col_new], axis=1)
-
-    df_new.reset_index(drop=True, inplace=True)
-    return df_new
