@@ -3888,42 +3888,53 @@ def _parse_setter(
 
     return q
 
-    def setter(
-            self,
-            op: Operation,
-            series: pd.Series,
-            mask: pd.Series,
-            args: list,
-            q: Query,
-            ) -> pd.Series:
 
-        arg = args[0]
 
-        if 'colref' in op.flags:
-            series_other = _process_colref(
-                series,
-                arg,
-                op,
-                q,
-                )
-            series, arg = _process_types_series(
-                series,
-                series_other,
-                op,
-                q,
-                )
 
-        else:
-            series, arg = _process_types(
-                series,
-                arg,
-                op,
-                q,
-                )
+class StyleMonospace(Symbol):
+    """
+    change the font family of
+    selected cols/rows/vals
+    to monospaced consolas font
 
-        series[mask] -= arg
+    Examples
+    --------
+    >>> qs(df, r'%.mono')
+    """
 
-        return series
+    #symbol attributes
+    name = 'StyleMonospace'
+    category = 'styler'
+    regex = (
+        r'\.mono\-space',
+        r'\.mono',
+        )
+
+    #used to build the current op
+    op_flags = {}
+
+    #used to validate the current op
+    op_connectors_allowed = {
+        'new': 'start a new op',
+        }
+    op_scopes_allowed = {
+        'cols': 'get or set cols/headers',
+        'rows': 'get or set rows/index',
+        'vals': 'get or set vals within current row and col selection',
+        }
+    op_flags_allowed = {}
+    op_args_allowed = {}
+    op_args_min = 0
+    op_args_max = 0
+
+    def parse(self, q: Query) -> Query:
+        q = _preparse_for_setter(q)
+        q = _parse_styler(self, q)
+        return q
+
+    def styler(self, op: Operation, q: Query) -> str:
+        return 'font-family: Consolas;'
+
 
 
 
