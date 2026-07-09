@@ -1,4 +1,5 @@
 
+import os
 import openpyxl
 import pandas as pd
 from .util import (
@@ -108,11 +109,19 @@ def save(
         format_excel=True,
         **kwargs,
         ):
-    writer = pd.ExcelWriter(
-        path,
-        mode='a',
-        if_sheet_exists='replace',
-        )
+
+    if os.path.exists(path):
+        writer = pd.ExcelWriter(
+            path,
+            mode='a',
+            if_sheet_exists='replace',
+            )
+    else:
+        writer = pd.ExcelWriter(
+            path,
+            mode='w',
+            )
+
     with writer:
         df.to_excel(
             writer,
@@ -120,6 +129,7 @@ def save(
             index=index,
             **kwargs,
             )
+
     if format_excel:
         format(path, sheet=sheet_name)
 
