@@ -14,6 +14,7 @@ from .pandas import (
     stagger,
     embed,
     collapse,
+    transpose,
     )
 from .excel import (
     format,
@@ -47,6 +48,7 @@ __all__ = (
     'stagger',
     'embed',
     'collapse',
+    'transpose',
     'format',
     'save',
     'Box',

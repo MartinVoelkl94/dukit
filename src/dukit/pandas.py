@@ -384,3 +384,21 @@ def _to_lines(
         for i, item in enumerate(x):
             x_str += f'{line_start}{i + 1}: {item}{line_stop}'
     return x_str
+
+
+
+def transpose(
+        df: pd.DataFrame,
+        header='id',
+        ) -> pd.DataFrame:
+
+    cols_old = df.columns
+    cols_new = df[header].values
+
+    df = df.T
+    df.columns = cols_new
+    df.insert(0, header, cols_old)
+    df.drop(header, axis=0, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
+    return df
