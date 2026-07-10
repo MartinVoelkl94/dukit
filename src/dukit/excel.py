@@ -105,7 +105,7 @@ def save(
         df: pd.DataFrame,
         path: str,
         sheet_name='df',
-        index=True,
+        index=False,
         format_excel=True,
         **kwargs,
         ):
@@ -148,7 +148,7 @@ class QueryAccessor():
             self,
             path='temp.xlsx',
             sheet_name='df',
-            index=True,
+            index=False,
             format_excel=True,
             **kwargs,
             ):

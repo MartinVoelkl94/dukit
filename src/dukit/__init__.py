@@ -1,4 +1,6 @@
 
+import pandas as pd
+
 from .qlang import (
     q,
     qr,
@@ -66,3 +68,199 @@ __all__ = (
     'typeinfo',
     'typeinfostrict',
     )
+
+
+
+
+@pd.api.extensions.register_dataframe_accessor('q')
+class QueryAccessor():
+    def __init__(
+            self,
+            df: pd.DataFrame,
+            ):
+        self.df = df
+    def __call__(
+            self,
+            code='',
+            verbosity=3,
+            ):
+        return q(self.df, code, verbosity)
+
+
+@pd.api.extensions.register_dataframe_accessor('qr')
+class QueryRunAccessor():
+    def __init__(
+            self,
+            df: pd.DataFrame,
+            ):
+        self.df = df
+    def __call__(
+            self,
+            code='',
+            verbosity=3,
+            ):
+        return qr(self.df, code, verbosity)
+
+
+@pd.api.extensions.register_dataframe_accessor('qs')
+class QueryShowAccessor():
+    def __init__(
+            self,
+            df: pd.DataFrame,
+            ):
+        self.df = df
+    def __call__(
+            self,
+            code='',
+            verbosity=3,
+            ):
+        return qs(self.df, code, verbosity)
+
+
+
+@pd.api.extensions.register_dataframe_accessor('dk')
+class DukitAccessor():
+
+    def __init__(
+            self,
+            df: pd.DataFrame,
+            ):
+        self.df = df
+
+
+    def q(
+            self,
+            code='',
+            verbosity=3,
+            ):
+        return q(self.df, code, verbosity)
+
+
+    def qs(
+            self,
+            code='',
+            verbosity=3,
+            ):
+        return qs(self.df, code, verbosity)
+
+
+    def qr(
+            self,
+            code='',
+            verbosity=3,
+            ):
+        return qr(self.df, code, verbosity)
+
+
+    def flatten(
+            self,
+            on: str = 'id',
+            prefix='',
+            spacer=''
+            ):
+        df_new = flatten(
+            self.df,
+            on=on,
+            prefix=prefix,
+            spacer=spacer,
+            )
+        return df_new
+
+
+    def stagger(
+            self,
+            on: str = 'id',
+            prefix='',
+            spacer='',
+            ):
+        df_new = stagger(
+            self.df,
+            on=on,
+            prefix=prefix,
+            spacer=spacer,
+            )
+        return df_new
+
+
+    def embed(
+            self,
+            on: str = 'id',
+            prefix='',
+            spacer='',
+            line_start='',
+            separator=':',
+            padding='\u00A0',  #non-breaking space
+            line_stop='\n',
+            ):
+        df_new = embed(
+            self.df,
+            on=on,
+            prefix=prefix,
+            spacer=spacer,
+            line_start=line_start,
+            separator=separator,
+            padding=padding,
+            line_stop=line_stop,
+            )
+        return df_new
+
+
+    def collapse(
+            self,
+            on: str = 'id',
+            prefix='',
+            spacer='',
+            line_start='',
+            line_stop='\n',
+            ):
+        df_new = collapse(
+            self.df,
+            on=on,
+            prefix=prefix,
+            spacer=spacer,
+            line_start=line_start,
+            line_stop=line_stop,
+            )
+        return df_new
+
+
+    def transpose(
+            self,
+            header='id',
+            ) -> pd.DataFrame:
+        df_new = transpose(
+            self.df,
+            header=header,
+            )
+        return df_new
+
+
+    def save(
+            self,
+            path: str,
+            sheet_name='df',
+            index=False,
+            format_excel=True,
+            **kwargs,
+            ):
+        save(
+            df=self.df,
+            path=path,
+            sheet_name=sheet_name,
+            index=index,
+            format_excel=format_excel,
+            **kwargs,
+            )
+        return None
+
+
+    def style(self):
+        code = """
+        .replace("\n", "<br>")
+        .wrap(normal)
+        .mono()
+        .align(left)
+        %.align(center)
+        """
+        df_styled = qs(self.df, code)
+        return df_styled
