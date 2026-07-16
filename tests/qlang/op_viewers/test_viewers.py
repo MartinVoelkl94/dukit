@@ -29,7 +29,12 @@ def check_message(expected_strings):
 
 
 params = [
-    ('.query', 'Query object [q] with attributes:'),
+    ('.query', '----------Query object [q]----------'),
+    ('.query', 'attributes:'),
+    ('.query', '>>> q.code'),
+    ('.query', '>>> q.tokens'),
+    ('.query', '>>> q.ops'),
+    ('.query', '>>> q.op'),
     ('.query', '>>> q.df'),
     ('.query', '>>> q.mask_cols'),
     ('.query', '>>> q.mask_rows'),
@@ -38,11 +43,8 @@ params = [
     ('.query', '>>> q.style_cols'),
     ('.query', '>>> q.style_rows'),
     ('.query', '>>> q.style_vals'),
-    ('.query', '>>> q.code'),
-    ('.query', '>>> q.tokens'),
-    ('.query', '>>> q.ops'),
-    ('.query', '>>> q.op'),
     ('.query(arg)', 'arg'),
+    ('.query', '----------Query object end----------'),
 
     ('.masks', 'mask_cols:'),
     ('.masks', 'mask_rows:'),
@@ -73,7 +75,12 @@ params = [
     ('..help', 'change style of cols/rows/vals:'),
     ('..help', 'view debug information:'),
 
-    ('..query', 'Query object [q] with attributes:'),
+    ('..query', '----------Query object [q]----------'),
+    ('..query', 'attributes:'),
+    ('..query', '>>> q.code'),
+    ('..query', '>>> q.tokens'),
+    ('..query', '>>> q.ops'),
+    ('..query', '>>> q.op'),
     ('..query', '>>> q.df'),
     ('..query', '>>> q.mask_cols'),
     ('..query', '>>> q.mask_rows'),
@@ -82,10 +89,7 @@ params = [
     ('..query', '>>> q.style_cols'),
     ('..query', '>>> q.style_rows'),
     ('..query', '>>> q.style_vals'),
-    ('..query', '>>> q.code'),
-    ('..query', '>>> q.tokens'),
-    ('..query', '>>> q.ops'),
-    ('..query', '>>> q.op'),
+    ('..query', '----------Query object end----------'),
 
     ('..ops', ''),
     ('..op', ''),

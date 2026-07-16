@@ -7,6 +7,8 @@ import re
 from ..util import (
     log,
     build_log_context,
+    dict_to_str,
+    list_to_str,
     )
 from ..typing import (
     Box,
@@ -74,8 +76,12 @@ class Query(Box):
         txt_tokens = [token.name for token in self.tokens]
         txt_ops = [op.operator for op in self.ops]
         txt = (
-            'Query object [q] with attributes:\n\n\n'
-            f'>>> q.df\n{self.df}\n\n\n'
+            '----------------Query object [q]----------------\n'
+            'attributes:\n\n\n'
+            f'>>> q.code\n{self.code!r}\n\n\n'
+            f'>>> q.tokens\n{txt_tokens}\n\n\n'
+            f'>>> q.ops\n{txt_ops}\n\n\n'
+            f'>>> q.op\n{self.op}\n\n\n'
             f'>>> q.mask_cols\n{self.mask_cols}\n\n\n'
             f'>>> q.mask_rows\n{self.mask_rows}\n\n\n'
             f'>>> q.mask_vals\n{self.mask_vals}\n\n\n'
@@ -83,10 +89,31 @@ class Query(Box):
             f'>>> q.style_cols\n{self.style_cols}\n\n\n'
             f'>>> q.style_rows\n{self.style_rows}\n\n\n'
             f'>>> q.style_vals\n{self.style_vals}\n\n\n'
-            f'>>> q.code\n{self.code!r}\n\n\n'
-            f'>>> q.tokens\n{txt_tokens}\n\n\n'
-            f'>>> q.ops\n{txt_ops}\n\n\n'
-            f'>>> q.op\n{self.op}\n\n\n'
+            f'>>> q.df\n{self.df}\n\n\n'
+            '----------------Query object end----------------\n'
+            )
+        return txt
+
+
+    def __repr__(self) -> str:
+        txt = (
+            '--------Query object [q]--------\n'
+            'attributes:\n'
+            '>>> q.code\n'
+            '>>> q.tokens\n'
+            '>>> q.ops\n'
+            '>>> q.op\n'
+            '>>> q.mask_cols\n'
+            '>>> q.mask_rows\n'
+            '>>> q.mask_vals\n'
+            '>>> q.masks_saved\n'
+            '>>> q.style_cols\n'
+            '>>> q.style_rows\n'
+            '>>> q.style_vals\n'
+            '>>> q.df\n'
+            '>>> q.result  #run query first\n'
+            '>>> q.styled  #run query first\n'
+            '--------Query object end--------\n'
             )
         return txt
 
@@ -122,27 +149,6 @@ class Query(Box):
             return self.styled
         else:
             return self.result
-
-
-    def str_debug(self) -> str:
-        txt_tokens = [token.name for token in self.tokens]
-        txt_ops = [op.operator for op in self.ops]
-        txt = (
-            'Query object [q] with attributes:\n\n\n'
-            f'>>> q.df\n{self.df}\n\n\n'
-            f'>>> q.mask_cols\n{self.mask_cols}\n\n\n'
-            f'>>> q.mask_rows\n{self.mask_rows}\n\n\n'
-            f'>>> q.mask_vals\n{self.mask_vals}\n\n\n'
-            f'>>> q.masks_saved\n{self.masks_saved}\n\n\n'
-            f'>>> q.style_cols\n{self.style_cols}\n\n\n'
-            f'>>> q.style_rows\n{self.style_rows}\n\n\n'
-            f'>>> q.style_vals\n{self.style_vals}\n\n\n'
-            f'>>> q.code\n{self.code!r}\n\n\n'
-            f'>>> q.tokens\n{txt_tokens}\n\n\n'
-            f'>>> q.ops\n{txt_ops}\n\n\n'
-            f'>>> q.op\n{self.op}\n\n\n'
-            )
-        return txt
 
 
 
@@ -185,78 +191,37 @@ class Symbol(Box):
 
 
     def __str__(self):
-
-        spacer = '\n    '
-        if len(self.regex) > 1:
-            str_regex = spacer + spacer.join(self.regex)
+        if self.operator:
+            txt = (
+                f'--------Operation {self.id}--------\n'
+                f'connector: {self.connector!r}\n'
+                f'scope: {self.scope!r}\n'
+                f'operator: {self.operator!r}\n'
+                f'flags: {dict_to_str(self.flags)}\n'
+                f'args: {list_to_str(self.args)}\n'
+                f'connectors_allowed: {dict_to_str(self.connectors_allowed)}\n'
+                f'scopes_allowed: {dict_to_str(self.scopes_allowed)}\n'
+                f'flags_allowed: {dict_to_str(self.flags_allowed)}\n'
+                f'args_allowed: {dict_to_str(self.args_allowed)}\n'
+                f'args_min: {self.args_min}\n'
+                f'args_max: {self.args_max}\n'
+                )
         else:
-            str_regex = str(self.regex)
-
-        txt = (
-            f'Token {self.id}:\n'
-            f'  name: {self.name}\n'
-            f'  category: {self.category}\n'
-            f'  regex: {str_regex}\n'
-            f'  linenum: {self.linenum}\n'
-            f'  str_matched: {self.str_matched}\n'
-            f'  literal: {self.literal}\n'
-            )
+            txt = (
+                f'----Token {self.id}----\n'
+                f'name: {self.name!r}\n'
+                f'category: {self.category!r}\n'
+                f'regex: {self.regex!r}\n'
+                f'linenum: {self.linenum}\n'
+                f'str_matched: {self.str_matched!r}\n'
+                f'literal: {self.literal!r}\n'
+                )
         return txt
 
 
-
-    def str_op(self, verbosity=3) -> str:
-
-        if not hasattr(self, 'operator'):
-            return f'this symbol instance is not an op: {self.name}'
-
-        spacer = '\n    '
-        if len(self.args) > 1:
-            str_args = spacer + spacer.join(self.args)
-        else:
-            str_args = str(self.args)
-
-        if len(self.flags) > 1:
-            kvs = (
-                f'{k}: {v}'
-                for k, v in
-                self.flags.items()
-                )
-            str_flags = spacer + spacer.join(kvs)
-        else:
-            str_flags = str(self.flags)
-
-        txt = (
-            f'Operation {self.id}:\n'
-            f'  connector: {self.connector}\n'
-            f'  scope: {self.scope}\n'
-            f'  operator: {self.operator}\n'
-            f'  flags: {str_flags}\n'
-            f'  args: {str_args}\n'
-            )
-
-        if verbosity >= 4:
-            if len(self.flags_allowed) > 1:
-                kvs = (
-                    f'{k}: {v}'
-                    for k, v in
-                    self.flags_allowed.items()
-                    )
-                str_flags_allowed = spacer + spacer.join(kvs)
-            else:
-                str_flags_allowed = str(self.flags_allowed)
-
-            txt += (
-                f'\tconnectors_allowed: {self.connectors_allowed}\n'
-                f'\tscopes_allowed: {self.scopes_allowed}\n'
-                f'\tflags_allowed: {str_flags_allowed}\n'
-                f'\targs_allowed: {self.args_allowed}\n'
-                f'\targs_min: {self.args_min}\n'
-                f'\targs_max: {self.args_max}\n'
-                )
-
+    def __repr__(self):
+        txt = f'<{self.name!r} {self.str_matched!r}>'
         return txt
-
 
 
     def build(self, str_matched: str) -> 'Symbol':
@@ -299,7 +264,6 @@ class Symbol(Box):
     def styler(self) -> str:
         """only used by some op symbols"""
         raise NotImplementedError()
-
 
 
 

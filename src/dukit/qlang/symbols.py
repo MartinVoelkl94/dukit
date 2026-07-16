@@ -320,7 +320,7 @@ def _process_op(q: Query) -> Query:
 
     context = build_log_context(
         '_process_op',
-        op=q.op.str_op(verbosity=5),
+        op=q.op,
         )
     valid = True
 
@@ -6082,7 +6082,7 @@ class ViewParserOps(Symbol):
 
     def parse(self, q: Query) -> Query:
         strs_debug = [
-            op.str_op()
+            str(op)
             for op
             in q.ops
             ]
@@ -6107,7 +6107,7 @@ class ViewParserOp(Symbol):
     regex = (r'\.\.op',)
 
     def parse(self, q: Query) -> Query:
-        print(q.op.str_op())
+        print(q.op)
         return q
 
 
