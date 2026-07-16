@@ -284,3 +284,32 @@ def _arg_to_list(arg):
         return list(arg)
     else:
         return [arg]
+
+
+def dict_to_str(d: dict, spacer='\n  ') -> str:
+    if len(d) == 0:
+        return r'{}'
+    kvs = (
+        f'{k!r}: {v!r}'
+        for k, v in
+        d.items()
+        )
+    str_d = (
+        '{'
+        + spacer
+        + spacer.join(kvs)
+        + '\n}'
+        )
+    return str_d
+
+
+def list_to_str(lst: list, spacer='\n  ') -> str:
+    if len(lst) == 0:
+        return '[]'
+    str_lst = (
+        '['
+        + spacer
+        + spacer.join(f'{item!r}' for item in lst)
+        + '\n]'
+        )
+    return str_lst

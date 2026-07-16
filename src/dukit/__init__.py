@@ -8,6 +8,8 @@ from .qlang import (
     )
 from .util import (
     log,
+    dict_to_str,
+    list_to_str,
     )
 from .pandas import (
     get_df,
@@ -44,6 +46,8 @@ __all__ = (
     'qr',
     'qs',
     'log',
+    'dict_to_str',
+    'list_to_str',
     'get_df',
     'get_dfs',
     'flatten',
