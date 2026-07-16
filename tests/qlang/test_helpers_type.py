@@ -91,7 +91,7 @@ params = [
 ]
 @pytest.mark.parametrize('series, series_expected, arg, arg_expected', params)
 def test_infer_types_for_getter(series, series_expected, arg, arg_expected):
-    op = engine.Operation()
+    op = engine.Symbol()
     query = q(df)
     series_new, arg_new = symbols._infer_types_for_getter(series, arg, op, query)
 
@@ -234,7 +234,7 @@ params = [
 ]
 @pytest.mark.parametrize('flags, series, series_expected, arg, arg_expected', params)
 def test_process_types(flags, series, series_expected, arg, arg_expected):
-    op = engine.Operation()
+    op = engine.Symbol()
     op.flags = flags.copy()
     op.category = 'getter'
     query = q(df)
@@ -247,7 +247,7 @@ def test_process_types(flags, series, series_expected, arg, arg_expected):
 
 
 def test_process_types_default():
-    op = engine.Operation()
+    op = engine.Symbol()
     op.category = 'setter'
     query = q(df)
     series = pd.Series(['A', 'B'])
@@ -457,7 +457,7 @@ params = [
 def test_process_types_series(flags, series1, series1_expected, series2, series2_expected):  # noqa: E501
     query = q(df)
 
-    op = engine.Operation()
+    op = engine.Symbol()
     op.flags = flags.copy()
     series1_new, series2_new = symbols._process_types_series(
         series1,

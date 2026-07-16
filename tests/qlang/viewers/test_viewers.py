@@ -67,9 +67,9 @@ def test_viewers_during_execution(capsys, code, txt):
 
 params = [
     ('..help', 'available scopes:'),
+    ('..help', 'generic Operators (ops):'),
     ('..help', 'get/select/filter cols/rows/vals:'),
     ('..help', 'set/change/modify cols/rows/vals:'),
-    ('..help', 'change shape of data and metadata:'),
     ('..help', 'change style of cols/rows/vals:'),
     ('..help', 'view debug information:'),
 

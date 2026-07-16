@@ -688,13 +688,14 @@ def test_symbol_attributes():
         assert hasattr(symbol, 'name')
         assert hasattr(symbol, 'category')
         assert hasattr(symbol, 'regex')
-        assert hasattr(symbol, 'op_flags')
-        assert hasattr(symbol, 'op_connectors_allowed')
-        assert hasattr(symbol, 'op_scopes_allowed')
-        assert hasattr(symbol, 'op_flags_allowed')
-        assert hasattr(symbol, 'op_args_allowed')
-        assert hasattr(symbol, 'op_args_min')
-        assert hasattr(symbol, 'op_args_max')
+        assert hasattr(symbol, 'flags')
+        assert hasattr(symbol, 'args')
+        assert hasattr(symbol, 'connectors_allowed')
+        assert hasattr(symbol, 'scopes_allowed')
+        assert hasattr(symbol, 'flags_allowed')
+        assert hasattr(symbol, 'args_allowed')
+        assert hasattr(symbol, 'args_min')
+        assert hasattr(symbol, 'args_max')
 
 
 def test_symbol_order():

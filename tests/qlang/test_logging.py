@@ -305,9 +305,10 @@ def test_log_messages(code, message):
 def test_invalid_operator():
     log(clear=True)
     query = q(df)
-    op = engine.Operation()
-    engine._run_op(op, query, 2)
-    messages = 'ERROR: op has no valid operator.'
+    query.op = engine.Symbol()
+    query.op.connector = 'new'
+    symbols._process_op(query)
+    messages = 'ERROR: op is missing an operator.'
     check_message(messages)
 
 
@@ -318,7 +319,6 @@ def test_invalid_getter_mask():
     mask = pd.Series([True, False, True])
 
     def getter_invalid(
-            op: engine.Operation,
             series: pd.Series,
             mask: pd.Series[bool],
             arg: typing.Any,
@@ -326,11 +326,11 @@ def test_invalid_getter_mask():
             ) -> pd.Series:
         mask = pd.Series([True, False])
         return mask
-    op = engine.Operation()
+    op = engine.Symbol()
     op.getter = getter_invalid
     query = q(df)
 
-    engine._apply_getter(
+    symbols._apply_getter(
         series,
         mask,
         op,
@@ -345,7 +345,7 @@ def test_invalid_op():
     log(clear=True)
 
     query = q(df)
-    query.op = engine.Operation()
+    query.op = engine.Symbol()
     symbols._validate_op_essentials(query, True, '')
     messages = [
         'ERROR: op is missing a connector.',
@@ -362,7 +362,7 @@ def test_invalid_arg_type():
 
     series = pd.Series([1, 2, 3])
     arg = None
-    op = engine.Operation()
+    op = engine.Symbol()
     query = q(df)
 
     symbols._infer_types_for_getter(
@@ -372,16 +372,4 @@ def test_invalid_arg_type():
         query,
         )
     message = 'WARNING: unable to infer type for arg "None".'
-    check_message(message)
-
-
-def test_invalid_internals():
-    log(clear=True)
-
-    op = engine.Operation()
-    op.args.append('arg_invalid')
-    query = q(df)
-    symbols.StyleTextWrap().styler(op, query)
-
-    message = 'ERROR: invalid text-wrap arg "\'arg_invalid\'".'
     check_message(message)
