@@ -344,7 +344,7 @@ def test_invalid_op():
 
     query = df.dk.q()
     query.op = engine.Symbol()
-    symbols._validate_op_essentials(query, True, '')
+    symbols._validate_op_essentials(query, True)
     messages = [
         'ERROR: op is missing a connector.',
         'ERROR: op is missing a scope.',

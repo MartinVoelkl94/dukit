@@ -43,7 +43,11 @@ formats = {
     }
 
 
-def build_log_context(function: str, **kwargs) -> str:
+def _build_log_context(
+        function: str,
+        verbosity=3,
+        **kwargs,
+        ) -> str:
     lines = [f'function: {function}\n']
 
     for key, value in kwargs.items():
@@ -52,22 +56,19 @@ def build_log_context(function: str, **kwargs) -> str:
             pass
         elif isinstance(value, pd.Series):
             pass
-        elif value in (None, '', (), [], {}):
-            continue
 
         if isinstance(value, dict):
-            kvs = [f'\t{k}: {v}\n' for k, v in value.items()]
-            value_str = ''.join(kvs)
-        elif isinstance(value, (list, tuple)):
-            items = [f'\t{item}\n' for item in value]
-            value_str = ''.join(items)
+            value_str = dict_to_str(value, spacer='\n\t')
+        elif isinstance(value, list):
+            value_str = list_to_str(value, spacer='\n\t')
+        elif isinstance(value, tuple):
+            value_str = tuple_to_str(value, spacer='\n\t')
+        elif verbosity <= 3:
+            value_str = repr(value)
         else:
             value_str = str(value)
 
-        if '\n' in value_str:
-            lines.append(f'{key}:\n{value_str}')
-        else:
-            lines.append(f'{key}: {value_str}')
+        lines.append(f'{key}: {value_str}')
 
     return '\n'.join(lines)
 
@@ -287,8 +288,8 @@ def _arg_to_list(arg):
 
 
 def dict_to_str(d: dict, spacer='\n  ') -> str:
-    if len(d) == 0:
-        return r'{}'
+    if len(d) < 2:
+        return str(d)
     kvs = (
         f'{k!r}: {v!r}'
         for k, v in
@@ -304,8 +305,8 @@ def dict_to_str(d: dict, spacer='\n  ') -> str:
 
 
 def list_to_str(lst: list, spacer='\n  ') -> str:
-    if len(lst) == 0:
-        return '[]'
+    if len(lst) < 2:
+        return str(lst)
     str_lst = (
         '['
         + spacer
@@ -313,3 +314,15 @@ def list_to_str(lst: list, spacer='\n  ') -> str:
         + '\n]'
         )
     return str_lst
+
+
+def tuple_to_str(tpl: tuple, spacer='\n  ') -> str:
+    if len(tpl) < 2:
+        return str(tpl)
+    str_tpl = (
+        '('
+        + spacer
+        + spacer.join(f'{item!r}' for item in tpl)
+        + '\n)'
+        )
+    return str_tpl

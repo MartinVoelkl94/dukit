@@ -6,7 +6,7 @@ import re
 
 from ..util import (
     log,
-    build_log_context,
+    _build_log_context,
     dict_to_str,
     list_to_str,
     )
@@ -220,7 +220,17 @@ class Symbol(Box):
 
 
     def __repr__(self):
-        txt = f'<{self.name!r} {self.str_matched!r}>'
+        if self.operator:
+            txt = (
+                f'----Operation {self.id}----\n'
+                f'connector: {self.connector!r}\n'
+                f'scope: {self.scope!r}\n'
+                f'operator: {self.operator!r}\n'
+                f'flags: {dict_to_str(self.flags)}\n'
+                f'args: {list_to_str(self.args)}\n'
+                )
+        else:
+            txt = f'<{self.name!r} {self.str_matched!r}>'
         return txt
 
 
@@ -299,10 +309,11 @@ def scan(
             char = code[0]
             line += char
             msg = f'ERROR: Unrecognized character "{char}"'
-            context = build_log_context(
+            context = _build_log_context(
                 'scan',
                 line=f'"{line}"',
                 linenum=linenum,
+                verbosity=verbosity,
                 )
             log(msg, context, verbosity)
             code = code[1:]
@@ -311,11 +322,12 @@ def scan(
     q.tokens.append(q.symbol_stop)
 
     msg = f'Debug: scanned code into {len(q.tokens)} tokens.'
-    context = build_log_context(
-        'scan',
+    context = _build_log_context(
+        'dk.qlang.engine.scan',
         code=q.code,
         lines=linenum,
         tokens=[token.name for token in q.tokens],
+        verbosity=verbosity,
         )
     log(msg, context, verbosity)
     return q
@@ -345,9 +357,10 @@ def parse(
         q = token.parse(q)
 
     msg = f'Debug: parsed tokens into {len(q.ops)} ops.'
-    context = build_log_context(
-        'parse',
+    context = _build_log_context(
+        'dk.qlang.engine.parse',
         ops=[op.operator for op in q.ops],
+        verbosity=verbosity,
         )
     log(msg, context, verbosity)
     return q
@@ -374,7 +387,7 @@ def run(
         )
 
     msg = f'Debug: ran {len(q.ops)} ops.'
-    context = build_log_context('run')
+    context = _build_log_context('dk.qlang.engine.run')
     log(msg, context, verbosity)
     return q
 
@@ -388,11 +401,12 @@ def _validate_dtypes(
     dtypes_current = set(q.df.dtypes.astype(str).unique())
     if not dtypes_current.issubset(DTYPES_ALLOWED):
         msg = 'WARNING: op resulted in invalid dtypes.'
-        context = build_log_context(
-            '_run_op',
+        context = _build_log_context(
+            'dk.qlang.engine._validate_dtypes',
             op=op,
             dtypes_current=dtypes_current,
             dtypes_allowed=DTYPES_ALLOWED,
+            verbosity=verbosity,
             )
         log(msg, context, verbosity)
 

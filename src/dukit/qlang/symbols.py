@@ -14,7 +14,7 @@ from .engine import (
     )
 from ..util import (
     log,
-    build_log_context,
+    _build_log_context,
     ensure_unique_string,
     )
 from ..typing import (
@@ -298,9 +298,10 @@ def _preparse_for_scope(q: Query) -> Query:
 
     if q.op.scope and not q.op.operator:
         msg = 'Trace: inferring GetAll operator for scope-only op.'
-        context = build_log_context(
-            '_preparse_for_scope',
+        context = _build_log_context(
+            'dk.qlang.symbols._preparse_for_scope',
             op=q.op,
+            verbosity=q.verbosity,
             )
         log(msg, context, q.verbosity)
         q = GetAll().parse(q)
@@ -318,10 +319,6 @@ def _process_op(q: Query) -> Query:
     if q.op == Symbol():
         return q
 
-    context = build_log_context(
-        '_process_op',
-        op=q.op,
-        )
     valid = True
 
     validation_functions = [
@@ -333,7 +330,13 @@ def _process_op(q: Query) -> Query:
         _validate_op_args,
         ]
     for func in validation_functions:
-        valid = func(q, valid, context)
+        valid = func(q, valid)
+
+    context = _build_log_context(
+        'dk.qlang.symbols._process_op',
+        op=q.op,
+        verbosity=q.verbosity,
+        )
 
     if valid:
         msg = 'Trace: saving valid op.'
@@ -353,8 +356,13 @@ def _process_op(q: Query) -> Query:
 def _validate_op_essentials(
         q: Query,
         valid: bool,
-        context: str,
         ) -> bool:
+
+    context = _build_log_context(
+        'dk.qlang.symbols._validate_op_essentials',
+        op=q.op,
+        verbosity=q.verbosity,
+        )
 
     if not q.op.connector:
         msg = 'ERROR: op is missing a connector.'
@@ -388,16 +396,16 @@ def _validate_op_essentials(
 def _validate_flags_allowed(
         q: Query,
         valid: bool,
-        context: str,
         ) -> bool:
 
     for flag in q.op.flags.keys():
         if flag not in q.op.flags_allowed:
             msg = f'ERROR: flag "{flag}" is not valid for op.'
-            context = build_log_context(
-                '_process_op',
+            context = _build_log_context(
+                'dk.qlang.symbols._validate_flags_allowed',
                 op=q.op,
-                allowed_flags=q.op.flags_allowed,
+                flags_allowed=q.op.flags_allowed,
+                verbosity=q.verbosity,
                 )
             log(msg, context, q.verbosity)
             valid = False
@@ -409,8 +417,13 @@ def _validate_flags_allowed(
 def _validate_flags_type(
         q: Query,
         valid: bool,
-        context: str,
         ) -> bool:
+
+    context = _build_log_context(
+        'dk.qlang.symbols._validate_flags_type',
+        op=q.op,
+        verbosity=q.verbosity,
+        )
 
     _flags_type = {
         'int',
@@ -434,8 +447,13 @@ def _validate_flags_type(
 def _validate_flags(
         q: Query,
         valid: bool,
-        context: str,
         ) -> bool:
+
+    context = _build_log_context(
+        'dk.qlang.symbols._validate_flags',
+        op=q.op,
+        verbosity=q.verbosity,
+        )
 
     if 'index' in q.op.flags and q.op.scope not in ('rows', 'cols'):
         msg = (
@@ -475,17 +493,17 @@ def _validate_flags(
 def _validate_args_allowed(
         q: Query,
         valid: bool,
-        context: str,
         ) -> bool:
 
     if q.op.args_allowed:
         for arg in q.op.args:
             if arg not in q.op.args_allowed:
                 msg = f'ERROR: arg "{arg}" is not valid for op.'
-                context = build_log_context(
-                    '_process_op',
+                context = _build_log_context(
+                    'dk.qlang.symbols._validate_args_allowed',
                     op=q.op,
-                    allowed_args=q.op.args_allowed,
+                    args_allowed=q.op.args_allowed,
+                    verbosity=q.verbosity,
                     )
                 log(msg, context, q.verbosity)
                 valid = False
@@ -497,8 +515,15 @@ def _validate_args_allowed(
 def _validate_op_args(
         q: Query,
         valid: bool,
-        context: str,
         ) -> bool:
+
+    context = _build_log_context(
+        'dk.qlang.symbols._validate_op_args',
+        op=q.op,
+        args_min=q.op.args_min,
+        args_max=q.op.args_max,
+        verbosity=q.verbosity,
+        )
 
     if len(q.op.args) < q.op.args_min:
         msg = 'ERROR: op has too few args.'
@@ -781,10 +806,7 @@ class SaveSelection(Symbol):
 
         if name in q.masks_saved:
             msg = f'WARNING: overwriting previously saved selection "{name}".'
-            context = build_log_context(
-                'SaveSelection.run',
-                name=name,
-                )
+            context = _build_log_context('dk.qlang.symbols.SaveSelection.run')
             log(msg, context, q.verbosity)
 
         q.masks_saved[name] = masks
@@ -964,7 +986,7 @@ def _ensure_unique_col(
             f'{level}: colname "{colname}" already exists,'
             ' applying increment strategy to ensure uniqueness.'
             )
-        context = build_log_context('_ensure_unique_col')
+        context = _build_log_context('dk.qlang.symbols._ensure_unique_col')
         log(msg, context, verbosity)
         colname = ensure_unique_string(
             colname,
@@ -1866,10 +1888,7 @@ class GetSavedSelection(Symbol):
 
         if arg not in q.masks_saved:
             msg = f'ERROR: No saved selection named "{arg}" found.'
-            context = build_log_context(
-                'GetSavedSelection.getter',
-                missing_selection=arg,
-                )
+            context = _build_log_context('dk.qlang.symbols.GetSavedSelection.getter')
             log(msg, context, q.verbosity)
 
         elif self.scope == 'cols':
@@ -2954,7 +2973,7 @@ def _preparse_for_getter(q: Query) -> Query:
     else:
         q = _process_op(q)
         msg = 'Trace: inferring rows scope for getter.'
-        context = build_log_context('_preparse_for_getter')
+        context = _build_log_context('dk.qlang.symbols._preparse_for_getter')
         log(msg, context, q.verbosity)
         q.op.connector = 'new'
         q.op.scope = 'rows'
@@ -2974,10 +2993,10 @@ def _process_colref(
         series_other = q.df[arg]
     else:
         msg = f'ERROR: col "{arg}" not found for colref comparison.'
-        context = build_log_context(
-            '_process_colref',
-            missing_column=arg,
+        context = _build_log_context(
+            'dk.qlang.symbols._process_colref',
             available_columns=list(q.df.columns),
+            verbosity=q.verbosity,
             )
         log(msg, context, q.verbosity)
         series_other = pd.Series(
@@ -3135,7 +3154,7 @@ def _infer_types_for_getter(
 
     else:
         msg = f'WARNING: unable to infer type for arg "{arg}".'
-        context = build_log_context('_infer_types_for_getter')
+        context = _build_log_context('dk.qlang.symbols._infer_types_for_getter')
         log(msg, context, q.verbosity)
         series_new = series
         arg_new = arg
@@ -3252,12 +3271,13 @@ def _get_cols(
         q: Query,
         ) -> Query:
 
-    context = build_log_context(
-        '_get_cols',
+    context = _build_log_context(
+        'dk.qlang.symbols._get_cols',
         selected_cols=int(q.mask_cols.sum()),
         selected_rows=int(q.mask_rows.sum()),
         selected_vals=int(q.mask_vals.sum().sum()),
         op=op,
+        verbosity=q.verbosity,
         )
 
 
@@ -3313,12 +3333,13 @@ def _get_rows(
         q: Query,
         ) -> Query:
 
-    context = build_log_context(
-        '_get_rows',
+    context = _build_log_context(
+        'dk.qlang.symbols._get_rows',
         selected_cols=int(q.mask_cols.sum()),
         selected_rows=int(q.mask_rows.sum()),
         selected_vals=int(q.mask_vals.sum().sum()),
         op=op,
+        verbosity=q.verbosity,
         )
 
     if bool(q.mask_cols.any()) is False:
@@ -3379,12 +3400,13 @@ def _get_vals(
         q: Query,
         ) -> Query:
 
-    context = build_log_context(
-        '_get_vals',
+    context = _build_log_context(
+        'dk.qlang.symbols._get_vals',
         selected_cols=int(q.mask_cols.sum()),
         selected_rows=int(q.mask_rows.sum()),
         selected_vals=int(q.mask_vals.sum().sum()),
         op=op,
+        verbosity=q.verbosity,
         )
 
     if bool(q.mask_cols.any()) is False:
@@ -3450,9 +3472,10 @@ def _apply_getter(
         )
     if valid_edgecase:
         msg = 'Trace: normalizing zero-arg getter to a single empty arg.'
-        context = build_log_context(
-            '_apply_getter',
+        context = _build_log_context(
+            'dk.qlang.symbols._apply_getter',
             op=op,
+            verbosity=q.verbosity,
             )
         log(msg, context, q.verbosity)
         op.args = ['']
@@ -3468,12 +3491,13 @@ def _apply_getter(
 
         if len(mask_temp) != len(mask_current):
             msg = 'ERROR: getter returned invalid mask.'
-            context = build_log_context(
-                '_apply_getter',
+            context = _build_log_context(
+                'dk.qlang.symbols._apply_getter',
                 mask_length=len(mask_temp),
                 expected_length=len(mask_current),
                 mask=mask_temp,
                 op=op,
+                verbosity=q.verbosity,
                 )
             log(msg, context, q.verbosity)
             continue
@@ -4953,7 +4977,7 @@ def _preparse_for_setter_or_styler(q: Query) -> Query:
     else:
         q = _process_op(q)
         msg = 'Trace: inferring vals scope for setter or styler.'
-        context = build_log_context('_preparse_for_setter')
+        context = _build_log_context('dk.qlang.symbols._preparse_for_setter')
         log(msg, context, q.verbosity)
         q.op.connector = 'new'
         q.op.scope = 'vals'
@@ -4967,12 +4991,13 @@ def _set_cols(
         q: Query,
         ) -> Query:
 
-    context = build_log_context(
-        '_set_cols',
+    context = _build_log_context(
+        'dk.qlang.symbols._set_cols',
         selected_cols=int(q.mask_cols.sum()),
         selected_rows=int(q.mask_rows.sum()),
         selected_vals=int(q.mask_vals.sum().sum()),
         op=op,
+        verbosity=q.verbosity,
         )
 
     if bool(q.mask_cols.any()) is False:
@@ -5009,12 +5034,13 @@ def _set_rows(
         q: Query,
         ) -> Query:
 
-    context = build_log_context(
-        '_set_rows',
+    context = _build_log_context(
+        'dk.qlang.symbols._set_rows',
         selected_cols=int(q.mask_cols.sum()),
         selected_rows=int(q.mask_rows.sum()),
         selected_vals=int(q.mask_vals.sum().sum()),
         op=op,
+        verbosity=q.verbosity,
         )
 
     if bool(q.mask_rows.any()) is False:
@@ -5050,13 +5076,14 @@ def _set_vals(
         q: Query,
         ) -> Query:
 
-    context = build_log_context(
-        '_set_vals',
+    context = _build_log_context(
+        'dk.qlang.symbols._set_vals',
         selected_cols=int(q.mask_cols.sum()),
         selected_rows=int(q.mask_rows.sum()),
         selected_vals=int(q.mask_vals.sum().sum()),
         op=op,
-    )
+        verbosity=q.verbosity,
+        )
 
     if bool(q.mask_cols.any()) is False:
         msg = (
@@ -6275,7 +6302,7 @@ def _preparse_for_literal(token: Symbol, q: Query) -> Query:
     else:
         q = _process_op(q)
         msg = 'Trace: inferring cols scope for literal token.'
-        context = build_log_context('_preparse_for_literal')
+        context = _build_log_context('dk.qlang.symbols._preparse_for_literal')
         log(msg, context, q.verbosity)
         q.op.connector = 'new'
         q.op.scope = 'cols'
@@ -6299,10 +6326,11 @@ def _check_if_operator_named(literal: str, q: Query) -> None:
             f'INFO: "{literal}" is not a col name, did you'
             f' mean to use the operator "{prefix}{literal}"?'
             )
-        context = build_log_context(
-            '_check_if_operator_named',
+        context = _build_log_context(
+            'dk.qlang.symbols._check_if_operator_named',
             literal=literal,
             op=q.op,
+            verbosity=q.verbosity,
             )
         log(msg, context, q.verbosity)
 
@@ -6353,11 +6381,12 @@ class ListStart(Symbol):
                 f'ERROR: list start "{self.str_matched}" cannot be used'
                 ' when args have already been added to the current op.'
                 )
-            context = build_log_context(
-                'ListStart.parse',
+            context = _build_log_context(
+                'dk.qlang.symbols.ListStart.parse',
                 line=self.line,
                 linenum=self.linenum,
                 op=q.op,
+                verbosity=q.verbosity,
                 )
             log(msg, context, q.verbosity)
             return q
@@ -6369,11 +6398,12 @@ class ListStart(Symbol):
                 f'ERROR: list start "{self.str_matched}"'
                 ' cannot be used after a list stop token.'
                 )
-            context = build_log_context(
-                'ListStart.parse',
+            context = _build_log_context(
+                'dk.qlang.symbols.ListStart.parse',
                 line=self.line,
                 linenum=self.linenum,
                 op=q.op,
+                verbosity=q.verbosity,
                 )
             log(msg, context, q.verbosity)
             return q
@@ -6408,11 +6438,12 @@ class ListStop(Symbol):
                 f'ERROR: list stop "{self.str_matched}"'
                 ' can only be used after a list start token.'
                 )
-            context = build_log_context(
-                'ListStop.parse',
+            context = _build_log_context(
+                'dk.qlang.symbols.ListStop.parse',
                 line=self.line,
                 linenum=self.linenum,
                 op=q.op,
+                verbosity=q.verbosity,
                 )
             log(msg, context, q.verbosity)
             return q
@@ -6423,11 +6454,12 @@ class ListStop(Symbol):
                 ' cannot be used if a list has not been'
                 ' started or has already been stopped.'
                 )
-            context = build_log_context(
-                'ListStop.parse',
+            context = _build_log_context(
+                'dk.qlang.symbols.ListStop.parse',
                 line=self.line,
                 linenum=self.linenum,
                 op=q.op,
+                verbosity=q.verbosity,
                 )
             log(msg, context, q.verbosity)
             return q
@@ -6537,7 +6569,7 @@ class FlagColref(Symbol):
 
         if not q.op.operator:
             msg = 'ERROR: flag "colref" cannot be used without an operator.'
-            context = build_log_context('FlagColref.parse')
+            context = _build_log_context('dk.qlang.symbols.FlagColref.parse')
             log(msg, context, q.verbosity)
             return q
 
