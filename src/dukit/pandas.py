@@ -2,7 +2,8 @@
 import pandas as pd
 import numpy as np
 import datetime
-
+import copy
+from .util import log
 
 def get_df() -> pd.DataFrame:
     """
@@ -171,6 +172,82 @@ def get_df() -> pd.DataFrame:
     df.index = df.index.to_series().convert_dtypes()
     return df
 
+
+
+
+def deduplicate(obj, name='object', verbosity=3):
+    """
+    Deduplicate entries in object which can be converted
+    to pandas Series by appending consecutive numbers.
+    Note that the entries are converted to strings in the process.
+    """
+
+    obj = copy.deepcopy(obj)
+    class_orig = obj.__class__
+    obj = _to_series(obj)
+
+    #Values can only be deduplicated if index is unique
+    if not obj.index.is_unique:
+        msg = (
+            f'info: duplicates found in index of {name}.'
+            ' deduplicating by appending consecutive numbers.'
+            )
+        log(msg, 'dk.pandas.deduplicate', verbosity)
+        obj.index = _deduplicate(_to_series(obj.index))
+
+    rounds = 0
+    while not obj.is_unique:
+        if rounds == 0:
+            msg = (
+                f'debug: duplicates found in {name}.'
+                ' deduplicating by appending consecutive numbers.'
+                )
+        else:
+            msg = (
+                f'debug: duplicates still found in {name} after'
+                f' {rounds} deduplication rounds.'
+                ' deduplicating again by appending consecutive numbers.'
+                )
+        log(msg, 'dk.pandas.deduplicate', verbosity)
+        obj = _deduplicate(obj)
+        rounds += 1
+
+    if not isinstance(obj, class_orig):
+        try:
+            obj = class_orig(obj)
+        except Exception as e:
+            msg = (
+                'Error: could not convert deduplicated object'
+                f' back to original type {class_orig}: {e}'
+                )
+            log(msg, 'dk.pandas.deduplicate', verbosity)
+
+    return obj
+
+
+def _to_series(obj, verbosity=3):
+    try:
+        obj = pd.Series(obj, dtype=str)
+    except Exception as e:
+        msg = (
+            'Error: could not convert input of type'
+            f' {type(obj)} to Series: {e}'
+            )
+        log(msg, 'dk.pandas._to_series', verbosity)
+    return obj
+
+
+def _deduplicate(series):
+    cumulative_count = series.groupby(series).cumcount()
+    duplicates_mask = series.index[cumulative_count > 0]
+    duplicates = series[duplicates_mask]
+    duplicates_new = (
+        duplicates.astype(str)
+        + '_'
+        + cumulative_count[duplicates_mask].astype(str)
+        )
+    series[duplicates_mask] = duplicates_new
+    return series
 
 
 

@@ -14,6 +14,7 @@ from .util import (
 from .pandas import (
     get_df,
     get_dfs,
+    deduplicate,
     flatten,
     stagger,
     embed,
@@ -50,6 +51,7 @@ __all__ = (
     'list_to_str',
     'get_df',
     'get_dfs',
+    'deduplicate',
     'flatten',
     'stagger',
     'embed',
