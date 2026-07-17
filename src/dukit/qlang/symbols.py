@@ -5773,7 +5773,11 @@ class ViewQuery(Symbol):
 
         if len(self.args) == 1:
             print(self.args[0])
-        print(q)
+
+        if q.verbosity > 3:
+            print(str(q))
+        else:
+            print(repr(q))
 
         return q
 
@@ -6176,7 +6180,10 @@ class ViewParserQuery(Symbol):
         )
 
     def parse(self, q: Query) -> Query:
-        print(q)
+        if q.verbosity > 3:
+            print(str(q))
+        else:
+            print(repr(q))
         return q
 
 
@@ -6197,13 +6204,20 @@ class ViewParserOps(Symbol):
     regex = (r'\.\.ops',)
 
     def parse(self, q: Query) -> Query:
-        strs_debug = [
-            str(op)
+
+        if q.verbosity > 3:
+            str_func = str
+        else:
+            str_func = repr
+
+        str_ops = [
+            str_func(op)
             for op
             in q.ops
             ]
-        txt = 'Current ops:\n\n' + '\n\n'.join(strs_debug)
+        txt = 'Current ops:\n\n' + '\n\n'.join(str_ops)
         print(txt)
+
         return q
 
 
@@ -6223,7 +6237,10 @@ class ViewParserOp(Symbol):
     regex = (r'\.\.op',)
 
     def parse(self, q: Query) -> Query:
-        print(q.op)
+        if q.verbosity > 3:
+            print(str(q.op))
+        else:
+            print(repr(q.op))
         return q
 
 
@@ -6244,13 +6261,20 @@ class ViewParserTokens(Symbol):
     regex = (r'\.\.tokens',)
 
     def parse(self, q: Query) -> Query:
-        strs_debug = [
-            str(token)
+
+        if q.verbosity > 3:
+            str_func = str
+        else:
+            str_func = repr
+
+        str_tokens = [
+            str_func(token)
             for token
             in q.tokens
             ]
-        txt = 'Current tokens:\n\n' + '\n\n'.join(strs_debug)
+        txt = 'Current tokens:\n\n' + '\n\n'.join(str_tokens)
         print(txt)
+
         return q
 
 
@@ -6275,7 +6299,10 @@ class ViewParserToken(Symbol):
 
     def parse(self, q: Query) -> Query:
         token = q.tokens[self.id - 1]
-        print(token)
+        if q.verbosity > 3:
+            print(str(token))
+        else:
+            print(repr(token))
         return q
 
 

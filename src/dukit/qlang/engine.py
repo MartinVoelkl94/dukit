@@ -75,13 +75,13 @@ class Query(Box):
     def __str__(self) -> str:
         txt_tokens = [token.name for token in self.tokens]
         txt_ops = [op.operator for op in self.ops]
+        txt_tokens = list_to_str(txt_tokens)
+        txt_ops = list_to_str(txt_ops)
         txt = (
             '----------------Query object [q]----------------\n'
-            'attributes:\n\n\n'
             f'>>> q.code\n{self.code!r}\n\n\n'
             f'>>> q.tokens\n{txt_tokens}\n\n\n'
             f'>>> q.ops\n{txt_ops}\n\n\n'
-            f'>>> q.op\n{self.op}\n\n\n'
             f'>>> q.mask_cols\n{self.mask_cols}\n\n\n'
             f'>>> q.mask_rows\n{self.mask_rows}\n\n\n'
             f'>>> q.mask_vals\n{self.mask_vals}\n\n\n'
@@ -96,23 +96,21 @@ class Query(Box):
 
 
     def __repr__(self) -> str:
+        txt_tokens = [token.name for token in self.tokens]
+        txt_ops = [op.operator for op in self.ops]
+        txt_tokens = list_to_str(txt_tokens)
+        txt_ops = list_to_str(txt_ops)
         txt = (
             '--------Query object [q]--------\n'
-            'attributes:\n'
-            '>>> q.code\n'
-            '>>> q.tokens\n'
-            '>>> q.ops\n'
-            '>>> q.op\n'
-            '>>> q.mask_cols\n'
-            '>>> q.mask_rows\n'
-            '>>> q.mask_vals\n'
-            '>>> q.masks_saved\n'
-            '>>> q.style_cols\n'
-            '>>> q.style_rows\n'
-            '>>> q.style_vals\n'
+            f'>>> q.code\n{self.code!r}\n'
+            f'>>> q.tokens\n{txt_tokens}\n'
+            f'>>> q.ops\n{txt_ops}\n'
             '>>> q.df\n'
-            '>>> q.result  #run query first\n'
-            '>>> q.styled  #run query first\n'
+            '>>> q.scan()  #scan code into tokens\n'
+            '>>> q.parse()  #parse tokens into ops\n'
+            '>>> q.run()  #run ops on the df\n'
+            '>>> q.result\n'
+            '>>> q.styled\n'
             '--------Query object end--------\n'
             )
         return txt

@@ -29,7 +29,6 @@ def check_message(expected_strings):
 
 params = [
     ('.query', '----------Query object [q]----------'),
-    ('.query', 'attributes:'),
     ('.query', '>>> q.code'),
     ('.query', '>>> q.tokens'),
     ('.query', '>>> q.ops'),
@@ -59,7 +58,7 @@ params = [
 ]
 @pytest.mark.parametrize('code, txt', params)
 def test_viewers_during_execution(capsys, code, txt):
-    df.dk.qs(code)
+    df.dk.qs(code, 4)
     out = capsys.readouterr().out
     assert txt in out
 
@@ -75,7 +74,6 @@ params = [
     ('..help', 'view debug information:'),
 
     ('..query', '----------Query object [q]----------'),
-    ('..query', 'attributes:'),
     ('..query', '>>> q.code'),
     ('..query', '>>> q.tokens'),
     ('..query', '>>> q.ops'),
@@ -98,6 +96,6 @@ params = [
 ]
 @pytest.mark.parametrize('code, txt', params)
 def test_viewers_during_parsing(capsys, code, txt):
-    df.dk.qs(code)
+    df.dk.qs(code, 4)
     out = capsys.readouterr().out
     assert txt in out
