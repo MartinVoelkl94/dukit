@@ -8,7 +8,6 @@ from pandas.testing import (
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -35,7 +34,7 @@ def test_font_cols():
     code = r"""
     %.font(bold)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -49,7 +48,7 @@ def test_font_rows():
     code = r"""
     %%.font(italic)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -63,7 +62,7 @@ def test_font_vals1():
     code = r"""
     %%%.font(normal)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -78,7 +77,7 @@ def test_font_vals2():
     code = r"""
     .font(bolder)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -93,7 +92,7 @@ def test_font_vals3():
     code = r"""
     age  <0  .font(lighter)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -108,7 +107,7 @@ def test_font_vals4():
     code = r"""
     age  <0  .font(oblique)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,

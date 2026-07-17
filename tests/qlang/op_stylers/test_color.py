@@ -8,7 +8,6 @@ from pandas.testing import (
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -35,7 +34,7 @@ def test_background_color_cols():
     code = r"""
     %.bg(orange)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -49,7 +48,7 @@ def test_background_color_rows():
     code = r"""
     %%.bg(orange)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -63,7 +62,7 @@ def test_background_color_vals1():
     code = r"""
     %%%.bg(orange)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -78,7 +77,7 @@ def test_background_color_vals2():
     code = r"""
     .bg(orange)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -93,7 +92,7 @@ def test_background_color_vals3():
     code = r"""
     age  <0  .bg(orange)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -109,7 +108,7 @@ def test_color_cols():
     code = r"""
     %.color(orange)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -123,7 +122,7 @@ def test_color_rows():
     code = r"""
     %%.color(orange)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -137,7 +136,7 @@ def test_color_vals1():
     code = r"""
     %%%.color(orange)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -152,7 +151,7 @@ def test_color_vals2():
     code = r"""
     .color(orange)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -167,7 +166,7 @@ def test_color_vals3():
     code = r"""
     age  <0  .color(orange)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,

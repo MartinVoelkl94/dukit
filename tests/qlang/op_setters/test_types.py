@@ -7,7 +7,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -35,7 +34,7 @@ def test_raw_rep():
     code = r"""
     age  .raw
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         "-25",
         "'30'",
@@ -78,7 +77,7 @@ params = [
 @pytest.mark.parametrize('code, error_type', params)
 def test_strict_type_errors(code, error_type):
     with pytest.raises(error_type):
-        _ = qr(df, code).result
+        _ = df.dk.qr(code).result
 
 
 
@@ -90,7 +89,7 @@ def test_strict_type_colref1():
         'a': ['2020-01-01', '2020-01-02'],
         'b': ['2021-02-01', '2021-02-02'],
         })
-    result = qr(df_test, code).result
+    result = df_test.dk.qr(code).result
     vals = [
         pd.to_datetime('2021-02-01').date(),
         pd.to_datetime('2021-02-02').date(),
@@ -110,7 +109,7 @@ def test_strict_type_colref2():
         'a': ['2020-01-01 00:00:00', '2020-01-02 03:04:05'],
         'b': ['2021-02-01 01:02:03', '2021-02-02 04:05:06'],
         })
-    result = qr(df_test, code).result
+    result = df_test.dk.qr(code).result
     vals = [
         pd.to_datetime('2021-02-01 01:02:03'),
         pd.to_datetime('2021-02-02 04:05:06'),
@@ -127,7 +126,7 @@ def test_to_bool1():
     code = r"""
     name  .tobool()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [np.nan] * 11
     expected = pd.DataFrame({'name': vals}, dtype='boolean')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -140,7 +139,7 @@ def test_to_bool2():
     code = r"""
     diabetes  .tobool()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         False,
         True,
@@ -166,7 +165,7 @@ def test_to_bool3():
     diabetes  :isyn() .tobool()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         False,
         True,
@@ -192,7 +191,7 @@ def test_to_bool4():
     diabetes  %%:isyn()  %%%.tobool()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         False,
         True,
@@ -218,7 +217,7 @@ def test_to_date1():
     code = r"""
     name  .todate()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [None] * 11
     expected = pd.DataFrame({'name': vals}, dtype='datetime64[s]')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -232,7 +231,7 @@ def test_to_date2():
     code = r"""
     'date of birth'  .todate()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         '1995-01-02',
         '1990-09-14',
@@ -260,7 +259,7 @@ def test_to_date3():
     'date of birth'  %%!:isint() .todate()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         pd.to_datetime('1995-01-02').date(),
         pd.to_datetime('1990-09-14').date(),
@@ -286,7 +285,7 @@ def test_to_datetime1():
     code = r"""
     name  .todatetime()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [None] * 11
     expected = pd.DataFrame({'name': vals}, dtype='datetime64[us]')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -299,7 +298,7 @@ def test_to_datetime2():
     code = r"""
     'date of birth'  .todatetime()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         '1995-01-02',
         '1990-09-14',
@@ -326,7 +325,7 @@ def test_to_datetime3():
     'date of birth'  %%!:isint() .todatetime()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         pd.to_datetime('1995-01-02'),
         pd.to_datetime('1990-09-14'),
@@ -352,7 +351,7 @@ def test_to_datetime4():
     'date of birth'  %%!:isint() .todatetime()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         pd.to_datetime('1995-01-02'),
         pd.to_datetime('1990-09-14'),
@@ -378,7 +377,7 @@ def test_to_float1():
     code = r"""
     name  .tofloat()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [np.nan] * 11
     expected = pd.DataFrame({'name': vals}, dtype='Float64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -391,7 +390,7 @@ def test_to_float2():
     code = r"""
     weight .tofloat()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70.2,
         68,
@@ -417,7 +416,7 @@ def test_to_float3():
     weight %%>70 .tofloat()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70.2,
         '68',
@@ -443,7 +442,7 @@ def test_to_float4():
     weight  %%>70  %%%.tofloat()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70.2,
         '68',
@@ -469,7 +468,7 @@ def test_to_int1():
     code = r"""
     name  .toint()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [np.nan] * 11
     expected = pd.DataFrame({'name': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -482,7 +481,7 @@ def test_to_int2():
     code = r"""
     name  %%%.toint()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [np.nan] * 11
     expected = pd.DataFrame({'name': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -495,7 +494,7 @@ def test_to_int3():
     code = r"""
     weight .toint()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70.0,
         68,
@@ -521,7 +520,7 @@ def test_to_int4():
     weight %%>70 .toint()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70,
         '68',
@@ -546,7 +545,7 @@ def test_to_int5():
     code = r"""
     %%% .toint()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     data = {}
     data['ID'] = [
         10001,
@@ -658,7 +657,7 @@ def test_to_na1():
     code = r"""
     name .tona()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()[['name']]
     assert_frame_equal(result, expected)
 
@@ -669,7 +668,7 @@ def test_to_na2():
     code = r"""
     diabetes  .tona()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         False,
         'true',
@@ -695,7 +694,7 @@ def test_to_na3():
     diabetes  %%!?'/'  .tona()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         False,
         'true',
@@ -721,7 +720,7 @@ def test_to_na4():
     diabetes  %%!?'/'  %%%.tona()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         False,
         'true',
@@ -746,7 +745,7 @@ def test_to_nk1():
     code = r"""
     age  .tonk
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         -25,
         '30',
@@ -771,7 +770,7 @@ def test_to_nk2():
     code = r"""
     age  :!>0  .tonk  %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         -25,
         '30',
@@ -796,7 +795,7 @@ def test_to_num1():
     code = r"""
     name  .tonum()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = pd.Series([pd.NA] * 11, dtype='Int64')
     expected = pd.DataFrame({'name': vals})
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -809,7 +808,7 @@ def test_to_num2():
     code = r"""
     weight .tonum()
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = pd.Series([
         70.2,
         68,
@@ -837,7 +836,7 @@ def test_to_num3():
     weight %%>70 .tonum()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70.2,
         '68',
@@ -863,7 +862,7 @@ def test_to_num4():
     weight  %%>70  %%%.tonum()
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         70.2,
         '68',
@@ -888,7 +887,7 @@ def test_to_obj():
     code = r"""
     age  .toobj
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()[['age']].astype('object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
@@ -901,7 +900,7 @@ def test_to_yn1():
     code = r"""
     diabetes  .toyn
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         'no',
         'yes',
@@ -927,7 +926,7 @@ def test_to_yn2():
     code = r"""
     diabetes  !=7 +index  .toyn  %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         'no',
         'yes',
@@ -953,7 +952,7 @@ def test_typeinfo():
     code = r"""
     age  .typeinfo
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         "-25 [int] -25",
         "'30' [int] 30",
@@ -979,7 +978,7 @@ def test_typeinfo_strict():
     code = r"""
     age  .typeinfo +strict
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         "-25 [int]",
         "'30' [str]",

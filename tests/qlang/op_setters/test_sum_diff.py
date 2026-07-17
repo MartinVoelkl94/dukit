@@ -4,7 +4,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -32,7 +31,7 @@ def test_sum_colref():
     code = r"""
     height  +=@weight +int
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         240,
         pd.NA,
@@ -58,7 +57,7 @@ def test_sum_int1():
     code = r"""
     age  .toint  +=1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         -24,
         31,
@@ -84,7 +83,7 @@ def test_sum_int2():
     code = r"""
     age  +=1  +int
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         -24,
         31,
@@ -110,7 +109,7 @@ def test_sum_str():
     code = r"""
     age  +=1  +str
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         '-251',
         '301',
@@ -136,7 +135,7 @@ def test_diff_colref():
     code = r"""
     height  -=@weight +int
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         100,
         pd.NA,
@@ -162,7 +161,7 @@ def test_diff_int():
     code = r"""
     age  -=1  +int
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [
         -26,
         29,

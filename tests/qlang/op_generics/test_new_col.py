@@ -6,7 +6,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -104,7 +103,7 @@ params = [
 @pytest.mark.parametrize('code, expected_cols_vals, message', params)
 def test_basic(code, expected_cols_vals, message):
 
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     for col, value in expected_cols_vals.items():
         expected[col] = value
@@ -120,7 +119,7 @@ def test_basic(code, expected_cols_vals, message):
 
 def test_complex1():
     code = 'name   .new(a, 1)'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
     expected = expected.convert_dtypes().loc[:, ['a']]
@@ -130,7 +129,7 @@ def test_complex1():
 
 def test_complex2():
     code = 'name   .new(a, 1)   /age'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
     expected = expected.convert_dtypes().loc[:, ['age', 'a']]
@@ -140,7 +139,7 @@ def test_complex2():
 
 def test_complex3():
     code = r'.new(a, 1)  %%==(0, +index)'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
     expected = expected.convert_dtypes().loc[[0], ['a']]
@@ -154,7 +153,7 @@ def test_complex4():
             %%?john
         .new(a, 1)
         """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
     expected = expected.convert_dtypes().loc[[0, 2, 10], ['a']]
@@ -174,7 +173,7 @@ def test_complex5():
 
         /a
         """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
     expected = expected.convert_dtypes().loc[[0, 10], ['name', 'a']]
@@ -198,7 +197,7 @@ def test_complex6():
             //:load 1
         a
         """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
     expected = expected.convert_dtypes().loc[[0, 2, 10], ['a']]
@@ -213,7 +212,7 @@ def test_metadata():
     .tag('')
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['_meta'] = ''
     expected['_meta'] = expected['_meta'].astype('string')
@@ -224,7 +223,7 @@ def test_metadata():
     .tag('', _meta1)
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['_meta1'] = ''
     expected['_meta1'] = expected['_meta1'].astype('string')
@@ -235,7 +234,7 @@ def test_metadata():
     .tag(a, _meta1)
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['_meta1'] = 'a'
     expected['_meta1'] = expected['_meta1'].astype('string')
@@ -247,7 +246,7 @@ def test_metadata():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     vals = [
         'INVALID',
@@ -271,7 +270,7 @@ def test_metadata():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     vals = [
         'INVALID',
@@ -296,7 +295,7 @@ def test_metadata():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     vals = [
         'INVALID age;  ',

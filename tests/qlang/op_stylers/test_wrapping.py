@@ -8,7 +8,6 @@ from pandas.testing import (
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -36,7 +35,7 @@ def test_wrap1():
     code = r"""
     %.wrap(wrap)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -50,7 +49,7 @@ def test_wrap2():
     code = r"""
     %%.wrap(wrap)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -64,7 +63,7 @@ def test_wrap3():
     code = r"""
     %%%.wrap(wrap)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -79,7 +78,7 @@ def test_wrap4():
     code = r"""
     .wrap(wrap)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -94,7 +93,7 @@ def test_wrap5():
     code = r"""
     age  <0  .wrap(wrap)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -110,7 +109,7 @@ def test_hard1():
     code = r"""
     %.wrap(hard)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -124,7 +123,7 @@ def test_hard2():
     code = r"""
     %%.wrap(hard)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -138,7 +137,7 @@ def test_hard3():
     code = r"""
     %%%.wrap(hard)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -153,7 +152,7 @@ def test_hard4():
     code = r"""
     .wrap(hard)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -168,7 +167,7 @@ def test_hard5():
     code = r"""
     age  <0  .wrap(hard)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -184,7 +183,7 @@ def test_pre1():
     code = r"""
     %.wrap(pre)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -198,7 +197,7 @@ def test_pre2():
     code = r"""
     %%.wrap(pre)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -212,7 +211,7 @@ def test_pre3():
     code = r"""
     %%%.wrap(pre)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -227,7 +226,7 @@ def test_pre4():
     code = r"""
     .wrap(pre)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -242,7 +241,7 @@ def test_pre5():
     code = r"""
     age  <0  .wrap(pre)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,

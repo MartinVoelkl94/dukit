@@ -3,7 +3,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -36,7 +35,7 @@ def test_rows1():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected.loc[[0, 10], 'name'] = 'deleted'
     assert_frame_equal(result, expected)
@@ -52,7 +51,7 @@ def test_rows2():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected.loc[[0, 10], ['name', 'age']] = 'deleted'
     assert_frame_equal(result, expected)
@@ -72,7 +71,7 @@ def test_rows3():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['ID'] = expected['ID'].astype('object')
     expected['weight'] = expected['weight'].astype('string')
@@ -93,7 +92,7 @@ def test_rows4():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected.loc[[0, 1, 10], ['name', 'age']] = 'deleted'
     assert_frame_equal(result, expected)
@@ -105,7 +104,7 @@ def test_rows5():
     name  = age +colref
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['name'] = expected['age']
     assert_frame_equal(result, expected)
@@ -117,7 +116,7 @@ def test_rows6():
     name  = @age
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['name'] = expected['age']
     assert_frame_equal(result, expected)

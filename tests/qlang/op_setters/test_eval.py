@@ -6,7 +6,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -32,7 +31,7 @@ def check_message(expected_strings):
 
 def test_eval1():
     code = r'%.eval("x.lower()")'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected.columns = expected.columns.astype('string').str.lower()
     assert_frame_equal(result, expected)
@@ -42,7 +41,7 @@ def test_eval1():
 
 def test_eval2():
     code = r'name  %%.eval("str(1)")'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[:, ['name']]
     index_new = pd.Index([str(1)] * len(expected), dtype='string')
     expected.index = index_new
@@ -56,7 +55,7 @@ def test_eval3():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected.index = expected.index.astype('string').str.lower()
     assert_frame_equal(result, expected)
@@ -69,7 +68,7 @@ def test_eval4():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['name'] = expected['name'].astype('string').str.lower()
     assert_frame_equal(result, expected)
@@ -84,7 +83,7 @@ def test_eval5():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['name'] = expected['name'].astype('string').str.lower()
     assert_frame_equal(result, expected)
@@ -98,7 +97,7 @@ def test_eval6():
         .eval("str(10001)")
         .tostr
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[[0], ['ID']].astype('object')
     expected.loc[0, 'ID'] = np.nan
     expected.loc[0, 'ID'] = '10001'
@@ -113,7 +112,7 @@ def test_eval7():
         %%%:all
             .eval("str(0)")
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[:, ['ID', 'age']]
     expected['ID'] = str(0)
     expected['age'] = str(0)
@@ -128,7 +127,7 @@ def test_eval8():
         %%:isnum()
             .eval("str(0)")
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[:, ['ID', 'age']]
     expected['ID'] = str(0)
     expected.loc[[0, 1, 2, 4, 8, 10], 'age'] = str(0)
@@ -143,7 +142,7 @@ def test_eval9():
         %%:isnum(+allcols)
             .eval("0")
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [0, 1, 2, 4, 8, 10]
     expected = get_df().loc[rows, ['ID', 'age']]
     expected['age'] = expected['age'].astype('object')
@@ -158,7 +157,7 @@ def test_eval_col1():
     id  .eval('df["name"]')
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['ID'] = expected['name']
     assert_frame_equal(result, expected)
@@ -170,7 +169,7 @@ def test_eval_col2():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['ID'] = expected['name']
     assert_frame_equal(result, expected)
@@ -182,7 +181,7 @@ def test_eval_col3():
     id  /age  .eval('df["name"]')
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['ID'] = expected['name']
     expected['age'] = expected['name']
@@ -194,7 +193,7 @@ def test_eval_col4():
     code = r"""
     .eval('df["name"]')
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     for col in expected.columns:
         expected[col] = expected['name']
@@ -209,7 +208,7 @@ def test_eval_col5():
         .eval('df["name"]')
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['ID'] = expected['name']
     expected.loc[[0, 1, 2, 4, 8, 10], 'age'] = expected['name']
@@ -224,7 +223,7 @@ def test_eval_col6():
         .eval('df["name"]')
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[[0, 1, 2, 4, 8, 10], :]
     expected['ID'] = expected['name'].astype('object')
     expected['age'] = expected['name'].astype('object')
@@ -240,7 +239,7 @@ def test_eval_col7():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     rows = [0, 1, 2, 4, 8, 10]
     expected['ID'] = expected['ID'].astype('object')

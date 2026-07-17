@@ -3,7 +3,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -29,7 +28,7 @@ def check_message(expected_strings):
 
 def test_cols1():
     code = r'name  %=full_name  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().rename(columns={'name': 'full_name'})
     expected.columns = expected.columns.astype('string')
     assert_frame_equal(result, expected)
@@ -38,7 +37,7 @@ def test_cols1():
 
 def test_cols2():
     code = r'name  /age  %=renamed  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     mapping = {
         'name': 'renamed',
         'age': 'renamed',
@@ -55,7 +54,7 @@ def test_cols3():
     'date of birth' %=dob
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     mapping = {
         'name': 'full_name',
         'date of birth': 'dob',

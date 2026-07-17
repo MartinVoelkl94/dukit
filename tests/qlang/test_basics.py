@@ -7,8 +7,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
-    qs,
     )
 
 
@@ -31,19 +29,19 @@ def check_message(expected_strings):
 
 
 def test_bare_literal_selects_column():
-    result = qr(df, 'age', verbosity=0).result
+    result = df.dk.qr('age', verbosity=0).result
     expected = df.loc[:, ['age']]
     assert_frame_equal(result, expected)
 
 
 def test_bare_scope_selects_all_columns():
-    result = qr(df, '%', verbosity=0).result
+    result = df.dk.qr('%', verbosity=0).result
     expected = df.copy()
     assert_frame_equal(result, expected)
 
 
 def test_basic_parsing():
-    query = qr(df, r'name  ?doe +strict  =FOUND', verbosity=0)
+    query = df.dk.qr(r'name  ?doe +strict  =FOUND', verbosity=0)
 
     assert len(query.ops) == 3
 
@@ -73,12 +71,12 @@ def test_basic_parsing():
 
 def test_ignore_comment():
     code = '#id'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     assert_frame_equal(result, expected)
 
     code = 'id #name'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[:, ['ID']]
     assert_frame_equal(result, expected)
 
@@ -86,30 +84,30 @@ def test_ignore_comment():
         id
         #name
         """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df().loc[:, ['ID']]
     assert_frame_equal(result, expected)
 
 
 def test_ignore_op_with_invalid_flags():
-    query = qr(df, r'name  ?doe +strict +doesnotexist', verbosity=0)
+    query = df.dk.qr(r'name  ?doe +strict +doesnotexist', verbosity=0)
     assert len(query.ops) == 1
 
 
 def test_ignore_op_using_invalid_args():
-    query = qr(df, 'name  .align(diagonal)', verbosity=0)
+    query = df.dk.qr('name  .align(diagonal)', verbosity=0)
     assert len(query.ops) == 1
 
 
 def test_negate_inverts_getter_condition():
-    result = qr(df, r'name  !?doe', verbosity=0).result
+    result = df.dk.qr(r'name  !?doe', verbosity=0).result
     expected = df.drop(index=[0, 10]).loc[:, ['name']]
     assert_frame_equal(result, expected)
 
 
 def test_returns_dataframe():
     code = 'name'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     assert isinstance(result, pd.DataFrame)
     assert list(result.columns) == ['name']
 
@@ -634,7 +632,7 @@ params = [
 @pytest.mark.parametrize('code, connectors, scopes, message', params)
 def test_scope_parsing(code, connectors, scopes, message):
 
-    q = qr(df, code, verbosity=0)
+    q = df.dk.qr(code, verbosity=0)
 
     result = [op.connector for op in q.ops]
     expected = connectors
@@ -663,7 +661,7 @@ def test_scope_scan_precedence():
         }
 
     for code, token_name in symbol_names.items():
-        query_obj = qr(df, code, verbosity=0)
+        query_obj = df.dk.qr(code, verbosity=0)
         result = query_obj.tokens[1].name  #0 is always QueryStart
         expected = token_name
         assert result == expected, f'Expected {expected} but "{code}" yielded: {result}'
@@ -671,14 +669,14 @@ def test_scope_scan_precedence():
 
 def test_setter_defaults_to_vals_scope():
     df1 = df.loc[:, ['name']].copy()
-    result = qr(df1, '.upper()', verbosity=0).result
+    result = df1.dk.qr('.upper()', verbosity=0).result
     expected = df.loc[:, ['name']].copy()
     expected['name'] = expected['name'].astype('string').str.upper()
     assert_frame_equal(result, expected)
 
 
 def test_styler_op_returns_styler():
-    styled = qs(df, 'name  .color(red)', verbosity=0)
+    styled = df.dk.qs('name  .color(red)', verbosity=0)
     assert isinstance(styled, pd.io.formats.style.Styler)
 
 
@@ -724,7 +722,7 @@ def test_unique_symbol_names():
 def test_unrecognized_character_logs_error_and_continues():
     log(clear=True, verbosity=2)
 
-    result = qr(df, r'name  $  ?doe  ', verbosity=2).result
+    result = df.dk.qr(r'name  $  ?doe  ', verbosity=2).result
     expected = df.loc[[0, 10], ['name']]
 
     assert_frame_equal(result, expected)

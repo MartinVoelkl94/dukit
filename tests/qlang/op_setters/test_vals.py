@@ -5,7 +5,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -33,7 +32,7 @@ def test_basic():
     code = r"""
     age  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -47,7 +46,7 @@ def test_flag_str():
     code = r"""
     age  =20000101 +str
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = ['20000101'] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='string')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -61,7 +60,7 @@ def test_flag_int():
     code = r"""
     age  =20000101 +int
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [20000101] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -75,7 +74,7 @@ def test_flag_float():
     code = r"""
     age  =20000101 +float
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [20000101.0] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Float64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -89,7 +88,7 @@ def test_flag_num():
     code = r"""
     age  =20000101 +num
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [20000101] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -103,7 +102,7 @@ def test_tostr():
     code = r"""
     age  .tostr  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -117,7 +116,7 @@ def test_toint():
     code = r"""
     age  .toint  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -131,7 +130,7 @@ def test_tofloat():
     code = r"""
     age  .tofloat  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -145,7 +144,7 @@ def test_tonum():
     code = r"""
     age  .tonum  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -159,7 +158,7 @@ def test_tobool():
     code = r"""
     age  .tobool  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -173,7 +172,7 @@ def test_todate():
     code = r"""
     age  .todate  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -187,7 +186,7 @@ def test_todatetime():
     code = r"""
     age  .todatetime  =1
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     vals = [1] * len(df)
     expected = pd.DataFrame({'age': vals}, dtype='Int64')
     expected.columns = expected.columns.to_series().convert_dtypes()
@@ -202,7 +201,7 @@ def test_vals1():
     %%%:isna  = ""
     %%%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     cols = [
         'age',
@@ -238,7 +237,7 @@ def test_vals2():
                 =X
             %%%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = (
         get_df()
         .loc[[4, 10], ['age']]
@@ -257,7 +256,7 @@ def test_vals3():
             %%%=X
         %%%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()[['age']]
     expected.loc[[0, 1, 4, 10], 'age'] = 'X'
     expected['age'] = expected['age'].astype('object')
@@ -274,7 +273,7 @@ def test_vals4():
                 =X
             %%%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10]
     expected = get_df().loc[rows, ['name', 'age']]
     expected.loc[[0, 2, 10], 'name'] = 'X'
@@ -293,7 +292,7 @@ def test_vals5():
                 =X
             %%%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10]
     expected = get_df().loc[rows, ['name', 'age']]
     expected.loc[[0, 2, 10], 'name'] = 'X'

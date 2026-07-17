@@ -101,8 +101,8 @@ class ScopeValsNew(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isint')
-    >>> qs(df, r'height /weight  %%%:isint')  #integer vals in height and weight cols
+    >>> df.dk.qs(r'%%%:isint')
+    >>> df.dk.qs(r'height /weight  %%%:isint')  #integer vals in height and weight cols
     """
     name = 'ScopeValsNew'
     category = 'scope'
@@ -124,7 +124,7 @@ class ScopeValsAnd(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isint  &&&>0')  #integer vals above 0
+    >>> df.dk.qs(r'%%%:isint  &&&>0')  #integer vals above 0
     """
     name = 'ScopeValsAnd'
     category = 'scope'
@@ -146,7 +146,7 @@ class ScopeValsOr(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isint  ///:isna')  #integer or na vals
+    >>> df.dk.qs(r'%%%:isint  ///:isna')  #integer or na vals
     """
     name = 'ScopeValsOr'
     category = 'scope'
@@ -169,7 +169,7 @@ class ScopeRowsNew(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  %%>30')
+    >>> df.dk.qs(r'age  %%>30')
     """
     name = 'ScopeRowsNew'
     category = 'scope'
@@ -191,7 +191,7 @@ class ScopeRowsAnd(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  %%>30  &&<50')  #rows where age >30 and <50
+    >>> df.dk.qs(r'age  %%>30  &&<50')  #rows where age >30 and <50
     """
     name = 'ScopeRowsAnd'
     category = 'scope'
@@ -213,7 +213,7 @@ class ScopeRowsOr(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  %%?a  //?b')  #rows where name contains "a" OR "b"
+    >>> df.dk.qs(r'name  %%?a  //?b')  #rows where name contains "a" OR "b"
     """
     name = 'ScopeRowsOr'
     category = 'scope'
@@ -236,7 +236,7 @@ class ScopeColsNew(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%==age')
+    >>> df.dk.qs(r'%==age')
     """
     name = 'ScopeColsNew'
     category = 'scope'
@@ -258,7 +258,7 @@ class ScopeColsAnd(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%?a  &?e')  #cols containing "a" AND "e"
+    >>> df.dk.qs(r'%?a  &?e')  #cols containing "a" AND "e"
     """
     name = 'ScopeColsAnd'
     category = 'scope'
@@ -280,7 +280,7 @@ class ScopeColsOr(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%?a  /?e')  #cols containing "a" OR "e"
+    >>> df.dk.qs(r'%?a  /?e')  #cols containing "a" OR "e"
     """
     name = 'ScopeColsOr'
     category = 'scope'
@@ -522,8 +522,8 @@ class CopyCol(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'.copy')
-    >>> qs(df, r'.copy(new_col_name)')
+    >>> df.dk.qs(r'.copy')
+    >>> df.dk.qs(r'.copy(new_col_name)')
     """
 
     #symbol attributes
@@ -594,8 +594,8 @@ class NewCol(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'.new a')
-    >>> qs(df, r'.new(a, 1, +float)')
+    >>> df.dk.qs(r'.new a')
+    >>> df.dk.qs(r'.new(a, 1, +float)')
     """
 
     #symbol attributes
@@ -688,7 +688,7 @@ class TagMetadata(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  <0  .tag("invalid age")')
+    >>> df.dk.qs(r'age  <0  .tag("invalid age")')
     """
 
     #symbol attributes
@@ -744,7 +744,7 @@ class SaveSelection(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .save(1)')
+    >>> df.dk.qs(r'name  .save(1)')
     """
 
     #symbol attributes
@@ -800,8 +800,8 @@ class SortSelection(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .sort')  #ascending
-    >>> qs(df, r'name  !.sort')  #inverse order -> descending
+    >>> df.dk.qs(r'name  .sort')  #ascending
+    >>> df.dk.qs(r'name  !.sort')  #inverse order -> descending
     """
 
     #symbol attributes
@@ -1127,7 +1127,7 @@ class GetEquals(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  ==30')
+    >>> df.dk.qs(r'age  ==30')
     """
 
     #symbol attributes
@@ -1211,7 +1211,7 @@ class GetNotEquals(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  !=30')
+    >>> df.dk.qs(r'age  !=30')
     """
 
     #symbol attributes
@@ -1267,7 +1267,7 @@ class GetContains(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  ?john')
+    >>> df.dk.qs(r'name  ?john')
     """
 
     #symbol attributes
@@ -1352,7 +1352,7 @@ class GetGreaterEqual(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  >=30')
+    >>> df.dk.qs(r'age  >=30')
     """
 
     #symbol attributes
@@ -1446,7 +1446,7 @@ class GetSmallerEqual(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  <=30')
+    >>> df.dk.qs(r'age  <=30')
     """
 
     #symbol attributes
@@ -1539,7 +1539,7 @@ class GetGreater(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  >30')
+    >>> df.dk.qs(r'age  >30')
     """
 
     #symbol attributes
@@ -1632,7 +1632,7 @@ class GetSmaller(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  <30')
+    >>> df.dk.qs(r'age  <30')
     """
 
     #symbol attributes
@@ -1728,7 +1728,7 @@ class GetEval(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%:eval("len(x) > 3")')  #cols with names longer than 3 characters
+    >>> df.dk.qs(r'%:eval("len(x) > 3")')  #cols with names longer than 3 characters
     """
 
     #symbol attributes
@@ -1811,7 +1811,7 @@ class GetSavedSelection(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .save(1)   %age   %:load(1)')
+    >>> df.dk.qs(r'name  .save(1)   %age   %:load(1)')
     """
 
     #symbol attributes
@@ -1894,8 +1894,8 @@ class GetTrimmedSelection(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%>0   &&&<100   %:trim')
-    >>> qs(df, r'%%%>0   &&&<100   %%:trim')
+    >>> df.dk.qs(r'%%%>0   &&&<100   %:trim')
+    >>> df.dk.qs(r'%%%>0   &&&<100   %%:trim')
     """
 
     #symbol attributes
@@ -1964,7 +1964,7 @@ class GetInvertedSelection(Symbol):
 
     Examples
     --------
-    >>> qs(df, r':isna  :invert')
+    >>> df.dk.qs(r':isna  :invert')
     """
 
     #symbol attributes
@@ -2024,7 +2024,7 @@ class GetIsStr(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isstr')
+    >>> df.dk.qs(r'age  :isstr')
     """
 
     #symbol attributes
@@ -2088,7 +2088,7 @@ class GetIsInt(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isint')
+    >>> df.dk.qs(r'age  :isint')
     """
 
     #symbol attributes
@@ -2158,7 +2158,7 @@ class GetIsFloat(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isfloat')
+    >>> df.dk.qs(r'age  :isfloat')
     """
 
     #symbol attributes
@@ -2226,7 +2226,7 @@ class GetIsNum(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isnum')
+    >>> df.dk.qs(r'age  :isnum')
     """
 
     #symbol attributes
@@ -2294,7 +2294,7 @@ class GetIsBool(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isbool')
+    >>> df.dk.qs(r'age  :isbool')
     """
 
     #symbol attributes
@@ -2362,7 +2362,7 @@ class GetIsDatetime(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isdatetime')
+    >>> df.dk.qs(r'age  :isdatetime')
     """
 
     #symbol attributes
@@ -2430,7 +2430,7 @@ class GetIsDate(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isdate')
+    >>> df.dk.qs(r'age  :isdate')
     """
 
     #symbol attributes
@@ -2498,7 +2498,7 @@ class GetIsNA(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isna')
+    >>> df.dk.qs(r'age  :isna')
     """
 
     #symbol attributes
@@ -2566,7 +2566,7 @@ class GetIsNK(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isnk')
+    >>> df.dk.qs(r'age  :isnk')
     """
 
     #symbol attributes
@@ -2630,7 +2630,7 @@ class GetIsYN(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isyn')
+    >>> df.dk.qs(r'age  :isyn')
     """
 
     #symbol attributes
@@ -2694,7 +2694,7 @@ class GetIsUnique(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isunique')
+    >>> df.dk.qs(r'age  :isunique')
     """
 
     #symbol attributes
@@ -2759,7 +2759,7 @@ class GetIsFirst(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :isfirst')
+    >>> df.dk.qs(r'age  :isfirst')
     """
 
     #symbol attributes
@@ -2824,7 +2824,7 @@ class GetIsLast(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  :islast')
+    >>> df.dk.qs(r'age  :islast')
     """
 
     #symbol attributes
@@ -2888,8 +2888,8 @@ class GetAll(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%:all')
-    >>> qs(df, r'%')  #defaults to GetAll operator
+    >>> df.dk.qs(r'%:all')
+    >>> df.dk.qs(r'%')  #defaults to GetAll operator
     """
 
     #symbol attributes
@@ -3502,7 +3502,7 @@ class SetVals(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  =="john doe"  ="JOHN DOE"')
+    >>> df.dk.qs(r'name  =="john doe"  ="JOHN DOE"')
     """
 
     #symbol attributes
@@ -3598,7 +3598,7 @@ class SetSum(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  +=10')
+    >>> df.dk.qs(r'age  +=10')
     """
 
     #symbol attributes
@@ -3693,7 +3693,7 @@ class SetDifference(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  -=10')
+    >>> df.dk.qs(r'age  -=10')
     """
 
     #symbol attributes
@@ -3790,7 +3790,7 @@ class SetEval(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%name  .eval( "str(x).upper()" )')
+    >>> df.dk.qs(r'%name  .eval( "str(x).upper()" )')
     """
 
     #symbol attributes
@@ -3894,7 +3894,7 @@ class SetTypeInfo(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .typeinfo')
+    >>> df.dk.qs(r'name  .typeinfo')
     """
 
     #symbol attributes
@@ -3964,7 +3964,7 @@ class SetRawRepresentation(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .repr')
+    >>> df.dk.qs(r'name  .repr')
     """
 
     #symbol attributes
@@ -4026,7 +4026,7 @@ class SetToObj(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .toobj')
+    >>> df.dk.qs(r'name  .toobj')
     """
 
     #symbol attributes
@@ -4086,7 +4086,7 @@ class SetToStr(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .tostr')
+    >>> df.dk.qs(r'name  .tostr')
     """
 
     #symbol attributes
@@ -4150,7 +4150,7 @@ class SetToInt(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .toint')
+    >>> df.dk.qs(r'name  .toint')
     """
 
     #symbol attributes
@@ -4223,7 +4223,7 @@ class SetToFloat(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .tofloat')
+    >>> df.dk.qs(r'name  .tofloat')
     """
 
     #symbol attributes
@@ -4293,7 +4293,7 @@ class SetToNum(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .tonum')
+    >>> df.dk.qs(r'name  .tonum')
     """
 
     #symbol attributes
@@ -4366,7 +4366,7 @@ class SetToBool(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .tobool')
+    >>> df.dk.qs(r'name  .tobool')
     """
 
     #symbol attributes
@@ -4440,7 +4440,7 @@ class SetToDatetime(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .todatetime')
+    >>> df.dk.qs(r'name  .todatetime')
     """
 
     #symbol attributes
@@ -4502,7 +4502,7 @@ class SetToDate(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .todate')
+    >>> df.dk.qs(r'name  .todate')
     """
 
     #symbol attributes
@@ -4572,7 +4572,7 @@ class SetToNA(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .tona')
+    >>> df.dk.qs(r'name  .tona')
     """
 
     #symbol attributes
@@ -4640,7 +4640,7 @@ class SetToNK(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .tonk')
+    >>> df.dk.qs(r'name  .tonk')
     """
 
     #symbol attributes
@@ -4704,7 +4704,7 @@ class SetToYN(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .toyn')
+    >>> df.dk.qs(r'name  .toyn')
     """
 
     #symbol attributes
@@ -4767,7 +4767,7 @@ class SetStringReplace(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .replace(old, new)')
+    >>> df.dk.qs(r'name  .replace(old, new)')
     """
 
     #symbol attributes
@@ -4829,7 +4829,7 @@ class SetUpper(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .upper')
+    >>> df.dk.qs(r'name  .upper')
     """
 
     #symbol attributes
@@ -4891,7 +4891,7 @@ class SetLower(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .lower')
+    >>> df.dk.qs(r'name  .lower')
     """
 
     #symbol attributes
@@ -5119,7 +5119,7 @@ class StyleMonospace(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%.mono')
+    >>> df.dk.qs(r'%.mono')
     """
 
     #symbol attributes
@@ -5169,7 +5169,7 @@ class StyleFont(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%.font(bold)')
+    >>> df.dk.qs(r'%.font(bold)')
     """
 
     #symbol attributes
@@ -5252,7 +5252,7 @@ class StyleColor(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .color(red)')
+    >>> df.dk.qs(r'name  .color(red)')
     """
 
     #symbol attributes
@@ -5303,7 +5303,7 @@ class StyleBackgroundColor(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .bg(red)')
+    >>> df.dk.qs(r'name  .bg(red)')
     """
 
     #symbol attributes
@@ -5358,7 +5358,7 @@ class StyleAlignement(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .align(center)')
+    >>> df.dk.qs(r'name  .align(center)')
     """
 
     #symbol attributes
@@ -5416,7 +5416,7 @@ class StyleTextWrap(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .wrap(nowrap)')
+    >>> df.dk.qs(r'name  .wrap(nowrap)')
     """
 
     #symbol attributes
@@ -5561,7 +5561,7 @@ class View(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isna  .view(step1)  %name  ?john  .view')
+    >>> df.dk.qs(r'%%%:isna  .view(step1)  %name  ?john  .view')
     """
 
     #symbol attributes
@@ -5622,7 +5622,7 @@ class ViewQuery(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isna  .q(step1)  %name  ?john  .q')
+    >>> df.dk.qs(r'%%%:isna  .q(step1)  %name  ?john  .q')
     """
 
     #symbol attributes
@@ -5673,7 +5673,7 @@ class ViewMasks(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isna  .masks(step1)  %name  ?john  .masks')
+    >>> df.dk.qs(r'%%%:isna  .masks(step1)  %name  ?john  .masks')
     """
 
     #symbol attributes
@@ -5725,7 +5725,7 @@ class ViewMaskCols(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isna  .cols(step1)  %name  ?john  .cols')
+    >>> df.dk.qs(r'%%%:isna  .cols(step1)  %name  ?john  .cols')
     """
 
     #symbol attributes
@@ -5776,7 +5776,7 @@ class ViewMaskRows(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isna  .rows(step1)  %name  ?john  .rows')
+    >>> df.dk.qs(r'%%%:isna  .rows(step1)  %name  ?john  .rows')
     """
 
     #symbol attributes
@@ -5827,7 +5827,7 @@ class ViewMaskVals(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%%%:isna  .vals(step1)  %name  ?john  .vals')
+    >>> df.dk.qs(r'%%%:isna  .vals(step1)  %name  ?john  .vals')
     """
 
     #symbol attributes
@@ -5875,7 +5875,7 @@ class ViewSetNArep(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'name  .na_rep("N/A")')
+    >>> df.dk.qs(r'name  .na_rep("N/A")')
     """
 
     #symbol attributes
@@ -5933,7 +5933,7 @@ class ViewParserHelp(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'..help')
+    >>> df.dk.qs(r'..help')
     """
     name = 'ViewParserHelp'
     category = 'viewer'
@@ -6049,7 +6049,7 @@ class ViewParserQuery(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  ..q')
+    >>> df.dk.qs(r'age  ..q')
     """
     name = 'ViewParserQuery'
     category = 'viewer'
@@ -6074,7 +6074,7 @@ class ViewParserOps(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  ..ops')
+    >>> df.dk.qs(r'age  ..ops')
     """
     name = 'ViewParserOps'
     category = 'viewer'
@@ -6100,7 +6100,7 @@ class ViewParserOp(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  ..op')
+    >>> df.dk.qs(r'age  ..op')
     """
     name = 'ViewParserOp'
     category = 'viewer'
@@ -6121,7 +6121,7 @@ class ViewParserTokens(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  ..tokens')
+    >>> df.dk.qs(r'age  ..tokens')
     """
     name = 'ViewParserTokens'
     category = 'viewer'
@@ -6150,7 +6150,7 @@ class ViewParserToken(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  ..token')
+    >>> df.dk.qs(r'age  ..token')
 
     """
     name = 'ViewParserToken'
@@ -6225,11 +6225,11 @@ class Literal(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'% == age')
-    >>> qs(df, r'% == "date of birth"')
-    >>> qs(df, r'age  %%>30')
-    >>> qs(df, r'age  %%>-30')
-    >>> qs(df, r'age  %%>30.0')
+    >>> df.dk.qs(r'% == age')
+    >>> df.dk.qs(r'% == "date of birth"')
+    >>> df.dk.qs(r'age  %%>30')
+    >>> df.dk.qs(r'age  %%>-30')
+    >>> df.dk.qs(r'age  %%>30.0')
     """
     name = 'Literal'
     category = 'syntax'
@@ -6317,8 +6317,8 @@ class ListStart(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%==(name, age, +strict)')
-    >>> qs(df, r'.newcol(year, 2001, +int)')
+    >>> df.dk.qs(r'%==(name, age, +strict)')
+    >>> df.dk.qs(r'.newcol(year, 2001, +int)')
     """
     name = 'ListStart'
     category = 'syntax'
@@ -6394,8 +6394,8 @@ class ListStop(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'%==(name, age, +strict)')
-    >>> qs(df, r'.newcol(year, 2001, +int)')
+    >>> df.dk.qs(r'%==(name, age, +strict)')
+    >>> df.dk.qs(r'.newcol(year, 2001, +int)')
     """
     name = 'ListStop'
     category = 'syntax'
@@ -6453,10 +6453,10 @@ class Separator(Symbol):
     Examples
     --------
     #names containing "a" and "b"
-    >>> qs(df, r'name  % ? a b')
-    >>> qs(df, r'name  % ? a, b')
-    >>> qs(df, r'name  % ? (a b)')
-    >>> qs(df, r'name  % ? (a, b)')
+    >>> df.dk.qs(r'name  % ? a b')
+    >>> df.dk.qs(r'name  % ? a, b')
+    >>> df.dk.qs(r'name  % ? (a b)')
+    >>> df.dk.qs(r'name  % ? (a, b)')
     """
     name = 'Separator'
     category = 'syntax'
@@ -6478,7 +6478,7 @@ class Whitespace(Symbol):
     Examples
     --------
     #names containing "a" and "b"
-    >>> qs(df, r'name  % ? a b')
+    >>> df.dk.qs(r'name  % ? a b')
     """
     name = 'Whitespace'
     category = 'syntax'
@@ -6506,7 +6506,7 @@ class FlagNegate(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'id   %%!>20000')
+    >>> df.dk.qs(r'id   %%!>20000')
     """
     name = 'FlagNegate'
     category = 'syntax'
@@ -6527,7 +6527,7 @@ class FlagColref(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  <@height')
+    >>> df.dk.qs(r'age  <@height')
     """
     name = 'FlagColref'
     category = 'syntax'
@@ -6555,7 +6555,7 @@ class Flag(Symbol):
 
     Examples
     --------
-    >>> qs(df, r'age  %%>30 +strict')
+    >>> df.dk.qs(r'age  %%>30 +strict')
     """
     name = 'Flag'
     category = 'syntax'

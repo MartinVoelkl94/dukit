@@ -8,7 +8,6 @@ from pandas.testing import (
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -38,7 +37,7 @@ def test_col_setter_compatible():
     name %='full name'
     %
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     cols = [
         'ID',
         'full name',
@@ -73,7 +72,7 @@ def test_row_setter_compatible():
     %%=11
     %%
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     indices = [
         0,
         11,
@@ -107,7 +106,7 @@ def test_val_setter_compatible():
     =11
     %%%
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,

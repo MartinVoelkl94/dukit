@@ -5,7 +5,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -317,7 +316,7 @@ params = [
     ]
 @pytest.mark.parametrize('code, expected, message', params)
 def test_complex_queries(code, expected, message):
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
     if message:
         check_message(message)
@@ -415,7 +414,7 @@ params = [
     ]
 @pytest.mark.parametrize('code, expected, message', params)
 def test_trim(code, expected, message):
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
     if message:
         check_message(message)

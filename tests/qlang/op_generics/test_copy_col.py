@@ -3,7 +3,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -28,7 +27,7 @@ def check_message(expected_strings):
 
 def test_copy1():
     code = 'name   .copy  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['name1'] = expected['name']
     assert_frame_equal(result, expected)
@@ -38,7 +37,7 @@ def test_copy1():
 
 def test_copy2():
     code = 'name   .copy  .copy  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['name1'] = expected['name']
     expected['name11'] = expected['name1']
@@ -49,7 +48,7 @@ def test_copy2():
 
 def test_copy3():
     code = 'name   .copy new  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['new'] = expected['name']
     assert_frame_equal(result, expected)

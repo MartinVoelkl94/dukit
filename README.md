@@ -7,7 +7,7 @@ Provides utilities focused on data exploration, modification and visualization o
 # qlang
 
 A small query language.
-It is implemented as a pandas [accessor extension](https://pandas.pydata.org/docs/development/extending.html), meaning it can be called from a dataframe without any further preparation by calling df.qs() with a valid text string.
+It is implemented as a pandas [accessor extension](https://pandas.pydata.org/docs/development/extending.html), meaning it can be called from a dataframe without any further preparation by calling df.dk.qs() with a valid text string.
 
 example:
 ```python
@@ -16,19 +16,19 @@ from dukit import get_df
 df = get_df()
 
 #show all patients with ID > 20000
-df.q(r'id  >20000')
+df.dk.qs(r'id  >20000')
 
 #select all patients whose name contains "john"
-df.q(r'name  ?john')
+df.dk.qs(r'name  ?john')
 
 #select all patients whose name contains "j" and "a"
-df.q(r'name  ?j  &&?a')
+df.dk.qs(r'name  ?j  &&?a')
 
 #select all patients whose name contains "j" or "a"
-df.q(r'name  ?j  //?a')
+df.dk.qs(r'name  ?j  //?a')
 
 #select ages between 18 and 80 and highlight them green
-df.q(r'age  >18  &&<80  .color(green)')
+df.dk.qs(r'age  >18  &&<80  .color(green)')
 ```
 
 Take a look at "interactive_demo.ipynb" in the github repo for a quick syntax introduction and more examples.

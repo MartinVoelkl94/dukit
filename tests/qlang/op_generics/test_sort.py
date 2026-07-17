@@ -3,7 +3,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -28,7 +27,7 @@ def check_message(expected_strings):
 
 def test_cols1():
     code = '%.sort'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     cols = [
         'ID',
         'age',
@@ -51,7 +50,7 @@ def test_cols1():
 
 def test_cols2():
     code = '%!.sort'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     cols = [
         'weight',
         'name',
@@ -74,7 +73,7 @@ def test_cols2():
 
 def test_rows1():
     code = r'%%.sort'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     expected = get_df()
     expected = expected.loc[rows, :]
@@ -84,7 +83,7 @@ def test_rows1():
 
 def test_rows2():
     code = r'%%!.sort'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
     expected = get_df()
     expected = expected.loc[rows, :]
@@ -94,7 +93,7 @@ def test_rows2():
 
 def test_vals1():
     code = r'ID  .sort  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     expected = get_df()
     expected = expected.loc[rows, :]
@@ -104,7 +103,7 @@ def test_vals1():
 
 def test_vals2():
     code = r'ID  !.sort  %'
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     rows = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
     expected = get_df()
     expected = expected.loc[rows, :]

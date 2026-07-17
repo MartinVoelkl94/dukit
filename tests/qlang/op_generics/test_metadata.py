@@ -5,7 +5,6 @@ from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -33,7 +32,7 @@ def test_basic1():
     .tag('')
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['_meta'] = ''
     expected['_meta'] = expected['_meta'].astype('string')
@@ -46,7 +45,7 @@ def test_basic2():
     .tag('', _meta1)
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['_meta1'] = ''
     expected['_meta1'] = expected['_meta1'].astype('string')
@@ -59,7 +58,7 @@ def test_basic3():
     .tag(a, _meta1)
     %
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     expected['_meta1'] = 'a'
     expected['_meta1'] = expected['_meta1'].astype('string')
@@ -73,7 +72,7 @@ def test_basic4():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     vals = [
         'INVALID',
@@ -99,7 +98,7 @@ def test_basic5():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     vals = [
         'INVALID',
@@ -126,7 +125,7 @@ def test_basic6():
     %
     %%
     """
-    result = qr(df, code).result
+    result = df.dk.qr(code).result
     expected = get_df()
     vals = [
         'INVALID age;  ',

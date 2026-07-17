@@ -8,7 +8,6 @@ from pandas.testing import (
 from dukit import (
     get_df,
     log,
-    qr,
     )
 
 
@@ -35,7 +34,7 @@ def test_align_cols():
     code = r"""
     %.align(left)
     """
-    result = qr(df, code).style_cols
+    result = df.dk.qr(code).style_cols
     expected = pd.Series(
         '',
         index=df.columns,
@@ -49,7 +48,7 @@ def test_align_rows():
     code = r"""
     %%.align(right)
     """
-    result = qr(df, code).style_rows
+    result = df.dk.qr(code).style_rows
     expected = pd.Series(
         '',
         index=df.index,
@@ -63,7 +62,7 @@ def test_align_vals1():
     code = r"""
     %%%.align(center)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -78,7 +77,7 @@ def test_align_vals2():
     code = r"""
     .align(start)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -93,7 +92,7 @@ def test_align_vals3():
     code = r"""
     age  <0  .align(end)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,
@@ -108,7 +107,7 @@ def test_align_vals4():
     code = r"""
     age  <0  .align(justify)
     """
-    result = qr(df, code).style_vals
+    result = df.dk.qr(code).style_vals
     expected = pd.DataFrame(
         '',
         index=df.index,

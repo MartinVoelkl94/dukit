@@ -4,7 +4,6 @@ import pytest
 from dukit import (
     get_df,
     log,
-    qs,
     )
 
 
@@ -60,7 +59,7 @@ params = [
 ]
 @pytest.mark.parametrize('code, txt', params)
 def test_viewers_during_execution(capsys, code, txt):
-    qs(df, code)
+    df.dk.qs(code)
     out = capsys.readouterr().out
     assert txt in out
 
@@ -99,6 +98,6 @@ params = [
 ]
 @pytest.mark.parametrize('code, txt', params)
 def test_viewers_during_parsing(capsys, code, txt):
-    qs(df, code)
+    df.dk.qs(code)
     out = capsys.readouterr().out
     assert txt in out

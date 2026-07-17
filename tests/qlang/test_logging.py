@@ -10,8 +10,6 @@ from dukit.qlang import (
 from dukit import (
     get_df,
     log,
-    qs,
-    q,
     )
 
 
@@ -296,7 +294,7 @@ params = [
 @pytest.mark.parametrize('code, message', params)
 def test_log_messages(code, message):
     log(clear=True)
-    qs(df, code)
+    df.dk.qs(code)
     check_message(message)
 
 
@@ -304,7 +302,7 @@ def test_log_messages(code, message):
 
 def test_invalid_operator():
     log(clear=True)
-    query = q(df)
+    query = df.dk.q()
     query.op = engine.Symbol()
     query.op.connector = 'new'
     symbols._process_op(query)
@@ -328,7 +326,7 @@ def test_invalid_getter_mask():
         return mask
     op = engine.Symbol()
     op.getter = getter_invalid
-    query = q(df)
+    query = df.dk.q()
 
     symbols._apply_getter(
         series,
@@ -344,7 +342,7 @@ def test_invalid_getter_mask():
 def test_invalid_op():
     log(clear=True)
 
-    query = q(df)
+    query = df.dk.q()
     query.op = engine.Symbol()
     symbols._validate_op_essentials(query, True, '')
     messages = [
@@ -363,7 +361,7 @@ def test_invalid_arg_type():
     series = pd.Series([1, 2, 3])
     arg = None
     op = engine.Symbol()
-    query = q(df)
+    query = df.dk.q()
 
     symbols._infer_types_for_getter(
         series,
