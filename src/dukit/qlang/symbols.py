@@ -540,6 +540,95 @@ def _validate_op_args(
 
 
 
+class AliasStyleTable(Symbol):
+    """
+    applies default style "table".
+    works well with string which are
+    formatted like tables, eg. "subtables".
+
+    this is an alias for:
+    code = r\"\"\"
+    .replace("\n", "<br>")
+    .wrap(normal)
+    .mono()
+    .align(left)
+    %.align(center)
+    \"\"\"
+    df.dk.qs(code)
+
+    Examples
+    --------
+    >>> df.dk.qs(r'%.style')
+    """
+
+    #symbol attributes
+    name = 'AliasStyleTable'
+    category = 'styler'
+    regex = (
+        r'\.style_table',
+        r'\.style',
+        )
+
+    #used to validate the current op
+    connectors_allowed = {
+        'new': 'start a new op',
+        }
+    scopes_allowed = {
+        'vals': 'apply a theme to the whole df',
+        }
+    flags_allowed = {}
+    args_allowed = {}
+    args_min = 0
+    args_max = 0
+
+
+    def parse(self, q: Query) -> Query:
+        q = _preparse_for_setter_or_styler(q)
+        q = _parse_op_symbol(self, q)
+
+        q.op = SetStringReplace()
+        q.op.connector = 'new'
+        q.op.scope = 'vals'
+        q.op.operator = q.op.name
+        q.op.args = ['\n', '<br>']
+        q = _process_op(q)
+
+        q.op = StyleTextWrap()
+        q.op.connector = 'new'
+        q.op.scope = 'vals'
+        q.op.operator = q.op.name
+        q.op.args = ['normal']
+        q = _process_op(q)
+
+        q.op = StyleMonospace()
+        q.op.connector = 'new'
+        q.op.scope = 'vals'
+        q.op.operator = q.op.name
+        q = _process_op(q)
+
+        q.op = StyleAlignement()
+        q.op.connector = 'new'
+        q.op.scope = 'vals'
+        q.op.operator = q.op.name
+        q.op.args = ['left']
+        q = _process_op(q)
+
+        q.op = StyleAlignement()
+        q.op.connector = 'new'
+        q.op.scope = 'cols'
+        q.op.operator = q.op.name
+        q.op.args = ['center']
+        q = _process_op(q)
+
+        return q
+
+
+    def run(self, q: Query) -> Query:
+        return q
+
+
+
+
 class CopyCol(Symbol):
     """
     copy values in currently
