@@ -275,7 +275,7 @@ def ensure_unique_string(
 
 
 
-def _arg_to_list(arg):
+def _arg_to_list(arg) -> list:
     """
     converts a non interable argument to a list
     """
@@ -304,7 +304,16 @@ def dict_to_str(d: dict, spacer='\n  ') -> str:
     return str_d
 
 
-def list_to_str(lst: list, spacer='\n  ') -> str:
+def list_to_str(
+        lst: list | pd.Series | pd.Index,
+        spacer='\n  ',
+        ) -> str:
+
+    if isinstance(lst, pd.Series):
+        lst = lst.to_list()
+    elif isinstance(lst, pd.Index):
+        lst = lst.to_list()
+
     if len(lst) < 2:
         return str(lst)
     str_lst = (
@@ -313,6 +322,7 @@ def list_to_str(lst: list, spacer='\n  ') -> str:
         + spacer.join(f'{item!r}' for item in lst)
         + '\n]'
         )
+
     return str_lst
 
 

@@ -1,7 +1,10 @@
 
 import pandas as pd
 
-from .diffing import diff
+from .diffing import (
+    diff,
+    rediff,
+    )
 from .qlang import (
     q,
     qr,
@@ -45,6 +48,7 @@ from .typing import (
 
 __all__ = (
     'diff',
+    'rediff',
     'q',
     'qr',
     'qs',
