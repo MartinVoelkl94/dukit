@@ -173,26 +173,32 @@ def log(
             #make html friendly
             message['text'] = (
                 message['text']
+                .replace('<br>', '\n')
                 .replace('<', '&lt;')
                 .replace('>', '&gt;')
-                .replace('\t', '&emsp;')
                 .replace('\n', '<br>')
+                .replace('\t', '&emsp;')
                 )
             message['context'] = (
                 message['context']
+                .replace('<br>', '\n')
                 .replace('<', '&lt;')
                 .replace('>', '&gt;')
-                .replace('\t', '&emsp;')
                 .replace('\n', '<br>')
+                .replace('\t', '&emsp;')
                 )
             message_df = pd.DataFrame(message, index=[len(logs)])
 
+            kwargs_format = {
+                'whitespace': 'normal',
+                'text-align': 'left',
+                }
             display(
                 message_df
                 .style
                 .hide(axis=1)
                 .apply(lambda x: [f'background-color: {color}' for i in x], axis=1)
-                .set_properties(None, **{'text-align': 'left'})
+                .set_properties(None, **kwargs_format)
                 )
 
         #everywhere else

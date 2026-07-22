@@ -45,6 +45,17 @@ from .typing import (
     _typeinfo as typeinfo,
     _typeinfostrict as typeinfostrict,
     )
+from .os import (
+    pwd,
+    cd,
+    cp,
+    mv,
+    mkdir,
+    isdir,
+    isfile,
+    ispath,
+    fetch,
+    )
 
 __all__ = (
     'diff',
@@ -79,6 +90,15 @@ __all__ = (
     'convert',
     'typeinfo',
     'typeinfostrict',
+    'pwd',
+    'cd',
+    'cp',
+    'mv',
+    'mkdir',
+    'isdir',
+    'isfile',
+    'ispath',
+    'fetch',
     )
 
 
