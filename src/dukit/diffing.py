@@ -27,11 +27,11 @@ def diff(
         uid=None,
         mode='mix',
         rename_cols: dict = None,
-        retain_cols: list = None,
-        remove_cols: list = None,
+        retain_cols: list | str = None,
+        remove_cols: list | str = None,
         remove_cols_by_suffix='',
-        ignore_cols: list = None,
-        remove_sheets: list = None,
+        ignore_cols: list | str = None,
+        remove_sheets: list | str = None,
         name='data',
         linebreak='<br>',
         suffix_old=' *old',
@@ -764,13 +764,13 @@ class Diff:
         self._mask_changed: pd.DataFrame
         self._result = pd.DataFrame()
 
-        self.cols_shared = pd.Index([], dtype='string')
-        self.cols_added = pd.Index([], dtype='string')
-        self.cols_removed = pd.Index([], dtype='string')
+        self.cols_shared: pd.Index = pd.Index([], dtype='string')
+        self.cols_added: pd.Index = pd.Index([], dtype='string')
+        self.cols_removed: pd.Index = pd.Index([], dtype='string')
 
-        self.rows_shared = pd.Index([], dtype='string')
-        self.rows_added = pd.Index([], dtype='string')
-        self.rows_removed = pd.Index([], dtype='string')
+        self.rows_shared: pd.Index = pd.Index([], dtype='string')
+        self.rows_added: pd.Index = pd.Index([], dtype='string')
+        self.rows_removed: pd.Index = pd.Index([], dtype='string')
 
         self.vals_added: int | None = None
         self.vals_removed: int | None = None
