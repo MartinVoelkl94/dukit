@@ -22,9 +22,11 @@ dev = [
     "faker>=40.28.1",
     "flake8>=7.3.0",
     "ipykernel>=7.3.0",
+    "ipywidgets>=8.1.8",
     "openpyxl>=3.1.5",
     "pip>=26.1.2",
     "pylance>=8.0.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
+    "viztracer>=1.1.1",
 ]
