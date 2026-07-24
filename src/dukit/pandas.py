@@ -274,11 +274,11 @@ def get_dfs():
         })
     df2 = pd.DataFrame({
         'id': [
-            10001,
-            10001,
+            10002,
             20001,
             20001,
-            20001,
+            30001,
+            30001,
             30001,
             ],
         'medication': [
@@ -351,6 +351,7 @@ def stagger(
         df: pd.DataFrame,
         on: str,
         template='#{counter}_{colname}',
+        separator_col='#{counter}'
         ):
 
     duplicates_max = df[on].value_counts().max()
@@ -362,6 +363,13 @@ def stagger(
         )
 
     for i in range(duplicates_max):
+        if separator_col:
+            separator_vals = pd.Series(
+                '',
+                index=df.index,
+                name=separator_col.format(counter=i + 1),
+                )
+            df_new = pd.concat([df_new, separator_vals], axis=1)
         for col in cols:
             if col == on:
                 continue
@@ -370,6 +378,7 @@ def stagger(
             df_new = pd.concat([df_new, col_new], axis=1)
 
     df_new.reset_index(drop=True, inplace=True)
+
     return df_new
 
 
@@ -384,17 +393,17 @@ def _get_from_list(x, i):
 def embed(
         df: pd.DataFrame,
         on: str,
-        prefix='',
+        colname='',
+        template='{colname}_#{counter}',
         line_start='',
         separator=':',
-        padding='\u00A0',  #non-breaking space
+        spacer='\u00A0',  #non-breaking space
         line_stop='\n',
-        flatten_template='{colname}_#{counter}',
         ):
 
     combined_cols_str = pd.DataFrame({
         on: df[on],
-        prefix: ''
+        colname: ''
         })
 
     len_max_cols = (
@@ -409,16 +418,16 @@ def embed(
     for col in df.columns:
         if col == on:
             continue
-        len_padding = (
+        len_spacer = (
             len_max_cols
             - len(str(col))
             + 1
             )
-        combined_cols_str[prefix] += (
+        combined_cols_str[colname] += (
             line_start
             + str(col)
             + separator
-            + padding * len_padding
+            + spacer * len_spacer
             + df[col].apply(str)
             + line_stop
             )
@@ -426,7 +435,7 @@ def embed(
     df_new = flatten(
         combined_cols_str,
         on=on,
-        template=flatten_template,
+        template=template,
         )
 
     return df_new
@@ -436,14 +445,13 @@ def embed(
 def collapse(
         df: pd.DataFrame,
         on: str,
-        prefix='',
-        spacer='',
+        template='{colname}',
         line_start='#',
         line_stop='\n',
         ):
     df = df.groupby(on).agg(list)
     df = df.map(lambda x: _to_lines(x, line_start, line_stop))
-    df.columns = [f'{prefix}{spacer}{col}' for col in df.columns]
+    df.columns = [template.format(colname=col) for col in df.columns]
     df.insert(0, on, df.index)
     df.reset_index(drop=True, inplace=True)
     return df

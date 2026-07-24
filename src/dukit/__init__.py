@@ -141,7 +141,7 @@ class DukitAccessor():
     def flatten(
             self,
             on: str,
-            template='{colname}_#{counter}'
+            template='{colname}_#{counter}',
             ):
         df_new = flatten(
             self.df,
@@ -154,12 +154,14 @@ class DukitAccessor():
     def stagger(
             self,
             on: str,
-            template='#{counter}_{colname}'
+            template='#{counter}_{colname}',
+            separator_col='#{counter}',
             ):
         df_new = stagger(
             self.df,
             on=on,
             template=template,
+            separator_col=separator_col,
             )
         return df_new
 
@@ -167,39 +169,37 @@ class DukitAccessor():
     def embed(
             self,
             on: str,
-            prefix='',
+            colname='',
+            template='{colname}_#{counter}',
             line_start='',
             separator=':',
-            padding='\u00A0',  #non-breaking space
+            spacer='\u00A0',  #non-breaking space
             line_stop='\n',
-            flatten_template='{colname}_#{counter}',
             ):
         df_new = embed(
             self.df,
             on=on,
-            prefix=prefix,
+            colname=colname,
+            template=template,
             line_start=line_start,
             separator=separator,
-            padding=padding,
+            spacer=spacer,
             line_stop=line_stop,
-            flatten_template=flatten_template,
             )
         return df_new
 
 
     def collapse(
             self,
-            on: str = 'id',
-            prefix='',
-            spacer='',
+            on: str,
+            template='{colname}',
             line_start='#',
             line_stop='\n',
             ):
         df_new = collapse(
             self.df,
             on=on,
-            prefix=prefix,
-            spacer=spacer,
+            template=template,
             line_start=line_start,
             line_stop=line_stop,
             )
