@@ -115,7 +115,7 @@ def rediff(
         ignore_cols: list | str = None,
         remove_sheets=['info', 'summary', 'details'],
         name='data',
-        linebreak='<br>',
+        linebreak='\n',
         suffix_old=' *old',
         verbosity=3,
         ) -> Diffs:

@@ -313,9 +313,8 @@ def get_dfs():
 
 def flatten(
         df: pd.DataFrame,
-        on: str = 'id',
-        prefix='',
-        spacer=''
+        on: str,
+        template='{colname}_#{counter}',
         ):
 
     #aggregate repeating rows into lists
@@ -325,7 +324,11 @@ def flatten(
     cols_new = []
     for col in df.columns:
         n_max = df[col].apply(lambda x: len(x)).max()
-        cols_flat = [f'{prefix}{col}{spacer}{i + 1}' for i in range(n_max)]
+        cols_flat = [
+            template.format(counter=i + 1, colname=col)
+            for i
+            in range(n_max)
+            ]
         split = pd.DataFrame(df[col].to_list(), columns=cols_flat)
         split.index = df.index
         df = df.merge(
@@ -346,9 +349,8 @@ def flatten(
 
 def stagger(
         df: pd.DataFrame,
-        on: str = 'id',
-        prefix='',
-        spacer='',
+        on: str,
+        template='#{counter}_{colname}',
         ):
 
     duplicates_max = df[on].value_counts().max()
@@ -364,7 +366,7 @@ def stagger(
             if col == on:
                 continue
             col_new = df[col].apply(lambda x: _get_from_list(x, i))
-            col_new.name = f'{prefix}{col}{spacer}{i + 1}'
+            col_new.name = template.format(counter=i + 1, colname=col)
             df_new = pd.concat([df_new, col_new], axis=1)
 
     df_new.reset_index(drop=True, inplace=True)
@@ -381,13 +383,13 @@ def _get_from_list(x, i):
 
 def embed(
         df: pd.DataFrame,
-        on: str = 'id',
+        on: str,
         prefix='',
-        spacer='',
         line_start='',
         separator=':',
         padding='\u00A0',  #non-breaking space
         line_stop='\n',
+        flatten_template='{colname}_#{counter}',
         ):
 
     combined_cols_str = pd.DataFrame({
@@ -424,7 +426,7 @@ def embed(
     df_new = flatten(
         combined_cols_str,
         on=on,
-        spacer=spacer,
+        template=flatten_template,
         )
 
     return df_new
@@ -433,10 +435,10 @@ def embed(
 
 def collapse(
         df: pd.DataFrame,
-        on: str = 'id',
+        on: str,
         prefix='',
         spacer='',
-        line_start='',
+        line_start='#',
         line_stop='\n',
         ):
     df = df.groupby(on).agg(list)
@@ -449,7 +451,7 @@ def collapse(
 
 def _to_lines(
         x,
-        line_start='',
+        line_start='#',
         line_stop='\n',
         ):
     if not isinstance(x, list):
@@ -466,7 +468,7 @@ def _to_lines(
 
 def transpose(
         df: pd.DataFrame,
-        header='id',
+        header='uid',
         ) -> pd.DataFrame:
 
     cols_old = df.columns

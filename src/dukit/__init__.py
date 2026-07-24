@@ -140,53 +140,49 @@ class DukitAccessor():
 
     def flatten(
             self,
-            on: str = 'id',
-            prefix='',
-            spacer=''
+            on: str,
+            template='{colname}_#{counter}'
             ):
         df_new = flatten(
             self.df,
             on=on,
-            prefix=prefix,
-            spacer=spacer,
+            template=template,
             )
         return df_new
 
 
     def stagger(
             self,
-            on: str = 'id',
-            prefix='',
-            spacer='',
+            on: str,
+            template='#{counter}_{colname}'
             ):
         df_new = stagger(
             self.df,
             on=on,
-            prefix=prefix,
-            spacer=spacer,
+            template=template,
             )
         return df_new
 
 
     def embed(
             self,
-            on: str = 'id',
+            on: str,
             prefix='',
-            spacer='',
             line_start='',
             separator=':',
             padding='\u00A0',  #non-breaking space
             line_stop='\n',
+            flatten_template='{colname}_#{counter}',
             ):
         df_new = embed(
             self.df,
             on=on,
             prefix=prefix,
-            spacer=spacer,
             line_start=line_start,
             separator=separator,
             padding=padding,
             line_stop=line_stop,
+            flatten_template=flatten_template,
             )
         return df_new
 
@@ -196,7 +192,7 @@ class DukitAccessor():
             on: str = 'id',
             prefix='',
             spacer='',
-            line_start='',
+            line_start='#',
             line_stop='\n',
             ):
         df_new = collapse(
@@ -212,7 +208,7 @@ class DukitAccessor():
 
     def transpose(
             self,
-            header='id',
+            header='uid',
             ) -> pd.DataFrame:
         df_new = transpose(
             self.df,
