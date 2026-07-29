@@ -174,6 +174,65 @@ def get_df() -> pd.DataFrame:
 
 
 
+def get_dfs():
+    df1 = pd.DataFrame({
+        'id': [
+            10001,
+            10002,
+            20001,
+            30001,
+            ],
+        'name': [
+            'John Doe',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            ],
+        'age': [
+            25,
+            30,
+            35,
+            40,
+            ],
+        })
+    df2 = pd.DataFrame({
+        'id': [
+            10002,
+            20001,
+            20001,
+            30001,
+            30001,
+            30001,
+            ],
+        'medication': [
+            'Aspirin',
+            'Ibuprofen',
+            'Paracetamol',
+            'Amoxicillin',
+            'Ciprofloxacin',
+            'Metformin',
+            ],
+        'dose': [
+            100,
+            200,
+            pd.NA,
+            250,
+            500,
+            1000,
+            ],
+        'unit': [
+            'mg',
+            'mg',
+            '',
+            'mg',
+            'ml',
+            'mg',
+            ]
+        })
+    return df1, df2
+
+
+
 
 def deduplicate(obj, name='object', verbosity=3):
     """
@@ -248,65 +307,6 @@ def _deduplicate(series):
         )
     series[duplicates_mask] = duplicates_new
     return series
-
-
-
-def get_dfs():
-    df1 = pd.DataFrame({
-        'id': [
-            10001,
-            10002,
-            20001,
-            30001,
-            ],
-        'name': [
-            'John Doe',
-            'Jane Smith',
-            'Alice Johnson',
-            'Bob Brown',
-            ],
-        'age': [
-            25,
-            30,
-            35,
-            40,
-            ],
-        })
-    df2 = pd.DataFrame({
-        'id': [
-            10002,
-            20001,
-            20001,
-            30001,
-            30001,
-            30001,
-            ],
-        'medication': [
-            'Aspirin',
-            'Ibuprofen',
-            'Paracetamol',
-            'Amoxicillin',
-            'Ciprofloxacin',
-            'Metformin',
-            ],
-        'dose': [
-            100,
-            200,
-            pd.NA,
-            250,
-            500,
-            1000,
-            ],
-        'unit': [
-            'mg',
-            'mg',
-            '',
-            'mg',
-            'ml',
-            'mg',
-            ]
-        })
-    return df1, df2
 
 
 
