@@ -857,11 +857,18 @@ def _handle_edgecases(d: Diff) -> Diff:
             columns=values.columns,
             )
 
-    result = values.style.apply(lambda x: style, axis=None)
-    result = result.set_properties(white_space='normal')
-    d.result = result
+    d.result = values.style.apply(lambda x: style, axis=None)
+    d.result = d.result.set_properties(white_space='normal')
     d._values = values
     d._style = style
+
+    d._df_retained = pd.DataFrame()
+    d._cols_ignore = []
+    d._metadata_col_mapping = {}
+    d._mask_added = pd.DataFrame(dtype='bool')
+    d._mask_removed = pd.DataFrame(dtype='bool')
+    d._mask_changed = pd.DataFrame(dtype='bool')
+    d._diff_col = pd.Series(dtype='string')
 
     return d
 
@@ -1400,7 +1407,8 @@ def _add_retained_cols(d: Diff) -> Diff:
 
 def _add_diff_col(d: Diff) -> Diff:
     colname = ensure_unique_string('diff', d._values.columns)
-    d._values.insert(0, colname, d._diff_col)
+    d._diff_col.name = colname
+    d._values = pd.concat([d._diff_col, d._values], axis=1)
     return d
 
 
@@ -1408,15 +1416,22 @@ def _add_diff_col(d: Diff) -> Diff:
 def _add_uid_col(d: Diff) -> Diff:
 
     colname_uid = ensure_unique_string(str(d.uid), d._values.columns)
-    d._values.insert(0, colname_uid, d._values.index)
+    uid_col = pd.Series(
+        d._values.index,
+        index=d._values.index,
+        name=colname_uid,
+        )
+    d._values = pd.concat([uid_col, d._values], axis=1)
 
-    if d._values.index.equals(d._style.index):
+    index_diff = d._values.index.difference(d._style.index)
+    if index_diff.empty:
         d._values.reset_index(drop=True, inplace=True)
         d._style.reset_index(drop=True, inplace=True)
     else:
         msg = (
             'ERROR: index of values and style dfs do not match.'
             'This should never happen. Please report this issue.'
+            f'Index difference: {index_diff}'
             )
         log(msg, 'dk.diffing._add_uid_col', d.verbosity)
 
