@@ -315,9 +315,9 @@ class Diffs:
         rows_added = [len(x) for x in all_rows_added]
         rows_removed = [len(x) for x in all_rows_removed]
 
-        vals_added = [d.vals_added for d in self.diffs.values()]
-        vals_removed = [d.vals_removed for d in self.diffs.values()]
-        vals_changed = [d.vals_changed for d in self.diffs.values()]
+        vals_added = [sum(d.vals_added) for d in self.diffs.values()]
+        vals_removed = [sum(d.vals_removed) for d in self.diffs.values()]
+        vals_changed = [sum(d.vals_changed) for d in self.diffs.values()]
 
         data = {
             'data': names,
@@ -698,28 +698,28 @@ def _get_single_diff(
     d = _rename_cols(d, rename_cols)
     d = _remove_cols(d, _arg_to_list(remove_cols))
     d = _remove_cols_by_suffix(d, remove_cols_by_suffix)
-    d = _set_uid(d, uid)
 
-    #_retain_cols() must be after _set_uid()
-    #for correct row alignment when readding later
-    d = _retain_cols(d, _arg_to_list(retain_cols))
+    d = _set_uid(d, uid)
+    d = _retain_cols(d, _arg_to_list(retain_cols))  #depends on _set_uid()
     d = _ignore_cols(d, _arg_to_list(ignore_cols))
 
+    d = _create_working_values(d)
+    d = _create_diff_col(d)
+    d = _create_style(d)
+
     d = _get_row_col_diffs(d)
-    d = _align_dtypes(d)
+    d = _create_meta_cols(d)  #depends on _get_row_col_diffs()
+    d = _align_dtypes(d)  #depends on _get_row_col_diffs()
+    d = _get_val_diffs(d)  #depends on _get_row_col_diffs() and _align_dtypes()
 
-    if mode == 'mix':
-        d = _get_templates_mix(d)
-    elif mode == 'old':
-        d = _get_templates_old(d)
-    elif mode in ('new', 'new+'):
-        d = _get_templates_new(d)
+    d = _populate_row_col_styles(d)  #depends on _get_row_col_diffs()
+    d = _populate_val_styles(d)  #depends on _get_val_diffs()
+    d = _populate_meta_cols(d)  #depends on _get_row_col_diffs() and _get_val_diffs()
+    d = _populate_diff_col(d)  #depends on _get_row_col_diffs() and _get_val_diffs()
 
-    d = _get_val_diffs(d)
-
-    if mode == 'new+':
-        d = _process_metadata_cols(d)
-
+    d = _add_retained_cols(d)
+    d = _add_diff_col(d)
+    d = _add_uid_col(d)
     d = _apply_style(d)
 
     return d
@@ -751,32 +751,33 @@ class Diff:
         self.mode = mode
         self.name = name
         self.verbosity = verbosity
+        self.linebreak = linebreak
+        self.suffix_old = suffix_old
 
-        self._linebreak = linebreak
-        self._suffix_old = suffix_old
-        self._df_retained = pd.DataFrame()
-        self._cols_ignore: list = []
-        self._col_summary = ''
-        self._metadata_col_mapping = {}
-        self._mask_added: pd.DataFrame
-        self._mask_removed: pd.DataFrame
-        self._mask_changed: pd.DataFrame
-
+        #determined by _get_row_col_diffs()
         self.cols_shared: pd.Index = pd.Index([], dtype='string')
         self.cols_added: pd.Index = pd.Index([], dtype='string')
         self.cols_removed: pd.Index = pd.Index([], dtype='string')
-
         self.rows_shared: pd.Index = pd.Index([], dtype='string')
         self.rows_added: pd.Index = pd.Index([], dtype='string')
         self.rows_removed: pd.Index = pd.Index([], dtype='string')
 
-        self.vals_added: int | None = None
-        self.vals_removed: int | None = None
-        self.vals_changed: int | None = None
+        #determined by _get_val_diffs()
+        self.vals_added: pd.Series = pd.Series(dtype='int')
+        self.vals_removed: pd.Series = pd.Series(dtype='int')
+        self.vals_changed: pd.Series = pd.Series(dtype='int')
 
-        self._values = pd.DataFrame()
-        self._style = pd.DataFrame()
-        self.result = pd.DataFrame().style
+        #helper attributes for internal use
+        self._df_retained: pd.DataFrame
+        self._cols_ignore: list[str]
+        self._metadata_col_mapping: dict[str, str]
+        self._mask_added: pd.DataFrame
+        self._mask_removed: pd.DataFrame
+        self._mask_changed: pd.DataFrame
+        self._diff_col: pd.Series
+        self._values: pd.DataFrame
+        self._style: pd.DataFrame
+        self.result: pd.io.formats.style.Styler
 
 
 
@@ -803,9 +804,9 @@ class Diff:
                 f'rows shared: {len(self.rows_shared)}\n'
                 f'rows added: {len(self.rows_added)}\n'
                 f'rows removed: {len(self.rows_removed)}\n'
-                f'vals added: {self.vals_added}\n'
-                f'vals removed: {self.vals_removed}\n'
-                f'vals changed: {self.vals_changed}\n'
+                f'vals added: {sum(self.vals_added)}\n'
+                f'vals removed: {sum(self.vals_removed)}\n'
+                f'vals changed: {sum(self.vals_changed)}\n'
                 )
         txt += (
             '>>>d.result\n'
@@ -884,7 +885,6 @@ def _rename_cols(d: Diff, cols_mapping: dict | None) -> Diff:
         in cols_mapping.items()
         if k in d.old.columns
         }
-
     cols_mapping_new = {
         k: v
         for k, v
@@ -937,14 +937,14 @@ def _remove_cols_by_suffix(d: Diff, suffix: str) -> Diff:
         in d.old.columns
         if str(col).endswith(suffix)
         ]
-    d.old = d.old.drop(columns=cols_remove_old)
-
     cols_remove_new = [
         col
         for col
         in d.new.columns
         if str(col).endswith(suffix)
         ]
+
+    d.old = d.old.drop(columns=cols_remove_old)
     d.new = d.new.drop(columns=cols_remove_new)
 
     return d
@@ -973,18 +973,18 @@ def _set_uid(d: Diff, uid: typing.Any) -> Diff:
             d.name,
             d.verbosity,
             )
-        d.uid = uid
         d.old.index = d.old[uid]
         d.new.index = d.new[uid]
         d.old.drop(columns=uid, inplace=True)
         d.new.drop(columns=uid, inplace=True)
+        d.uid = uid
 
     elif uid in d.old.columns and uid in d.new.columns:
-        d.uid = uid
         d.old.index = d.old[uid]
         d.new.index = d.new[uid]
         d.old.drop(columns=uid, inplace=True)
         d.new.drop(columns=uid, inplace=True)
+        d.uid = uid
 
     else:
         raise ValueError(f"UID column {uid!r} not found in both dataframes.")
@@ -1005,10 +1005,6 @@ def _set_uid(d: Diff, uid: typing.Any) -> Diff:
             verbosity=d.verbosity,
             )
         d.old.index = d.old.index.astype(str)
-
-    d.old.insert(0, uid, d.old.index)
-    d.new.insert(0, uid, d.new.index)
-    d._cols_ignore.append(uid)
 
     return d
 
@@ -1057,6 +1053,7 @@ def _retain_cols(d: Diff, cols: list) -> Diff:
     """
 
     if not cols:
+        d._df_retained = pd.DataFrame()
         return d
 
     cols_retain_old = d.old.columns.intersection(cols)
@@ -1079,6 +1076,7 @@ def _ignore_cols(d: Diff, cols: list) -> Diff:
     """
 
     if not cols:
+        d._cols_ignore = []
         return d
 
     d._cols_ignore = (
@@ -1089,6 +1087,46 @@ def _ignore_cols(d: Diff, cols: list) -> Diff:
         )
 
     return d
+
+
+
+def _create_working_values(d: Diff) -> Diff:
+
+    if d.mode == 'mix':
+        rows_old_only = d.old.index.difference(d.new.index)
+        cols_old_only = d.old.columns.difference(d.new.columns)
+        d._values = pd.concat([d.new, d.old.loc[:, cols_old_only]], axis=1)
+        d._values.loc[rows_old_only, :] = d.old.loc[rows_old_only, :]
+
+    elif d.mode == 'old':
+        d._values = d.old.copy()
+
+    elif d.mode in ('new', 'new+'):
+        d._values = d.new.copy()
+
+    return d
+
+
+
+def _create_diff_col(d: Diff) -> Diff:
+    d._diff_col = pd.Series(
+        '',
+        index=d._values.index,
+        dtype='string',
+        )
+    return d
+
+
+
+def _create_style(d: Diff) -> Diff:
+    d._style = pd.DataFrame(
+        '',
+        index=d._values.index,
+        columns=d._values.columns,
+        dtype='string',
+        )
+    return d
+
 
 
 def _get_row_col_diffs(d: Diff) -> Diff:
@@ -1126,6 +1164,60 @@ def _get_row_col_diffs(d: Diff) -> Diff:
 
 
 
+def _create_meta_cols(d: Diff) -> Diff:
+
+    if d.mode != 'new+':
+        d._metadata_col_mapping = {}
+        return d
+
+    values = d._values
+    style = d._style
+
+    col_mapping = {}
+    cols_reorder = []
+
+    for col in values.columns:
+        cols_reorder.append(col)
+        if col != d.uid and col in d.cols_shared:
+            colname_meta = ensure_unique_string(
+                col + d.suffix_old,
+                taken=values.columns,
+                strategy=f'suffix={d.suffix_old}',
+                )
+            cols_reorder.append(colname_meta)
+            col_mapping[col] = colname_meta
+
+    df_meta = values.loc[:, col_mapping.keys()].copy()
+    df_meta.loc[:, :] = pd.NA
+    df_meta.rename(columns=col_mapping, inplace=True)
+
+    data = {
+        colname: ['font-style: italic'] * len(values.index)
+        for colname in col_mapping.values()
+        }
+    df_meta_style = pd.DataFrame(
+        data,
+        index=values.index,
+        dtype='string',
+        )
+
+    values = pd.concat(
+        [values, df_meta],
+        axis=1,
+        )
+    style = pd.concat(
+        [style, df_meta_style],
+        axis=1,
+        )
+
+    d._metadata_col_mapping = col_mapping
+    d._values = values[cols_reorder]
+    d._style = style[cols_reorder]
+
+    return d
+
+
+
 def _align_dtypes(d: Diff) -> Diff:
     """
     covers dtypes resulting from df.convert_dtypes():
@@ -1157,182 +1249,12 @@ def _align_dtypes(d: Diff) -> Diff:
 
 
 
-def _get_templates_mix(d: Diff) -> Diff:
-
-    rows_old_only = d.old.index.difference(d.new.index)
-    cols_old_only = d.old.columns.difference(d.new.columns)
-
-    values = pd.concat([d.new, d.old.loc[:, cols_old_only]], axis=1)
-    values.loc[rows_old_only, :] = d.old.loc[rows_old_only, :]
-
-    style = pd.DataFrame(
-        '',
-        index=values.index,
-        columns=values.columns,
-        )
-
-    style.loc[:, d.cols_added] = f'background-color: {GREEN}'
-    style.loc[:, d.cols_removed] = f'background-color: {RED}'
-    style.loc[d.rows_added, :] = f'background-color: {GREEN}'
-    style.loc[d.rows_removed, :] = f'background-color: {RED}'
-
-    if not d._df_retained.empty:
-        values = _add_df_retained(values, d._df_retained)
-
-    colname = ensure_unique_string('diff', values.columns)
-    col_diff = pd.Series(
-        '',
-        index=values.index,
-        dtype='string',
-        )
-    col_diff[d.rows_added] += 'row added'
-    col_diff[d.rows_removed] += 'row removed'
-    values.insert(0, colname, col_diff)
-
-    d._col_summary = colname
-    d._values = values
-    d._style = style
-
-    return d
-
-
-
-def _get_templates_old(d: Diff) -> Diff:
-
-    values = d.old.copy()
-    style = pd.DataFrame(
-        '',
-        index=values.index,
-        columns=values.columns,
-        )
-
-    style.loc[:, d.cols_removed] = f'background-color: {RED}'
-    style.loc[d.rows_removed, :] = f'background-color: {RED}'
-
-    if not d._df_retained.empty:
-        values = _add_df_retained(values, d._df_retained)
-
-    colname = ensure_unique_string('diff', values.columns)
-    col_diff = pd.Series(
-        '',
-        index=values.index,
-        dtype='string',
-        )
-    col_diff[d.rows_removed] += 'row removed'
-    values.insert(0, colname, col_diff)
-
-    d._col_summary = colname
-    d._values = values
-    d._style = style
-
-    return d
-
-
-
-def _get_templates_new(d: Diff) -> Diff:
-
-    values = d.new.copy()
-    style = pd.DataFrame(
-        '',
-        index=values.index,
-        columns=values.columns,
-        dtype='string',
-        )
-
-    #add metadata columns
-    if d.mode == 'new+':
-        values, style, mapping = _add_cols_metadata(d, values, style)
-        d._metadata_col_mapping = mapping
-
-    style.loc[:, d.cols_added] = f'background-color: {GREEN}'
-    style.loc[d.rows_added, :] = f'background-color: {GREEN}'
-
-    if not d._df_retained.empty:
-        values = _add_df_retained(values, d._df_retained)
-
-    colname = ensure_unique_string('diff', values.columns)
-    col_diff = pd.Series(
-        '',
-        index=values.index,
-        dtype='string',
-        )
-    col_diff[d.rows_added] += 'row added'
-    values.insert(0, colname, col_diff)
-
-    d._col_summary = colname
-    d._values = values
-    d._style = style
-
-    return d
-
-
-def _add_df_retained(df, df_retained):
-    idx_shared = df.index.intersection(df_retained.index)
-    df_retained = df_retained.loc[idx_shared, :]
-    df_new = pd.concat([df_retained, df], axis=1)
-    return df_new
-
-
-
-def _add_cols_metadata(
-        d: Diff,
-        values: pd.DataFrame,
-        style: pd.DataFrame,
-        ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, str]]:
-
-    col_mapping = {}
-    cols_reorder = []
-
-    for col in values.columns:
-        cols_reorder.append(col)
-        if col != d.uid and col in d.cols_shared:
-            colname_meta = ensure_unique_string(
-                col + d._suffix_old,
-                taken=values.columns,
-                strategy=f'suffix={d._suffix_old}',
-                )
-            cols_reorder.append(colname_meta)
-            col_mapping[col] = colname_meta
-
-    df_meta = values.loc[:, col_mapping.keys()].copy()
-    df_meta.loc[:, :] = pd.NA
-    df_meta.rename(columns=col_mapping, inplace=True)
-
-    data = {
-        colname: ['font-style: italic'] * len(values.index)
-        for colname in col_mapping.values()
-        }
-    df_meta_style = pd.DataFrame(
-        data,
-        index=values.index,
-        dtype='string',
-        )
-
-    values = pd.concat(
-        [values, df_meta],
-        axis=1,
-        )
-    style = pd.concat(
-        [style, df_meta_style],
-        axis=1,
-        )
-
-    values = values[cols_reorder]
-    style = style[cols_reorder]
-
-    return values, style, col_mapping
-
-
-
 def _get_val_diffs(d: Diff) -> Diff:
 
     old = d.old
     new = d.new
-    values = d._values
     rows_shared = d.rows_shared
     cols_shared = d.cols_shared
-    colname = d._col_summary
-    linebreak = d._linebreak
 
     old_isna = old.loc[rows_shared, cols_shared].isna()
     new_isna = new.loc[rows_shared, cols_shared].isna()
@@ -1341,43 +1263,79 @@ def _get_val_diffs(d: Diff) -> Diff:
         == old.loc[rows_shared, cols_shared]
         )
 
-    #these comparisons can result in dtype "boolean" instead of "bool"
-    #"boolean" masks cannot be used to set values as str
-    added = (old_isna & ~new_isna).astype(bool)
-    removed = (new_isna & ~old_isna).astype(bool)
-    changed = (~new_isna & ~old_isna & ~new_equals_old).astype(bool)
+    d._mask_added = (old_isna & ~new_isna)
+    d._mask_removed = (new_isna & ~old_isna)
+    d._mask_changed = (~new_isna & ~old_isna & ~new_equals_old)
+
+    d.vals_added = d._mask_added.sum()
+    d.vals_removed = d._mask_removed.sum()
+    d.vals_changed = d._mask_changed.sum()
+
+    return d
+
+
+
+def _populate_row_col_styles(d: Diff) -> Diff:
+
+    if d.mode == 'mix':
+        d._style.loc[:, d.cols_added] = f'background-color: {GREEN}'
+        d._style.loc[:, d.cols_removed] = f'background-color: {RED}'
+        d._style.loc[d.rows_added, :] = f'background-color: {GREEN}'
+        d._style.loc[d.rows_removed, :] = f'background-color: {RED}'
+        d._diff_col[d.rows_added] = 'row added'
+        d._diff_col[d.rows_removed] = 'row removed'
+
+    elif d.mode == 'old':
+        d._style.loc[:, d.cols_removed] = f'background-color: {RED}'
+        d._style.loc[d.rows_removed, :] = f'background-color: {RED}'
+        d._diff_col[d.rows_removed] = 'row removed'
+
+    elif d.mode in ('new', 'new+'):
+        d._style.loc[:, d.cols_added] = f'background-color: {GREEN}'
+        d._style.loc[d.rows_added, :] = f'background-color: {GREEN}'
+        d._diff_col[d.rows_added] = 'row added'
+
+    return d
+
+
+
+def _populate_val_styles(d: Diff) -> Diff:
 
     blank = pd.DataFrame(
         '',
-        index=rows_shared,
-        columns=cols_shared,
+        index=d.rows_shared,
+        columns=d.cols_shared,
         )
 
     add = (
         blank
         .copy()
-        .mask(added, f'background-color: {GREEN_LIGHT};')
+        .mask(d._mask_added, f'background-color: {GREEN_LIGHT};')
         )
     remove = (
         blank
         .copy()
-        .mask(removed, f'background-color: {RED_LIGHT};')
+        .mask(d._mask_removed, f'background-color: {RED_LIGHT};')
         )
     change = (
         blank
         .copy()
-        .mask(changed, f'background-color: {ORANGE_LIGHT};')
+        .mask(d._mask_changed, f'background-color: {ORANGE_LIGHT};')
         )
 
-    d._style.loc[rows_shared, cols_shared] += add
-    d._style.loc[rows_shared, cols_shared] += remove
-    d._style.loc[rows_shared, cols_shared] += change
+    d._style.loc[d.rows_shared, d.cols_shared] += add
+    d._style.loc[d.rows_shared, d.cols_shared] += remove
+    d._style.loc[d.rows_shared, d.cols_shared] += change
+
+    return d
 
 
-    #summarize changes in diff column
-    sum_added = added.sum(axis=1)
-    sum_removed = removed.sum(axis=1)
-    sum_changed = changed.sum(axis=1)
+
+def _populate_diff_col(d: Diff) -> Diff:
+
+    sum_added = d._mask_added.sum(axis=1)
+    sum_removed = d._mask_removed.sum(axis=1)
+    sum_changed = d._mask_changed.sum(axis=1)
 
     rows_added = sum_added[sum_added > 0].index
     rows_removed = sum_removed[sum_removed > 0].index
@@ -1387,30 +1345,25 @@ def _get_val_diffs(d: Diff) -> Diff:
     removed_or_changed = rows_removed.union(rows_changed)
     removed_or_changed_and_added = removed_or_changed.intersection(rows_added)
 
-    values.loc[rows_added, colname] += 'vals added: '
-    values.loc[rows_added, colname] += sum_added[rows_added].astype('string')
-    values.loc[removed_or_changed_and_added, colname] += linebreak
+    d._diff_col[rows_added] += 'vals added: '
+    d._diff_col[rows_added] += sum_added[rows_added].astype('string')
+    d._diff_col[removed_or_changed_and_added] += d.linebreak
 
-    values.loc[rows_removed, colname] += 'vals removed: '
-    values.loc[rows_removed, colname] += sum_removed[rows_removed].astype('string')
-    values.loc[removed_and_changed, colname] += linebreak
+    d._diff_col[rows_removed] += 'vals removed: '
+    d._diff_col[rows_removed] += sum_removed[rows_removed].astype('string')
+    d._diff_col[removed_and_changed] += d.linebreak
 
-    values.loc[rows_changed, colname] += 'vals changed: '
-    values.loc[rows_changed, colname] += sum_changed[rows_changed].astype('string')
-
-    d._values = values
-    d._mask_added = added
-    d._mask_removed = removed
-    d._mask_changed = changed
-    d.vals_added = sum_added.sum()
-    d.vals_removed = sum_removed.sum()
-    d.vals_changed = sum_changed.sum()
+    d._diff_col[rows_changed] += 'vals changed: '
+    d._diff_col[rows_changed] += sum_changed[rows_changed].astype('string')
 
     return d
 
 
 
-def _process_metadata_cols(d: Diff) -> Diff:
+def _populate_meta_cols(d: Diff) -> Diff:
+
+    if d.mode != 'new+':
+        return d
 
     all_modifications = (
         d._mask_added
@@ -1427,6 +1380,45 @@ def _process_metadata_cols(d: Diff) -> Diff:
 
     for col, col_meta in d._metadata_col_mapping.items():
         d._values[col_meta] = old_changed[col]
+
+    return d
+
+
+
+def _add_retained_cols(d: Diff) -> Diff:
+
+    if d._df_retained.empty:
+        return d
+
+    idx_shared = d._values.index.intersection(d._df_retained.index)
+    df_retained = d._df_retained.loc[idx_shared, :]
+    d._values = pd.concat([df_retained, d._values], axis=1)
+
+    return d
+
+
+
+def _add_diff_col(d: Diff) -> Diff:
+    colname = ensure_unique_string('diff', d._values.columns)
+    d._values.insert(0, colname, d._diff_col)
+    return d
+
+
+
+def _add_uid_col(d: Diff) -> Diff:
+
+    colname_uid = ensure_unique_string(str(d.uid), d._values.columns)
+    d._values.insert(0, colname_uid, d._values.index)
+
+    if d._values.index.equals(d._style.index):
+        d._values.reset_index(drop=True, inplace=True)
+        d._style.reset_index(drop=True, inplace=True)
+    else:
+        msg = (
+            'ERROR: index of values and style dfs do not match.'
+            'This should never happen. Please report this issue.'
+            )
+        log(msg, 'dk.diffing._add_uid_col', d.verbosity)
 
     return d
 

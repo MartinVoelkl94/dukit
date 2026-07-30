@@ -19,8 +19,8 @@ def test_remove_col_a_new():
 
     expected = _get_expected_new()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old,
@@ -41,8 +41,8 @@ def test_remove_col_a_new_csv(tmpdir):
 
     expected = _get_expected_new()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -63,8 +63,8 @@ def test_remove_col_a_new_xlsx(tmpdir):
 
     expected = _get_expected_new()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -84,7 +84,7 @@ def test_remove_col_b_new():
 
     expected = _get_expected_new()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old,
@@ -105,7 +105,7 @@ def test_remove_col_b_new_csv(tmpdir):
 
     expected = _get_expected_new()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -126,7 +126,7 @@ def test_remove_col_b_new_xlsx(tmpdir):
 
     expected = _get_expected_new()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -146,8 +146,8 @@ def test_remove_cols_new():
 
     expected = _get_expected_new()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old,
@@ -168,8 +168,8 @@ def test_remove_cols_new_csv(tmpdir):
 
     expected = _get_expected_new()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -190,8 +190,8 @@ def test_remove_cols_new_xlsx(tmpdir):
 
     expected = _get_expected_new()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -211,8 +211,8 @@ def test_remove_col_a_newplus():
 
     expected = _get_expected_newplus()
     expected.drop(columns=['a', 'a *old'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old,
@@ -233,8 +233,8 @@ def test_remove_col_a_newplus_csv(tmpdir):
 
     expected = _get_expected_newplus()
     expected.drop(columns=['a', 'a *old'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -255,8 +255,8 @@ def test_remove_col_a_newplus_xlsx(tmpdir):
 
     expected = _get_expected_newplus()
     expected.drop(columns=['a', 'a *old'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -276,7 +276,7 @@ def test_remove_col_b_newplus():
 
     expected = _get_expected_newplus()
     expected.drop(columns=['b', 'b *old'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old,
@@ -297,7 +297,7 @@ def test_remove_col_b_newplus_csv(tmpdir):
 
     expected = _get_expected_newplus()
     expected.drop(columns=['b', 'b *old'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -318,7 +318,7 @@ def test_remove_col_b_newplus_xlsx(tmpdir):
 
     expected = _get_expected_newplus()
     expected.drop(columns=['b', 'b *old'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -338,8 +338,8 @@ def test_remove_cols_newplus():
 
     expected = _get_expected_newplus()
     expected.drop(columns=['a', 'a *old', 'b', 'b *old'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old,
@@ -360,8 +360,8 @@ def test_remove_cols_newplus_csv(tmpdir):
 
     expected = _get_expected_newplus()
     expected.drop(columns=['a', 'a *old', 'b', 'b *old'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -382,8 +382,8 @@ def test_remove_cols_newplus_xlsx(tmpdir):
 
     expected = _get_expected_newplus()
     expected.drop(columns=['a', 'a *old', 'b', 'b *old'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -403,8 +403,8 @@ def test_remove_col_a_old():
 
     expected = _get_expected_old()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old,
@@ -425,8 +425,8 @@ def test_remove_col_a_old_csv(tmpdir):
 
     expected = _get_expected_old()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -447,8 +447,8 @@ def test_remove_col_a_old_xlsx(tmpdir):
 
     expected = _get_expected_old()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -468,7 +468,7 @@ def test_remove_col_b_old():
 
     expected = _get_expected_old()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old,
@@ -489,7 +489,7 @@ def test_remove_col_b_old_csv(tmpdir):
 
     expected = _get_expected_old()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -510,7 +510,7 @@ def test_remove_col_b_old_xlsx(tmpdir):
 
     expected = _get_expected_old()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -530,8 +530,8 @@ def test_remove_cols_old():
 
     expected = _get_expected_old()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old,
@@ -552,8 +552,8 @@ def test_remove_cols_old_csv(tmpdir):
 
     expected = _get_expected_old()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -574,8 +574,8 @@ def test_remove_cols_old_xlsx(tmpdir):
 
     expected = _get_expected_old()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -595,8 +595,8 @@ def test_remove_col_a_mix():
 
     expected = _get_expected_mix()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old,
@@ -617,8 +617,8 @@ def test_remove_col_a_mix_csv(tmpdir):
 
     expected = _get_expected_mix()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -639,8 +639,8 @@ def test_remove_col_a_mix_xlsx(tmpdir):
 
     expected = _get_expected_mix()
     expected.drop(columns=['a'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
 
     result = dk.diff(
         df_old_file,
@@ -660,7 +660,7 @@ def test_remove_col_b_mix():
 
     expected = _get_expected_mix()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old,
@@ -681,7 +681,7 @@ def test_remove_col_b_mix_csv(tmpdir):
 
     expected = _get_expected_mix()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -702,7 +702,7 @@ def test_remove_col_b_mix_xlsx(tmpdir):
 
     expected = _get_expected_mix()
     expected.drop(columns=['b'], inplace=True)
-    expected.loc['z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
 
     result = dk.diff(
         df_old_file,
@@ -722,8 +722,8 @@ def test_remove_cols_mix():
 
     expected = _get_expected_mix()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old,
@@ -744,8 +744,8 @@ def test_remove_cols_mix_csv(tmpdir):
 
     expected = _get_expected_mix()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,
@@ -766,8 +766,8 @@ def test_remove_cols_mix_xlsx(tmpdir):
 
     expected = _get_expected_mix()
     expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc['y', 'diff'] = ''
-    expected.loc['z', 'diff'] = ''
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
 
     result = dk.diff(
         df_old_file,

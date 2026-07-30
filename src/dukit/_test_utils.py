@@ -78,7 +78,7 @@ def _get_expected_new():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['diff', 'uid', 'd', 'b', 'a'],
+        columns=['uid', 'diff', 'd', 'b', 'a'],
         index=uid,
         )
 
@@ -99,6 +99,8 @@ def _get_expected_new():
     expected.loc['z', 'b'] = 3
     expected.loc['z', 'a'] = pd.NA
 
+    expected.reset_index(drop=True, inplace=True)
+
     return expected.convert_dtypes()
 
 
@@ -110,7 +112,7 @@ def _get_expected_newplus():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['diff', 'uid', 'd', 'b', 'b *old', 'a', 'a *old'],
+        columns=['uid', 'diff', 'd', 'b', 'b *old', 'a', 'a *old'],
         index=uid,
         )
 
@@ -138,6 +140,7 @@ def _get_expected_newplus():
     expected.loc['z', 'a *old'] = 3
 
     expected['b *old'] = expected['b *old'].astype('Int64')
+    expected.reset_index(drop=True, inplace=True)
 
     return expected.convert_dtypes()
 
@@ -150,7 +153,7 @@ def _get_expected_old():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['diff', 'uid', 'a', 'b', 'c'],
+        columns=['uid', 'diff', 'a', 'b', 'c'],
         index=uid,
         )
 
@@ -171,6 +174,8 @@ def _get_expected_old():
     expected.loc['z', 'b'] = pd.NA
     expected.loc['z', 'c'] = 3
 
+    expected.reset_index(drop=True, inplace=True)
+
     return expected.convert_dtypes()
 
 
@@ -182,7 +187,7 @@ def _get_expected_mix():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['diff', 'uid', 'd', 'b', 'a', 'c'],
+        columns=['uid', 'diff', 'd', 'b', 'a', 'c'],
         index=uid,
         )
 
@@ -211,5 +216,7 @@ def _get_expected_mix():
     expected.loc['x', 'b'] = 1
     expected.loc['x', 'a'] = 1
     expected.loc['x', 'c'] = 1
+
+    expected.reset_index(drop=True, inplace=True)
 
     return expected.convert_dtypes()
