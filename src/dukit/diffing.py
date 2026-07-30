@@ -26,9 +26,9 @@ def diff(
         uid=None,
         mode='mix',
         rename_cols: dict = None,
-        retain_cols: list | str = None,
         remove_cols: list | str = None,
         remove_cols_by_suffix='',
+        retain_cols: list | str = None,
         ignore_cols: list | str = None,
         remove_sheets: list | str = None,
         name='data',
@@ -58,11 +58,11 @@ def diff(
         * "new+": also adds hidden columns with old values for comparison
 
     rename_cols : dictionary to rename cols before comparison.
-    retain_cols : col(s) to remove from both dfs, then readd to the result.
-    remove_cols : col(s) to remove from both dfs.
+    remove_cols : remove col(s) from both dfs.
     remove_cols_by_suffix : remove cols that end with the specified suffix.
-    ignore_cols : col(s) to ignore for comparison.
-    remove_sheets : sheet name(s) to remove before comparison (only for excel files).
+    retain_cols : remove col(s) from both dfs, then readd to the result.
+    ignore_cols : keep col(s) but ignore them for comparison.
+    remove_sheets : remove sheets before comparison (only for excel files).
 
 
     Examples
@@ -87,9 +87,9 @@ def diff(
         uid=uid,
         mode=mode,
         rename_cols=rename_cols,
-        retain_cols=retain_cols,
         remove_cols=remove_cols,
         remove_cols_by_suffix=remove_cols_by_suffix,
+        retain_cols=retain_cols,
         ignore_cols=ignore_cols,
         remove_sheets=remove_sheets,
         name=name,
@@ -108,9 +108,9 @@ def rediff(
         uid=None,
         mode='new+',
         rename_cols: dict = None,
-        retain_cols: list | str = 'notes',
         remove_cols: list | str = 'diff',
         remove_cols_by_suffix=' *old',
+        retain_cols: list | str = 'notes',
         ignore_cols: list | str = None,
         remove_sheets=['info', 'summary', 'details'],
         name='data',
@@ -130,9 +130,9 @@ def rediff(
         uid=uid,
         mode=mode,
         rename_cols=rename_cols,
-        retain_cols=retain_cols,
         remove_cols=remove_cols,
         remove_cols_by_suffix=remove_cols_by_suffix,
+        retain_cols=retain_cols,
         ignore_cols=ignore_cols,
         remove_sheets=remove_sheets,
         name=name,
@@ -158,9 +158,9 @@ class Diffs:
             uid=None,
             mode='mix',
             rename_cols: dict = None,
-            retain_cols: list | str = None,
             remove_cols: list | str = None,
             remove_cols_by_suffix='',
+            retain_cols: list | str = None,
             ignore_cols: list | str = None,
             remove_sheets: list | str = None,
             name='data',
@@ -208,9 +208,9 @@ class Diffs:
             uid=uid,
             mode=mode,
             rename_cols=rename_cols,
-            retain_cols=retain_cols,
             remove_cols=remove_cols,
             remove_cols_by_suffix=remove_cols_by_suffix,
+            retain_cols=retain_cols,
             ignore_cols=ignore_cols,
             linebreak=linebreak,
             suffix_old=suffix_old,
@@ -492,7 +492,7 @@ class Diffs:
         return self
 
     def __str__(self):
-        string = 'Diffs summary:'
+        string = 'Diff objects:'
         for diff in self.diffs.values():
             string += '\n  ' + str(diff).replace('\n', '\n  ')
         return string
@@ -587,9 +587,9 @@ def _get_diffs(
         uid=None,
         mode='mix',
         rename_cols: dict = None,
-        retain_cols: list | str = None,
         remove_cols: list | str = None,
         remove_cols_by_suffix='',
+        retain_cols: list | str = None,
         ignore_cols: list | str = None,
         linebreak='<br>',
         suffix_old=' *old',
@@ -665,9 +665,9 @@ def _get_single_diff(
         uid=None,
         mode='mix',
         rename_cols: dict = None,
-        retain_cols: list | str = None,
         remove_cols: list | str = None,
         remove_cols_by_suffix='',
+        retain_cols: list | str = None,
         ignore_cols: list | str = None,
         name='data',
         linebreak='<br>',
@@ -698,14 +698,15 @@ def _get_single_diff(
     d = _rename_cols(d, rename_cols)
     d = _remove_cols(d, _arg_to_list(remove_cols))
     d = _remove_cols_by_suffix(d, remove_cols_by_suffix)
-    d = _ignore_cols(d, _arg_to_list(ignore_cols))
     d = _set_uid(d, uid)
 
     #_retain_cols() must be after _set_uid()
     #for correct row alignment when readding later
     d = _retain_cols(d, _arg_to_list(retain_cols))
+    d = _ignore_cols(d, _arg_to_list(ignore_cols))
 
     d = _get_row_col_diffs(d)
+    d = _align_dtypes(d)
 
     if mode == 'mix':
         d = _get_templates_mix(d)
@@ -866,8 +867,8 @@ def _handle_edgecases(d: Diff) -> Diff:
 
 
 def _process_dfs(d: Diff) -> Diff:
-    d.old = d.old.convert_dtypes().astype('string')
-    d.new = d.new.convert_dtypes().astype('string')
+    d.old = d.old.convert_dtypes()
+    d.new = d.new.convert_dtypes()
     return d
 
 
@@ -893,29 +894,6 @@ def _rename_cols(d: Diff, cols_mapping: dict | None) -> Diff:
 
     d.old = d.old.rename(columns=cols_mapping_old)
     d.new = d.new.rename(columns=cols_mapping_new)
-
-    return d
-
-
-
-def _retain_cols(d: Diff, cols: list) -> Diff:
-    """
-    Remove cols from both dfs before diffing,
-    then readd the ones from the old df to
-    the diff result later.
-    """
-
-    if not cols:
-        return d
-
-    cols_retain_old = d.old.columns.intersection(cols)
-    cols_retain_new = d.new.columns.intersection(cols)
-
-    df_retained = d.old[cols_retain_old].copy()
-
-    d.old = d.old.drop(columns=cols_retain_old)
-    d.new = d.new.drop(columns=cols_retain_new)
-    d._df_retained = df_retained
 
     return d
 
@@ -973,26 +951,6 @@ def _remove_cols_by_suffix(d: Diff, suffix: str) -> Diff:
 
 
 
-def _ignore_cols(d: Diff, cols: list) -> Diff:
-    """
-    Ignore columns for diffing,
-    but keep them in both dfs.
-    """
-
-    if not cols:
-        return d
-
-    d._cols_ignore = (
-        d.old.columns
-        .union(d.new.columns)
-        .intersection(cols)
-        .to_list()
-        )
-
-    return d
-
-
-
 def _set_uid(d: Diff, uid: typing.Any) -> Diff:
     """
     set unique identifier (uid) column for
@@ -1022,6 +980,7 @@ def _set_uid(d: Diff, uid: typing.Any) -> Diff:
         d.new.drop(columns=uid, inplace=True)
 
     elif uid in d.old.columns and uid in d.new.columns:
+        d.uid = uid
         d.old.index = d.old[uid]
         d.new.index = d.new[uid]
         d.old.drop(columns=uid, inplace=True)
@@ -1090,6 +1049,48 @@ def _find_uid(
 
 
 
+def _retain_cols(d: Diff, cols: list) -> Diff:
+    """
+    Remove cols from both dfs before diffing,
+    then readd the ones from the old df to
+    the diff result later.
+    """
+
+    if not cols:
+        return d
+
+    cols_retain_old = d.old.columns.intersection(cols)
+    cols_retain_new = d.new.columns.intersection(cols)
+
+    df_retained = d.old[cols_retain_old].copy()
+
+    d.old = d.old.drop(columns=cols_retain_old)
+    d.new = d.new.drop(columns=cols_retain_new)
+    d._df_retained = df_retained
+
+    return d
+
+
+
+def _ignore_cols(d: Diff, cols: list) -> Diff:
+    """
+    Ignore columns for diffing,
+    but keep them in both dfs.
+    """
+
+    if not cols:
+        return d
+
+    d._cols_ignore = (
+        d.old.columns
+        .union(d.new.columns)
+        .intersection(cols)
+        .to_list()
+        )
+
+    return d
+
+
 def _get_row_col_diffs(d: Diff) -> Diff:
 
     d.cols_shared = (
@@ -1120,6 +1121,37 @@ def _get_row_col_diffs(d: Diff) -> Diff:
         d.old.index
         .difference(d.new.index)
         )
+
+    return d
+
+
+
+def _align_dtypes(d: Diff) -> Diff:
+    """
+    covers dtypes resulting from df.convert_dtypes():
+        - string
+        - boolean
+        - Int64
+        - Float64
+        - datetime64
+    """
+
+    for col in d.cols_shared:
+        dtype_old = str(d.old[col].dtype)
+        dtype_new = str(d.new[col].dtype)
+
+        if dtype_old == dtype_new:
+            continue
+
+        elif dtype_old.startswith('Int') and dtype_new.startswith('Float'):
+            d.old[col] = d.old[col].astype('Float64')
+
+        elif dtype_new.startswith('Int') and dtype_old.startswith('Float'):
+            d.new[col] = d.new[col].astype('Float64')
+
+        else:
+            d.old[col] = d.old[col].astype('object')
+            d.new[col] = d.new[col].astype('object')
 
     return d
 
@@ -1262,9 +1294,8 @@ def _add_cols_metadata(
             cols_reorder.append(colname_meta)
             col_mapping[col] = colname_meta
 
-
-    df_meta = values.loc[:, col_mapping.keys()].copy().astype('string')
-    df_meta.loc[:, :] = ''
+    df_meta = values.loc[:, col_mapping.keys()].copy()
+    df_meta.loc[:, :] = pd.NA
     df_meta.rename(columns=col_mapping, inplace=True)
 
     data = {
@@ -1390,13 +1421,12 @@ def _process_metadata_cols(d: Diff) -> Diff:
     old_changed = (
         d.old
         .loc[d.rows_shared, d.cols_shared]
-        .astype('string')
-        .where(all_modifications, '')
-        .rename(columns=d._metadata_col_mapping)
+        #.convert_dtypes() results in only nullable dtypes
+        .where(all_modifications, pd.NA)  #type:ignore
         )
 
-    cols_shared = d._metadata_col_mapping.values()
-    d._values.loc[d.rows_shared, cols_shared] = old_changed
+    for col, col_meta in d._metadata_col_mapping.items():
+        d._values[col_meta] = old_changed[col]
 
     return d
 
