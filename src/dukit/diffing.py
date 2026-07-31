@@ -6,11 +6,11 @@ import os
 
 from .pandas import deduplicate
 from .excel import format
+from .typing import str_
 from .utils import (
     log,
     _arg_to_list,
     ensure_unique_string,
-    list_to_str,
     GREEN,
     RED,
     GREY_LIGHT,
@@ -301,11 +301,11 @@ class Diffs:
         all_rows_added = [d.rows_added for d in self.diffs.values()]
         all_rows_removed = [d.rows_removed for d in self.diffs.values()]
 
-        cols_added_str = [list_to_str(x) for x in all_cols_added]
-        cols_removed_str = [list_to_str(x) for x in all_cols_removed]
+        cols_added_str = [str_(x) for x in all_cols_added]
+        cols_removed_str = [str_(x) for x in all_cols_removed]
 
-        rows_added_str = [list_to_str(x) for x in all_rows_added]
-        rows_removed_str = [list_to_str(x) for x in all_rows_removed]
+        rows_added_str = [str_(x) for x in all_rows_added]
+        rows_removed_str = [str_(x) for x in all_rows_removed]
 
         cols_shared = [len(x) for x in all_cols_shared]
         cols_added = [len(x) for x in all_cols_added]

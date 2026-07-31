@@ -4,7 +4,7 @@ import os
 import shutil
 import datetime
 from .utils import log
-from .typing import _date, _datetime
+from .typing import date_, datetime_
 
 
 
@@ -238,7 +238,7 @@ def fetch(path, before='now', verbosity=3):
     elif before == 'this year':
         cutoff = pd.to_datetime(f'{today.year}0101').date()
     else:
-        cutoff = _date(before)
+        cutoff = date_(before)
 
 
     name = os.path.basename(path)
@@ -259,8 +259,8 @@ def fetch(path, before='now', verbosity=3):
                     continue
                 extension = '.' + timestamp_str_full.split('.')[-1]
                 timestamp_str = timestamp_str_full.replace(f'{extension}', '')
-                timestamp = _datetime(timestamp_str)
-                if timestamp < _datetime(cutoff):
+                timestamp = datetime_(timestamp_str)
+                if timestamp < datetime_(cutoff):
                     timestamps[timestamp] = (timestamp_str, extension)
             except Exception:  #pragma: no cover
                 pass

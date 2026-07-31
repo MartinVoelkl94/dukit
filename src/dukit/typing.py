@@ -6,9 +6,6 @@ import typing
 import datetime
 from pandas import isna
 
-#Mostly wrappers for pandas functions but with some additional
-#functionality and generally more lenient handling of edge cases.
-
 
 TYPES_INT: tuple[type, ...] = (
     int,
@@ -99,7 +96,6 @@ VALUES_NK = (
     'not specified.',
     )
 
-
 DTYPES_ALLOWED = set([
     'string',
     'Int64',
@@ -111,7 +107,76 @@ DTYPES_ALLOWED = set([
     ])
 
 
-def _int(x, errors='coerce', na=np.nan) -> typing.Any:
+
+def str_(x, spacer='\n  ') -> str:
+    if isinstance(x, str):
+        return x
+    elif isinstance(x, tuple):
+        return _tuple_to_str(x, spacer)
+    elif isinstance(x, (list, pd.Series, pd.Index)):
+        return _list_to_str(x, spacer)
+    elif isinstance(x, dict):
+        return _dict_to_str(x, spacer)
+    else:
+        return str(x)
+
+
+
+def _tuple_to_str(tpl: tuple, spacer='\n  ') -> str:
+    if len(tpl) < 2:
+        return str(tpl)
+    str_tpl = (
+        '('
+        + spacer
+        + spacer.join(f'{item!r}' for item in tpl)
+        + '\n)'
+        )
+    return str_tpl
+
+
+
+def _list_to_str(
+        lst: list | pd.Series | pd.Index,
+        spacer='\n  ',
+        ) -> str:
+
+    if isinstance(lst, pd.Series):
+        lst = lst.to_list()
+    elif isinstance(lst, pd.Index):
+        lst = lst.to_list()
+
+    if len(lst) < 2:
+        return str(lst)
+    str_lst = (
+        '['
+        + spacer
+        + spacer.join(f'{item!r}' for item in lst)
+        + '\n]'
+        )
+
+    return str_lst
+
+
+
+def _dict_to_str(d: dict, spacer='\n  ') -> str:
+    if len(d) < 2:
+        return str(d)
+    kvs = (
+        f'{k!r}: {v!r}'
+        for k, v in
+        d.items()
+        )
+    str_d = (
+        '{'
+        + spacer
+        + spacer.join(kvs)
+        + '\n}'
+        )
+    return str_d
+
+
+
+def int_(x, errors='coerce', na=np.nan) -> typing.Any:
     if x is True or x is False:
         return na
     elif isinstance(x, TYPES_INT):
@@ -139,7 +204,8 @@ def _int(x, errors='coerce', na=np.nan) -> typing.Any:
             return errors
 
 
-def _float(x, errors='coerce', na=np.nan) -> typing.Any:
+
+def float_(x, errors='coerce', na=np.nan) -> typing.Any:
     if isinstance(x, TYPES_FLOAT):
         return x
     elif isinstance(x, str):
@@ -165,7 +231,8 @@ def _float(x, errors='coerce', na=np.nan) -> typing.Any:
             return errors
 
 
-def _num(x, errors='coerce', na=np.nan) -> typing.Any:
+
+def num_(x, errors='coerce', na=np.nan) -> typing.Any:
     if isinstance(x, TYPES_NUM):
         return x
     try:
@@ -189,7 +256,8 @@ def _num(x, errors='coerce', na=np.nan) -> typing.Any:
             return errors
 
 
-def _bool(x, errors='coerce', na=None) -> typing.Any:
+
+def bool_(x, errors='coerce', na=None) -> typing.Any:
     if isinstance(x, TYPES_BOOL):
         return x
     elif str(x).lower() in ['y', 'yes', 'true', '1', '1.0', 'positive', 'pos']:
@@ -214,17 +282,18 @@ def _bool(x, errors='coerce', na=None) -> typing.Any:
             return errors
 
 
-months_txt = (
+
+_months_txt = (
     'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|'
     'January|February|March|April|May|June|July|'
     'August|September|October|November|December'
     )
-def _date(x, errors='coerce', na=pd.NaT) -> typing.Any:
+def date_(x, errors='coerce', na=pd.NaT) -> typing.Any:
     """
     recognizes and converts potential dates
     between 0001-01-01 and 2999-12-31 in various formats.
     """
-    result = _datetime(x, errors=errors, na=na)
+    result = datetime_(x, errors=errors, na=na)
     if result is na:
         return na
     elif isinstance(result, datetime.datetime) or isinstance(result, pd.Timestamp):
@@ -248,7 +317,8 @@ def _date(x, errors='coerce', na=pd.NaT) -> typing.Any:
         return errors
 
 
-def _datetime(x, errors='coerce', na=pd.NaT) -> typing.Any:
+
+def datetime_(x, errors='coerce', na=pd.NaT) -> typing.Any:
     if isinstance(x, datetime.datetime):
         return x
     elif isinstance(x, datetime.date):
@@ -267,12 +337,12 @@ def _datetime(x, errors='coerce', na=pd.NaT) -> typing.Any:
             result = pd.to_datetime(x, dayfirst=False)
 
         elif re.match(
-                f'(\\d\\d\\d\\d)\\D?({months_txt})\\D?(\\d\\d)',
+                f'(\\d\\d\\d\\d)\\D?({_months_txt})\\D?(\\d\\d)',
                 x,
                 flags=re.IGNORECASE,
                 ):
             x = re.sub(
-                f'(\\d\\d\\d\\d)\\D?({months_txt})\\D?(\\d\\d)(.*)',
+                f'(\\d\\d\\d\\d)\\D?({_months_txt})\\D?(\\d\\d)(.*)',
                 r'\3-\2-\1\4',
                 x,
                 flags=re.IGNORECASE,
@@ -280,12 +350,12 @@ def _datetime(x, errors='coerce', na=pd.NaT) -> typing.Any:
             result = pd.to_datetime(x, dayfirst=True)
 
         elif re.match(
-                f'(\\d\\d)\\D?({months_txt})\\D?(\\d\\d\\d\\d)',
+                f'(\\d\\d)\\D?({_months_txt})\\D?(\\d\\d\\d\\d)',
                 x,
                 flags=re.IGNORECASE,
                 ):
             x = re.sub(
-                f'(\\d\\d)\\D?({months_txt})\\D?(\\d\\d\\d\\d)(.*)',
+                f'(\\d\\d)\\D?({_months_txt})\\D?(\\d\\d\\d\\d)(.*)',
                 r'\1-\2-\3\4',
                 x,
                 flags=re.IGNORECASE,
@@ -293,12 +363,12 @@ def _datetime(x, errors='coerce', na=pd.NaT) -> typing.Any:
             result = pd.to_datetime(x, dayfirst=True)
 
         elif re.match(
-                f'({months_txt})\\D?(\\d\\d)\\D?(\\d\\d\\d\\d)',
+                f'({_months_txt})\\D?(\\d\\d)\\D?(\\d\\d\\d\\d)',
                 x,
                 flags=re.IGNORECASE,
                 ):
             x = re.sub(
-                f'({months_txt})\\D?(\\d\\d)\\D?(\\d\\d\\d\\d)(.*)',
+                f'({_months_txt})\\D?(\\d\\d)\\D?(\\d\\d\\d\\d)(.*)',
                 r'\2-\1-\3\4',
                 x,
                 flags=re.IGNORECASE,
@@ -331,7 +401,8 @@ def _datetime(x, errors='coerce', na=pd.NaT) -> typing.Any:
             return errors
 
 
-def _na(x, errors='ignore', na=None) -> typing.Any:
+
+def na_(x, errors='ignore', na=None) -> typing.Any:
 
     if str(x).lower().strip() in VALUES_NA:
         return na
@@ -355,7 +426,8 @@ def _na(x, errors='ignore', na=None) -> typing.Any:
             return errors
 
 
-def _nk(x, errors='ignore', nk='unknown', na=None) -> typing.Any:
+
+def nk_(x, errors='ignore', nk='unknown', na=None) -> typing.Any:
     if str(x).lower().strip() in VALUES_NK:
         return nk
     else:
@@ -376,7 +448,8 @@ def _nk(x, errors='ignore', nk='unknown', na=None) -> typing.Any:
             return errors
 
 
-def _yn(x, errors='coerce', yes='yes', no='no', na=None) -> typing.Any:
+
+def yn_(x, errors='coerce', yes='yes', no='no', na=None) -> typing.Any:
     if str(x).lower() in ['y', 'yes', 'true', '1', '1.0', 'positive', 'pos']:
         return yes
     elif str(x).lower() in ['n', 'no', 'false', '0', '0.0', 'negative', 'neg']:
@@ -400,7 +473,7 @@ def _yn(x, errors='coerce', yes='yes', no='no', na=None) -> typing.Any:
 
 
 
-def _type(x) -> str:
+def type_(x) -> str:
     """
     Returns what type something "should" be. e.g.: qp.type('1') == 'int'
     """
@@ -411,7 +484,7 @@ def _type(x) -> str:
         return 'int'
     elif isinstance(x, TYPES_FLOAT):
         return 'float'
-    elif _datetime(x) is not pd.NaT:
+    elif datetime_(x) is not pd.NaT:
         x = str(x).strip()
         if re.fullmatch(r'\d*', x):
             return 'int'
@@ -444,41 +517,41 @@ def _type(x) -> str:
         return type(x).__name__
 
 
-conversion_mapping = {
-    'int': _int,
-    'float': _float,
-    'num': _num,
-    'bool': _bool,
-    'date': _date,
-    'datetime': _datetime,
-    'na': _na,
-    'nk': _nk,
-    'yn': _yn,
+_conversion_mapping = {
+    'int': int_,
+    'float': float_,
+    'num': num_,
+    'bool': bool_,
+    'date': date_,
+    'datetime': datetime_,
+    'na': na_,
+    'nk': nk_,
+    'yn': yn_,
     'NoneType': lambda x, errors, na: na,
     }
-def _convert(value, errors='coerce', na=None) -> typing.Any:
+def convert_(value, errors='coerce', na=None) -> typing.Any:
     """
     Converts to the type something "should" be according to qp.type().
     e.g.: qp.convert('1') == 1
     """
-    type_name = _type(value)
+    type_name = type_(value)
     if type_name == 'str':
         result = str(value)
-    elif type_name in conversion_mapping:
-        result = conversion_mapping[type_name](value, errors, na)
+    elif type_name in _conversion_mapping:
+        result = _conversion_mapping[type_name](value, errors, na)
     else:
         result = value
     return result
 
 
-def _repr(x) -> str:
+def repr_(x) -> str:
     txt = f'{x!r}'
     return txt
 
 
-def _typeinfo(x) -> str:
-    type_inferred = _type(x)
-    new = _convert(x)
+def typeinfo_(x) -> str:
+    type_inferred = type_(x)
+    new = convert_(x)
     #"<{type_inferred}>" would get interpreted as a html tag by the pandas styler
     txt = f'{x!r} [{type_inferred}] {new!r}'
     return txt

@@ -7,11 +7,10 @@ import re
 from ..utils import (
     log,
     _build_log_context,
-    dict_to_str,
-    list_to_str,
     )
 from ..typing import (
     Box,
+    str_,
     DTYPES_ALLOWED,
     )
 
@@ -75,8 +74,8 @@ class Query(Box):
     def __str__(self) -> str:
         txt_tokens = [token.name for token in self.tokens]
         txt_ops = [op.operator for op in self.ops]
-        txt_tokens = list_to_str(txt_tokens)
-        txt_ops = list_to_str(txt_ops)
+        txt_tokens = str_(txt_tokens)
+        txt_ops = str_(txt_ops)
         txt = (
             '----------------Query object [q]----------------\n'
             f'>>> q.code\n{self.code!r}\n\n\n'
@@ -98,8 +97,8 @@ class Query(Box):
     def __repr__(self) -> str:
         txt_tokens = [token.name for token in self.tokens]
         txt_ops = [op.operator for op in self.ops]
-        txt_tokens = list_to_str(txt_tokens)
-        txt_ops = list_to_str(txt_ops)
+        txt_tokens = str_(txt_tokens)
+        txt_ops = str_(txt_ops)
         txt = (
             '--------Query object [q]--------\n'
             f'>>> q.code\n{self.code!r}\n'
@@ -195,12 +194,12 @@ class Symbol(Box):
                 f'connector: {self.connector!r}\n'
                 f'scope: {self.scope!r}\n'
                 f'operator: {self.operator!r}\n'
-                f'flags: {dict_to_str(self.flags)}\n'
-                f'args: {list_to_str(self.args)}\n'
-                f'connectors_allowed: {dict_to_str(self.connectors_allowed)}\n'
-                f'scopes_allowed: {dict_to_str(self.scopes_allowed)}\n'
-                f'flags_allowed: {dict_to_str(self.flags_allowed)}\n'
-                f'args_allowed: {dict_to_str(self.args_allowed)}\n'
+                f'flags: {str_(self.flags)}\n'
+                f'args: {str_(self.args)}\n'
+                f'connectors_allowed: {str_(self.connectors_allowed)}\n'
+                f'scopes_allowed: {str_(self.scopes_allowed)}\n'
+                f'flags_allowed: {str_(self.flags_allowed)}\n'
+                f'args_allowed: {str_(self.args_allowed)}\n'
                 f'args_min: {self.args_min}\n'
                 f'args_max: {self.args_max}\n'
                 )
@@ -224,8 +223,8 @@ class Symbol(Box):
                 f'connector: {self.connector!r}\n'
                 f'scope: {self.scope!r}\n'
                 f'operator: {self.operator!r}\n'
-                f'flags: {dict_to_str(self.flags)}\n'
-                f'args: {list_to_str(self.args)}\n'
+                f'flags: {str_(self.flags)}\n'
+                f'args: {str_(self.args)}\n'
                 )
         else:
             txt = f'<{self.name!r} {self.str_matched!r}>'

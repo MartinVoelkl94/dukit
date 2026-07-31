@@ -24,20 +24,20 @@ from ..typing import (
     TYPES_NUM,
     TYPES_BOOL,
     TYPES_DATE,
-    _type,
-    _convert,
-    _repr,
-    _typeinfo,
+    type_,
+    convert_,
+    repr_,
+    typeinfo_,
     _typeinfostrict,
-    _int,
-    _float,
-    _num,
-    _bool,
-    _date,
-    _datetime,
-    _na,
-    _nk,
-    _yn,
+    int_,
+    float_,
+    num_,
+    bool_,
+    date_,
+    datetime_,
+    na_,
+    nk_,
+    yn_,
     )
 
 
@@ -764,19 +764,19 @@ class NewCol(Symbol):
             if 'str' in self.flags:
                 val = str(val)
             elif 'int' in self.flags:
-                val = _int(val)
+                val = int_(val)
             elif 'float' in self.flags:
-                val = _float(val)
+                val = float_(val)
             elif 'num' in self.flags:
-                val = _num(val)
+                val = num_(val)
             elif 'bool' in self.flags:
-                val = _bool(val)
+                val = bool_(val)
             elif 'date' in self.flags:
-                val = _date(val)
+                val = date_(val)
             elif 'datetime' in self.flags:
-                val = _datetime(val)
+                val = datetime_(val)
             else:
-                val = _convert(val)
+                val = convert_(val)
         else:
             val = pd.NA
 
@@ -2321,7 +2321,7 @@ class GetIsFloat(Symbol):
         if 'strict' in self.flags:
             mask = series.apply(lambda x: isinstance(x, TYPES_FLOAT))
         else:
-            mask = series.apply(lambda x: _float(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: float_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2389,7 +2389,7 @@ class GetIsNum(Symbol):
         if 'strict' in self.flags:
             mask = series.apply(lambda x: isinstance(x, TYPES_NUM))
         else:
-            mask = series.apply(lambda x: _num(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: num_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2457,7 +2457,7 @@ class GetIsBool(Symbol):
         if 'strict' in self.flags:
             mask = series.apply(lambda x: isinstance(x, TYPES_BOOL))
         else:
-            mask = series.apply(lambda x: _bool(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: bool_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2525,7 +2525,7 @@ class GetIsDatetime(Symbol):
         if 'strict' in self.flags:
             mask = series.apply(lambda x: isinstance(x, TYPES_DATE))
         else:
-            mask = series.apply(lambda x: _datetime(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: datetime_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2593,7 +2593,7 @@ class GetIsDate(Symbol):
         if 'strict' in self.flags:
             mask = series.apply(lambda x: isinstance(x, TYPES_DATE))
         else:
-            mask = series.apply(lambda x: _date(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: date_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2661,7 +2661,7 @@ class GetIsNA(Symbol):
         if 'strict' in self.flags:
             mask = series.isna()
         else:
-            mask = series.apply(lambda x: _na(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: na_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2725,7 +2725,7 @@ class GetIsNK(Symbol):
             arg: str,
             q: Query,
             ) -> pd.Series[bool]:
-        mask = series.apply(lambda x: _nk(x, errors='X')) != 'X'
+        mask = series.apply(lambda x: nk_(x, errors='X')) != 'X'
         return mask
 
 
@@ -2789,7 +2789,7 @@ class GetIsYN(Symbol):
             arg: str,
             q: Query,
             ) -> pd.Series[bool]:
-        mask = series.apply(lambda x: _yn(x, errors='X')) != 'X'
+        mask = series.apply(lambda x: yn_(x, errors='X')) != 'X'
         return mask
 
 
@@ -3118,28 +3118,28 @@ def _process_types(
         arg_new = arg.lower()
 
     elif 'int' in op.flags:
-        series_new = series.apply(_int).astype('Int64')
-        arg_new = _int(arg)
+        series_new = series.apply(int_).astype('Int64')
+        arg_new = int_(arg)
 
     elif 'float' in op.flags:
-        series_new = series.apply(_float).astype('Float64')
-        arg_new = _float(arg)
+        series_new = series.apply(float_).astype('Float64')
+        arg_new = float_(arg)
 
     elif 'num' in op.flags:
-        series_new = series.apply(_num).convert_dtypes()
-        arg_new = _num(arg)
+        series_new = series.apply(num_).convert_dtypes()
+        arg_new = num_(arg)
 
     elif 'bool' in op.flags:
-        series_new = series.apply(_bool).astype('boolean')
-        arg_new = _bool(arg)
+        series_new = series.apply(bool_).astype('boolean')
+        arg_new = bool_(arg)
 
     elif 'date' in op.flags:
-        series_new = series.apply(_date).astype('datetime64[us]').dt.date
-        arg_new = _date(arg)
+        series_new = series.apply(date_).astype('datetime64[us]').dt.date
+        arg_new = date_(arg)
 
     elif 'datetime' in op.flags:
-        series_new = series.apply(_datetime).astype('datetime64[us]')
-        arg_new = _datetime(arg)
+        series_new = series.apply(datetime_).astype('datetime64[us]')
+        arg_new = datetime_(arg)
 
     elif op.category == 'getter':
         series_new, arg_new = _infer_types_for_getter(
@@ -3151,7 +3151,7 @@ def _process_types(
 
     else:
         series_new = series.astype('object')
-        arg_new = _convert(arg)
+        arg_new = convert_(arg)
 
     return series_new, arg_new
 
@@ -3170,31 +3170,31 @@ def _process_types_strict(
 
     elif 'int' in op.flags:
         series_new = series.astype('Int64')
-        arg_new = _int(arg, errors='raise')
+        arg_new = int_(arg, errors='raise')
 
     elif 'float' in op.flags:
         series_new = series.astype('Float64')
-        arg_new = _float(arg, errors='raise')
+        arg_new = float_(arg, errors='raise')
 
     elif 'num' in op.flags:
         series_new = pd.to_numeric(series, errors='raise').convert_dtypes()
-        arg_new = _num(arg, errors='raise')
+        arg_new = num_(arg, errors='raise')
 
     elif 'bool' in op.flags:
         series_new = series.astype('boolean')
-        arg_new = _bool(arg, errors='raise')
+        arg_new = bool_(arg, errors='raise')
 
     elif 'date' in op.flags:
         series_new = series.astype('datetime64[us]').dt.date
-        arg_new = _date(arg, errors='raise')
+        arg_new = date_(arg, errors='raise')
 
     elif 'datetime' in op.flags:
         series_new = series.astype('datetime64[us]')
-        arg_new = _datetime(arg, errors='raise')
+        arg_new = datetime_(arg, errors='raise')
 
     else:
         series_new = series
-        arg_new = _convert(arg, errors='raise')
+        arg_new = convert_(arg, errors='raise')
 
     return series_new, arg_new
 
@@ -3207,7 +3207,7 @@ def _infer_types_for_getter(
         q: Query,
         ) -> tuple[pd.Series, typing.Any]:
 
-    type_name = _type(arg)
+    type_name = type_(arg)
 
     if type_name == 'str':
         series_new = series.astype('string').str.lower()
@@ -3218,28 +3218,28 @@ def _infer_types_for_getter(
         #float makes more sense for the series for most comparisons.
         #eg. 70.2 should be greater than 70, instead of
         #converting 70.2 to 70 and saying they are equal.
-        series_new = series.apply(_float)
-        arg_new = _int(arg)
+        series_new = series.apply(float_)
+        arg_new = int_(arg)
 
     elif type_name == 'float':
-        series_new = series.apply(_float).astype('Float64')
-        arg_new = _float(arg)
+        series_new = series.apply(float_).astype('Float64')
+        arg_new = float_(arg)
 
     elif type_name == 'num':
-        series_new = series.apply(_num).convert_dtypes()
-        arg_new = _num(arg)
+        series_new = series.apply(num_).convert_dtypes()
+        arg_new = num_(arg)
 
     elif type_name == 'bool':
-        series_new = series.apply(_bool).astype('boolean')
-        arg_new = _bool(arg)
+        series_new = series.apply(bool_).astype('boolean')
+        arg_new = bool_(arg)
 
     elif type_name == 'date':
-        series_new = series.apply(_date).astype('datetime64[us]').dt.date
-        arg_new = _date(arg)
+        series_new = series.apply(date_).astype('datetime64[us]').dt.date
+        arg_new = date_(arg)
 
     elif type_name == 'datetime':
-        series_new = series.apply(_datetime).astype('datetime64[us]')
-        arg_new = _datetime(arg)
+        series_new = series.apply(datetime_).astype('datetime64[us]')
+        arg_new = datetime_(arg)
 
     else:
         msg = f'WARNING: unable to infer type for arg "{arg}".'
@@ -3273,28 +3273,28 @@ def _process_types_series(
         series_other_new = series_other.astype('string').str.lower()
 
     elif 'int' in op.flags:
-        series_new = series.apply(_int).astype('Int64')
-        series_other_new = series_other.apply(_int).astype('Int64')
+        series_new = series.apply(int_).astype('Int64')
+        series_other_new = series_other.apply(int_).astype('Int64')
 
     elif 'float' in op.flags:
-        series_new = series.apply(_float).astype('Float64')
-        series_other_new = series_other.apply(_float).astype('Float64')
+        series_new = series.apply(float_).astype('Float64')
+        series_other_new = series_other.apply(float_).astype('Float64')
 
     elif 'num' in op.flags:
-        series_new = series.apply(_num).convert_dtypes()
-        series_other_new = series_other.apply(_num).convert_dtypes()
+        series_new = series.apply(num_).convert_dtypes()
+        series_other_new = series_other.apply(num_).convert_dtypes()
 
     elif 'bool' in op.flags:
-        series_new = series.apply(_bool).astype('boolean')
-        series_other_new = series_other.apply(_bool).astype('boolean')
+        series_new = series.apply(bool_).astype('boolean')
+        series_other_new = series_other.apply(bool_).astype('boolean')
 
     elif 'date' in op.flags:
-        series_new = series.apply(_date).astype('datetime64[us]').dt.date
-        series_other_new = series_other.apply(_date).astype('datetime64[us]').dt.date
+        series_new = series.apply(date_).astype('datetime64[us]').dt.date
+        series_other_new = series_other.apply(date_).astype('datetime64[us]').dt.date
 
     elif 'datetime' in op.flags:
-        series_new = series.apply(_datetime).astype('datetime64[us]')
-        series_other_new = series_other.apply(_datetime).astype('datetime64[us]')
+        series_new = series.apply(datetime_).astype('datetime64[us]')
+        series_other_new = series_other.apply(datetime_).astype('datetime64[us]')
 
     elif series.dtype != series_other.dtype:
         series_new = series.astype('object')
@@ -4059,7 +4059,7 @@ class SetTypeInfo(Symbol):
         if 'strict' in self.flags:
             series_new = series[mask].apply(_typeinfostrict)
         else:
-            series_new = series[mask].apply(_typeinfo)
+            series_new = series[mask].apply(typeinfo_)
         series = series.astype('string')
         series[mask] = series_new
         return series
@@ -4125,7 +4125,7 @@ class SetRawRepresentation(Symbol):
             args: list,
             q: Query,
             ) -> pd.Series:
-        series_new = series[mask].apply(_repr)
+        series_new = series[mask].apply(repr_)
         series = series.astype('string')
         series[mask] = series_new
         return series
@@ -4318,7 +4318,7 @@ class SetToInt(Symbol):
         if 'strict' in self.flags:
             series_new = series[mask].astype('Int64')
         else:
-            series_new = series[mask].apply(_int).astype('Int64')
+            series_new = series[mask].apply(int_).astype('Int64')
 
         if mask.all():
             series = series_new
@@ -4388,7 +4388,7 @@ class SetToFloat(Symbol):
         if 'strict' in self.flags:
             series_new = series[mask].astype('Float64')
         else:
-            series_new = series[mask].apply(_float).astype('Float64')
+            series_new = series[mask].apply(float_).astype('Float64')
 
         if mask.all():
             series = series_new
@@ -4461,7 +4461,7 @@ class SetToNum(Symbol):
         if 'strict' in self.flags:
             series_new = pd.to_numeric(series[mask]).convert_dtypes()
         else:
-            series_new = series[mask].apply(_num).convert_dtypes()
+            series_new = series[mask].apply(num_).convert_dtypes()
 
         if mask.all():
             series = series_new
@@ -4534,7 +4534,7 @@ class SetToBool(Symbol):
         if 'strict' in self.flags:
             series_new = series[mask].astype('boolean')
         else:
-            series_new = series[mask].apply(_bool).astype('boolean')
+            series_new = series[mask].apply(bool_).astype('boolean')
 
         if mask.all():
             series = series_new
@@ -4599,7 +4599,7 @@ class SetToDatetime(Symbol):
             args: list,
             q: Query,
             ) -> pd.Series:
-        series_new = series[mask].apply(_datetime).astype('datetime64[us]')
+        series_new = series[mask].apply(datetime_).astype('datetime64[us]')
         if mask.all():
             series = series_new
         else:
@@ -4663,7 +4663,7 @@ class SetToDate(Symbol):
             ) -> pd.Series:
         series_new = (
             series[mask]
-            .apply(_date)
+            .apply(date_)
             .astype('datetime64[us]')
             .dt
             .date
@@ -4733,7 +4733,7 @@ class SetToNA(Symbol):
             ) -> pd.Series:
         series_new = (
             series[mask]
-            .apply(_na)
+            .apply(na_)
             .convert_dtypes()
             )
         if mask.all():
@@ -4799,7 +4799,7 @@ class SetToNK(Symbol):
             args: list,
             q: Query,
             ) -> pd.Series:
-        series_new = series[mask].apply(_nk).convert_dtypes()
+        series_new = series[mask].apply(nk_).convert_dtypes()
         if mask.all():
             series = series_new
         else:
@@ -4863,7 +4863,7 @@ class SetToYN(Symbol):
             args: list,
             q: Query,
             ) -> pd.Series:
-        series_new = series[mask].apply(_yn).convert_dtypes()
+        series_new = series[mask].apply(yn_).convert_dtypes()
         if mask.all():
             series = series_new
         else:

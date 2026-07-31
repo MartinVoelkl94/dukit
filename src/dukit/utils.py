@@ -7,7 +7,7 @@ import random
 from collections.abc import Iterable
 from IPython.display import display
 from IPython.core.getipython import get_ipython
-
+from .typing import str_
 
 GREEN = '#6dae51'
 RED = '#f73434'
@@ -20,26 +20,26 @@ RED_LIGHT = '#f7746a'
 
 
 logs = []
-levels = {
+_levels = {
     'TRACE': 5,
     'DEBUG': 4,
     'INFO': 3,
     'WARNING': 2,
     'ERROR': 1,
     }
-colors = {
+_colors = {
     'TRACE': GREY_LIGHT,
     'DEBUG': BLUE_LIGHT,
     'INFO': GREEN_LIGHT,
     'WARNING': ORANGE_LIGHT,
     'ERROR': RED_LIGHT,
     }
-formats = {
-    'TRACE': f'background-color: {colors["TRACE"]}',
-    'DEBUG': f'background-color: {colors["DEBUG"]}',
-    'INFO': f'background-color: {colors["INFO"]}',
-    'WARNING': f'background-color: {colors["WARNING"]}',
-    'ERROR': f'background-color: {colors["ERROR"]}',
+_formats = {
+    'TRACE': f'background-color: {_colors["TRACE"]}',
+    'DEBUG': f'background-color: {_colors["DEBUG"]}',
+    'INFO': f'background-color: {_colors["INFO"]}',
+    'WARNING': f'background-color: {_colors["WARNING"]}',
+    'ERROR': f'background-color: {_colors["ERROR"]}',
     }
 
 
@@ -57,12 +57,8 @@ def _build_log_context(
         elif isinstance(value, pd.Series):
             pass
 
-        if isinstance(value, dict):
-            value_str = dict_to_str(value, spacer='\n\t')
-        elif isinstance(value, list):
-            value_str = list_to_str(value, spacer='\n\t')
-        elif isinstance(value, tuple):
-            value_str = tuple_to_str(value, spacer='\n\t')
+        if isinstance(value, (tuple, list, dict)):
+            value_str = str_(value)
         elif verbosity <= 3:
             value_str = repr(value)
         else:
@@ -115,7 +111,7 @@ def log(
         if len(logs) == 0:
             return pd.DataFrame().style
         df = pd.DataFrame(logs)
-        col_format = df['level'].replace(formats)
+        col_format = df['level'].replace(_formats)
         df_style = pd.DataFrame(
             {col: col_format for col in df.columns},
             index=df.index,
@@ -134,11 +130,11 @@ def log(
     text_temp = text.upper()
 
     #detect logging level
-    for level_temp in levels.keys():
+    for level_temp in _levels.keys():
         if text_temp.startswith(level_temp):
             level = level_temp
-            level_int = levels[level]
-            color = colors[level]
+            level_int = _levels[level]
+            color = _colors[level]
             text = text[len(level_temp):].strip()
             if text and text[0] in [':', '-', ' ']:
                 text = text[1:].strip()
@@ -293,52 +289,13 @@ def _arg_to_list(arg) -> list:
         return [arg]
 
 
-def dict_to_str(d: dict, spacer='\n  ') -> str:
-    if len(d) < 2:
-        return str(d)
-    kvs = (
-        f'{k!r}: {v!r}'
-        for k, v in
-        d.items()
-        )
-    str_d = (
-        '{'
-        + spacer
-        + spacer.join(kvs)
-        + '\n}'
-        )
-    return str_d
 
+def now(fmt='%Y_%m_%d'):
+    """
+    alias for datetime.datetime.now().strftime(format_str)
 
-def list_to_str(
-        lst: list | pd.Series | pd.Index,
-        spacer='\n  ',
-        ) -> str:
-
-    if isinstance(lst, pd.Series):
-        lst = lst.to_list()
-    elif isinstance(lst, pd.Index):
-        lst = lst.to_list()
-
-    if len(lst) < 2:
-        return str(lst)
-    str_lst = (
-        '['
-        + spacer
-        + spacer.join(f'{item!r}' for item in lst)
-        + '\n]'
-        )
-
-    return str_lst
-
-
-def tuple_to_str(tpl: tuple, spacer='\n  ') -> str:
-    if len(tpl) < 2:
-        return str(tpl)
-    str_tpl = (
-        '('
-        + spacer
-        + spacer.join(f'{item!r}' for item in tpl)
-        + '\n)'
-        )
-    return str_tpl
+    common format_str options:
+    '%Y_%m_%d_%Hh%Mm%Ss': standard
+    %Y_%b_%d:  3 letter month
+    """
+    return datetime.datetime.now().strftime(fmt)
