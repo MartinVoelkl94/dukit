@@ -2,9 +2,9 @@
 import os
 import openpyxl
 import pandas as pd
+from .typing import list_
 from .utils import (
     log,
-    _arg_to_list,
     )
 
 
@@ -34,11 +34,11 @@ def format(
     else:
         wb = openpyxl.load_workbook(path)
     if sheet:
-        sheetnames = _arg_to_list(sheet)
+        sheetnames = list_(sheet)
     else:
         sheetnames = [sheetname for sheetname in wb.sheetnames]
-    sheets_hide = _arg_to_list(hide_sheets)
-    cols_hide = _arg_to_list(hide_cols)
+    sheets_hide = list_(hide_sheets)
+    cols_hide = list_(hide_cols)
 
 
     for sheetname in sheetnames:

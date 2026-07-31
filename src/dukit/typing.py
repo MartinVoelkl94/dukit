@@ -557,11 +557,25 @@ def typeinfo_(x) -> str:
     return txt
 
 
-def _typeinfostrict(x) -> str:
+def typeinfostrict_(x) -> str:
     type_strict = type(x).__name__
     #"<{type_inferred}>" would get interpreted as a html tag by the pandas styler
     txt = f'{x!r} [{type_strict}]'
     return txt
+
+
+
+def list_(x) -> list:
+    if x is None:
+        return []
+    elif isinstance(x, list):
+        return x
+    elif isinstance(x, str):
+        return [x]
+    elif hasattr(x, '__iter__'):
+        return list(x)
+    else:
+        return [x]
 
 
 

@@ -44,7 +44,8 @@ from .typing import (
     type_ as type,
     convert_ as convert,
     typeinfo_ as typeinfo,
-    _typeinfostrict as typeinfostrict,
+    typeinfostrict_ as typeinfostrict,
+    list_ as list,
     )
 from .os import (
     pwd,
@@ -92,6 +93,7 @@ __all__ = (
     'convert',
     'typeinfo',
     'typeinfostrict',
+    'list',
     'pwd',
     'cd',
     'cp',

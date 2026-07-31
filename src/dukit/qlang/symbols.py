@@ -28,7 +28,7 @@ from ..typing import (
     convert_,
     repr_,
     typeinfo_,
-    _typeinfostrict,
+    typeinfostrict_,
     int_,
     float_,
     num_,
@@ -4057,7 +4057,7 @@ class SetTypeInfo(Symbol):
             q: Query,
             ) -> pd.Series:
         if 'strict' in self.flags:
-            series_new = series[mask].apply(_typeinfostrict)
+            series_new = series[mask].apply(typeinfostrict_)
         else:
             series_new = series[mask].apply(typeinfo_)
         series = series.astype('string')

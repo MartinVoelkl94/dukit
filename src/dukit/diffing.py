@@ -6,10 +6,9 @@ import os
 
 from .pandas import deduplicate
 from .excel import format
-from .typing import str_
+from .typing import list_, str_
 from .utils import (
     log,
-    _arg_to_list,
     ensure_unique_string,
     GREEN,
     RED,
@@ -564,7 +563,7 @@ def _read_excel(
     sheets_old = pd.ExcelFile(old).sheet_names
     sheets_new = pd.ExcelFile(new).sheet_names
     sheets_all = pd.Index(sheets_new).union(pd.Index(sheets_old), sort=False)
-    sheets_ignore = _arg_to_list(remove_sheets)
+    sheets_ignore = list_(remove_sheets)
 
     for sheet in sheets_all:
         if sheet in sheets_ignore:
@@ -696,12 +695,12 @@ def _get_single_diff(
 
     d = _process_dfs(d)
     d = _rename_cols(d, rename_cols)
-    d = _remove_cols(d, _arg_to_list(remove_cols))
+    d = _remove_cols(d, list_(remove_cols))
     d = _remove_cols_by_suffix(d, remove_cols_by_suffix)
 
     d = _set_uid(d, uid)
-    d = _retain_cols(d, _arg_to_list(retain_cols))  #depends on _set_uid()
-    d = _ignore_cols(d, _arg_to_list(ignore_cols))
+    d = _retain_cols(d, list_(retain_cols))  #depends on _set_uid()
+    d = _ignore_cols(d, list_(ignore_cols))
 
     d = _create_working_values(d)
     d = _create_diff_col(d)

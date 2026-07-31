@@ -277,19 +277,6 @@ def ensure_unique_string(
 
 
 
-def _arg_to_list(arg) -> list:
-    """
-    converts a non interable argument to a list
-    """
-    if arg is None:
-        return []
-    elif hasattr(arg, '__iter__') and not isinstance(arg, str):
-        return list(arg)
-    else:
-        return [arg]
-
-
-
 def now(fmt='%Y_%m_%d'):
     """
     alias for datetime.datetime.now().strftime(format_str)
