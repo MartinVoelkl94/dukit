@@ -1,5 +1,12 @@
 
 import pandas as pd
+from .utils import (
+    GREEN,
+    RED,
+    GREEN_LIGHT,
+    ORANGE_LIGHT,
+    RED_LIGHT,
+    )
 
 
 def _setup_csv(df_old, df_new, tmpdir):
@@ -223,6 +230,144 @@ def _get_expected_mix():
     expected.loc['x2', 'c'] = pd.NA
     expected.loc['z', 'c'] = 3
     expected.loc['x', 'c'] = 1
+
+    expected.reset_index(drop=True, inplace=True)
+
+    return expected.convert_dtypes()
+
+
+
+
+def _get_expected_style_new():
+
+    uid = pd.Series(
+        ['y', 'x2', 'z'],
+        dtype='string',
+        name='uid',
+        )
+    expected = pd.DataFrame(
+        columns=['d', 'b', 'a'],
+        index=uid,
+        )
+
+    expected.loc['y', 'd'] = f'background-color: {GREEN};'
+    expected.loc['x2', 'd'] = f'background-color: {GREEN};background-color: {GREEN};'
+    expected.loc['z', 'd'] = f'background-color: {GREEN};'
+
+    expected.loc['y', 'b'] = ''
+    expected.loc['x2', 'b'] = f'background-color: {GREEN};'
+    expected.loc['z', 'b'] = f'background-color: {GREEN_LIGHT};'
+
+    expected.loc['y', 'a'] = f'background-color: {ORANGE_LIGHT};'
+    expected.loc['x2', 'a'] = f'background-color: {GREEN};'
+    expected.loc['z', 'a'] = f'background-color: {RED_LIGHT};'
+
+    expected.reset_index(drop=True, inplace=True)
+
+    return expected.convert_dtypes()
+
+
+
+def _get_expected_style_newplus():
+
+    uid = pd.Series(
+        ['y', 'x2', 'z'],
+        dtype='string',
+        name='uid',
+        )
+    expected = pd.DataFrame(
+        columns=['d', 'b', 'b *old', 'a', 'a *old'],
+        index=uid,
+        )
+
+    expected.loc['y', 'd'] = f'background-color: {GREEN};'
+    expected.loc['x2', 'd'] = f'background-color: {GREEN};background-color: {GREEN};'
+    expected.loc['z', 'd'] = f'background-color: {GREEN};'
+
+    expected.loc['y', 'b'] = ''
+    expected.loc['x2', 'b'] = f'background-color: {GREEN};'
+    expected.loc['z', 'b'] = f'background-color: {GREEN_LIGHT};'
+
+    expected.loc['y', 'b *old'] = 'font-style: italic;'
+    expected.loc['x2', 'b *old'] = f'font-style: italic;background-color: {GREEN};'
+    expected.loc['z', 'b *old'] = 'font-style: italic;'
+
+    expected.loc['y', 'a'] = f'background-color: {ORANGE_LIGHT};'
+    expected.loc['x2', 'a'] = f'background-color: {GREEN};'
+    expected.loc['z', 'a'] = f'background-color: {RED_LIGHT};'
+
+    expected.loc['y', 'a *old'] = 'font-style: italic;'
+    expected.loc['x2', 'a *old'] = f'font-style: italic;background-color: {GREEN};'
+    expected.loc['z', 'a *old'] = 'font-style: italic;'
+
+    expected.reset_index(drop=True, inplace=True)
+
+    return expected.convert_dtypes()
+
+
+
+def _get_expected_style_old():
+
+    uid = pd.Series(
+        ['x', 'y', 'z'],
+        dtype='string',
+        name='uid',
+        )
+    expected = pd.DataFrame(
+        columns=['a', 'b', 'c'],
+        index=uid,
+        )
+
+    expected.loc['x', 'a'] = f'background-color: {RED};'
+    expected.loc['y', 'a'] = f'background-color: {ORANGE_LIGHT};'
+    expected.loc['z', 'a'] = f'background-color: {RED_LIGHT};'
+
+    expected.loc['x', 'b'] = f'background-color: {RED};'
+    expected.loc['y', 'b'] = ''
+    expected.loc['z', 'b'] = f'background-color: {GREEN_LIGHT};'
+
+    expected.loc['x', 'c'] = f'background-color: {RED};background-color: {RED};'
+    expected.loc['y', 'c'] = f'background-color: {RED};'
+    expected.loc['z', 'c'] = f'background-color: {RED};'
+
+    expected.reset_index(drop=True, inplace=True)
+
+    return expected.convert_dtypes()
+
+
+
+def _get_expected_style_mix():
+
+    uid = pd.Series(
+        ['y', 'x2', 'z', 'x'],
+        dtype='string',
+        name='uid',
+        )
+    expected = pd.DataFrame(
+        columns=['d', 'b', 'a', 'c'],
+        index=uid,
+        )
+
+    expected.loc['x', 'd'] = f'background-color: {GREEN};background-color: {RED};'
+    expected.loc['y', 'd'] = f'background-color: {GREEN};'
+    expected.loc['x2', 'd'] = f'background-color: {GREEN};background-color: {GREEN};'
+    expected.loc['z', 'd'] = f'background-color: {GREEN};'
+
+    expected.loc['x', 'b'] = f'background-color: {RED};'
+    expected.loc['y', 'b'] = ''
+    expected.loc['x2', 'b'] = f'background-color: {GREEN};'
+    expected.loc['z', 'b'] = f'background-color: {GREEN_LIGHT};'
+
+    expected.loc['x', 'a'] = f'background-color: {RED};'
+    expected.loc['y', 'a'] = f'background-color: {ORANGE_LIGHT};'
+    expected.loc['x2', 'a'] = f'background-color: {GREEN};'
+    expected.loc['z', 'a'] = f'background-color: {RED_LIGHT};'
+
+    expected.loc['x', 'c'] = f'background-color: {RED};background-color: {RED};'
+    expected.loc['y', 'c'] = f'background-color: {RED};'
+    expected.loc['x2', 'c'] = f'background-color: {GREEN};background-color: {RED};'
+    expected.loc['z', 'c'] = f'background-color: {RED};'
+
 
     expected.reset_index(drop=True, inplace=True)
 
