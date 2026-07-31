@@ -12,7 +12,7 @@ from .engine import (
     Query,
     Symbol,
     )
-from ..util import (
+from ..utils import (
     log,
     _build_log_context,
     ensure_unique_string,

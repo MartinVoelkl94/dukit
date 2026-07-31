@@ -10,7 +10,7 @@ from .qlang import (
     qr,
     qs,
     )
-from .util import (
+from .utils import (
     log,
     dict_to_str,
     list_to_str,

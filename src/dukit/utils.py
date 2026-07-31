@@ -97,7 +97,7 @@ def log(
 
     log(clear=True)  #clear all log entries
     log()  #return dataframe of log entries
-    dukit.util.logs  #location of list containing log entries
+    dukit.utils.logs  #location of list containing log entries
 
     """
     if verbosity == 0:

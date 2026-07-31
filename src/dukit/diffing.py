@@ -6,7 +6,7 @@ import os
 
 from .pandas import deduplicate
 from .excel import format
-from .util import (
+from .utils import (
     log,
     _arg_to_list,
     ensure_unique_string,
@@ -832,7 +832,7 @@ def _handle_edgecases(d: Diff) -> Diff:
     if d.old.empty and d.new.empty:
         values = pd.DataFrame({'diff': ['empty dfs']})
         style = pd.DataFrame(
-            f'background-color: {GREY_LIGHT}',
+            f'background-color: {GREY_LIGHT};',
             index=values.index,
             columns=values.columns,
             )
@@ -842,7 +842,7 @@ def _handle_edgecases(d: Diff) -> Diff:
         col_diff = ensure_unique_string('diff', values.columns)
         values.insert(0, col_diff, 'df added')
         style = pd.DataFrame(
-            f'background-color: {GREEN}',
+            f'background-color: {GREEN};',
             index=values.index,
             columns=values.columns,
             )
@@ -852,7 +852,7 @@ def _handle_edgecases(d: Diff) -> Diff:
         col_diff = ensure_unique_string('diff', values.columns)
         values.insert(0, col_diff, 'df removed')
         style = pd.DataFrame(
-            f'background-color: {RED}',
+            f'background-color: {RED};',
             index=values.index,
             columns=values.columns,
             )
@@ -1199,7 +1199,7 @@ def _create_meta_cols(d: Diff) -> Diff:
     df_meta.rename(columns=col_mapping, inplace=True)
 
     data = {
-        colname: ['font-style: italic'] * len(values.index)
+        colname: ['font-style: italic;'] * len(values.index)
         for colname in col_mapping.values()
         }
     df_meta_style = pd.DataFrame(
@@ -1285,22 +1285,22 @@ def _get_val_diffs(d: Diff) -> Diff:
 def _populate_row_col_styles(d: Diff) -> Diff:
 
     if d.mode == 'mix':
-        d._style.loc[:, d.cols_added] = f'background-color: {GREEN}'
-        d._style.loc[:, d.cols_removed] = f'background-color: {RED}'
-        d._style.loc[d.rows_added, :] = f'background-color: {GREEN}'
-        d._style.loc[d.rows_removed, :] = f'background-color: {RED}'
-        d._diff_col[d.rows_added] = 'row added'
-        d._diff_col[d.rows_removed] = 'row removed'
+        d._style.loc[:, d.cols_added] += f'background-color: {GREEN};'
+        d._style.loc[d.rows_added, :] += f'background-color: {GREEN};'
+        d._style.loc[:, d.cols_removed] += f'background-color: {RED};'
+        d._style.loc[d.rows_removed, :] += f'background-color: {RED};'
+        d._diff_col[d.rows_added] += 'row added'
+        d._diff_col[d.rows_removed] += 'row removed'
 
     elif d.mode == 'old':
-        d._style.loc[:, d.cols_removed] = f'background-color: {RED}'
-        d._style.loc[d.rows_removed, :] = f'background-color: {RED}'
-        d._diff_col[d.rows_removed] = 'row removed'
+        d._style.loc[:, d.cols_removed] += f'background-color: {RED};'
+        d._style.loc[d.rows_removed, :] += f'background-color: {RED};'
+        d._diff_col[d.rows_removed] += 'row removed'
 
     elif d.mode in ('new', 'new+'):
-        d._style.loc[:, d.cols_added] = f'background-color: {GREEN}'
-        d._style.loc[d.rows_added, :] = f'background-color: {GREEN}'
-        d._diff_col[d.rows_added] = 'row added'
+        d._style.loc[:, d.cols_added] += f'background-color: {GREEN};'
+        d._style.loc[d.rows_added, :] += f'background-color: {GREEN};'
+        d._diff_col[d.rows_added] += 'row added'
 
     return d
 

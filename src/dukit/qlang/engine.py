@@ -4,7 +4,7 @@ import numpy as np
 import typing
 import re
 
-from ..util import (
+from ..utils import (
     log,
     _build_log_context,
     dict_to_str,

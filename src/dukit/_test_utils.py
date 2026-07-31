@@ -85,18 +85,19 @@ def _get_expected_new():
     expected['uid'] = expected.index
 
     expected.loc['y', 'diff'] = 'vals changed: 1'
-    expected.loc['y', 'd'] = 2
-    expected.loc['y', 'b'] = 2
-    expected.loc['y', 'a'] = 0
-
     expected.loc['x2', 'diff'] = 'row added'
-    expected.loc['x2', 'd'] = 1
-    expected.loc['x2', 'b'] = 1
-    expected.loc['x2', 'a'] = 1
-
     expected.loc['z', 'diff'] = 'vals added: 1<br>vals removed: 1'
+
+    expected.loc['y', 'd'] = 2
+    expected.loc['x2', 'd'] = 1
     expected.loc['z', 'd'] = 3
+
+    expected.loc['y', 'b'] = 2
+    expected.loc['x2', 'b'] = 1
     expected.loc['z', 'b'] = 3
+
+    expected.loc['y', 'a'] = 0
+    expected.loc['x2', 'a'] = 1
     expected.loc['z', 'a'] = pd.NA
 
     expected.reset_index(drop=True, inplace=True)
@@ -119,24 +120,27 @@ def _get_expected_newplus():
     expected['uid'] = expected.index
 
     expected.loc['y', 'diff'] = 'vals changed: 1'
-    expected.loc['y', 'd'] = 2
-    expected.loc['y', 'b'] = 2
-    expected.loc['y', 'b *old'] = pd.NA
-    expected.loc['y', 'a'] = 0
-    expected.loc['y', 'a *old'] = 2
-
     expected.loc['x2', 'diff'] = 'row added'
-    expected.loc['x2', 'd'] = 1
-    expected.loc['x2', 'b'] = 1
-    expected.loc['x2', 'b *old'] = pd.NA
-    expected.loc['x2', 'a'] = 1
-    expected.loc['x2', 'a *old'] = pd.NA
-
     expected.loc['z', 'diff'] = 'vals added: 1<br>vals removed: 1'
+
+    expected.loc['y', 'd'] = 2
+    expected.loc['x2', 'd'] = 1
     expected.loc['z', 'd'] = 3
+
+    expected.loc['y', 'b'] = 2
+    expected.loc['x2', 'b'] = 1
     expected.loc['z', 'b'] = 3
+
+    expected.loc['y', 'b *old'] = pd.NA
+    expected.loc['x2', 'b *old'] = pd.NA
     expected.loc['z', 'b *old'] = pd.NA
+
+    expected.loc['y', 'a'] = 0
+    expected.loc['x2', 'a'] = 1
     expected.loc['z', 'a'] = pd.NA
+
+    expected.loc['y', 'a *old'] = 2
+    expected.loc['x2', 'a *old'] = pd.NA
     expected.loc['z', 'a *old'] = 3
 
     expected['b *old'] = expected['b *old'].astype('Int64')
@@ -160,18 +164,19 @@ def _get_expected_old():
     expected['uid'] = expected.index
 
     expected.loc['x', 'diff'] = 'row removed'
-    expected.loc['x', 'a'] = 1
-    expected.loc['x', 'b'] = 1
-    expected.loc['x', 'c'] = 1
-
     expected.loc['y', 'diff'] = 'vals changed: 1'
-    expected.loc['y', 'a'] = 2
-    expected.loc['y', 'b'] = 2
-    expected.loc['y', 'c'] = 2
-
     expected.loc['z', 'diff'] = 'vals added: 1<br>vals removed: 1'
+
+    expected.loc['x', 'a'] = 1
+    expected.loc['y', 'a'] = 2
     expected.loc['z', 'a'] = 3
+
+    expected.loc['x', 'b'] = 1
+    expected.loc['y', 'b'] = 2
     expected.loc['z', 'b'] = pd.NA
+
+    expected.loc['x', 'c'] = 1
+    expected.loc['y', 'c'] = 2
     expected.loc['z', 'c'] = 3
 
     expected.reset_index(drop=True, inplace=True)
@@ -194,27 +199,29 @@ def _get_expected_mix():
     expected['uid'] = expected.index
 
     expected.loc['y', 'diff'] = 'vals changed: 1'
-    expected.loc['y', 'd'] = 2
-    expected.loc['y', 'b'] = 2
-    expected.loc['y', 'a'] = 0
-    expected.loc['y', 'c'] = 2
-
     expected.loc['x2', 'diff'] = 'row added'
-    expected.loc['x2', 'd'] = 1
-    expected.loc['x2', 'b'] = 1
-    expected.loc['x2', 'a'] = 1
-    expected.loc['x2', 'c'] = pd.NA
-
     expected.loc['z', 'diff'] = 'vals added: 1<br>vals removed: 1'
-    expected.loc['z', 'd'] = 3
-    expected.loc['z', 'b'] = 3
-    expected.loc['z', 'a'] = pd.NA
-    expected.loc['z', 'c'] = 3
-
     expected.loc['x', 'diff'] = 'row removed'
+
+    expected.loc['y', 'd'] = 2
+    expected.loc['x2', 'd'] = 1
+    expected.loc['z', 'd'] = 3
     expected.loc['x', 'd'] = pd.NA
+
+    expected.loc['y', 'b'] = 2
+    expected.loc['x2', 'b'] = 1
+    expected.loc['z', 'b'] = 3
     expected.loc['x', 'b'] = 1
+
+
+    expected.loc['y', 'a'] = 0
+    expected.loc['x2', 'a'] = 1
+    expected.loc['z', 'a'] = pd.NA
     expected.loc['x', 'a'] = 1
+
+    expected.loc['y', 'c'] = 2
+    expected.loc['x2', 'c'] = pd.NA
+    expected.loc['z', 'c'] = 3
     expected.loc['x', 'c'] = 1
 
     expected.reset_index(drop=True, inplace=True)
