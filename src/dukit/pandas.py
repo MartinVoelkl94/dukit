@@ -314,7 +314,7 @@ def _deduplicate(series):
 def flatten(
         df: pd.DataFrame,
         on: str,
-        template='{colname}_#{counter}',
+        template='{colname} #{counter}',
         ):
 
     #aggregate repeating rows into lists
@@ -350,7 +350,7 @@ def flatten(
 def stagger(
         df: pd.DataFrame,
         on: str,
-        template='#{counter}_{colname}',
+        template='#{counter} {colname}',
         separator_col='#{counter}'
         ):
 
@@ -394,7 +394,7 @@ def embed(
         df: pd.DataFrame,
         on: str,
         colname='',
-        template='{colname}_#{counter}',
+        template='{colname} #{counter}',
         line_start='',
         separator=':',
         spacer='\u00A0',  #non-breaking space
