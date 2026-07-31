@@ -4,6 +4,7 @@ import numpy as np
 import datetime
 import copy
 from .utils import log
+from .typing import date_
 
 def get_df() -> pd.DataFrame:
     """
@@ -489,3 +490,68 @@ def transpose(
     df.reset_index(drop=True, inplace=True)
 
     return df
+
+
+
+def date_delta(
+        df,
+        reference_date=None,
+        reference_col=None,
+        verbosity=3,
+        ):
+    """
+    Calculates the number of days
+    between a reference date or col
+    and all other cols in the df.
+    """
+
+    df = df.copy().map(date_).convert_dtypes()
+
+    for col in df.columns:
+        if df[col].isna().all():
+            df.drop(columns=col, inplace=True)
+
+
+    if reference_date is None and reference_col is None:
+        msg = 'ERROR: no reference date or column provided'
+        log(msg, 'dk.date_delta', verbosity)
+        return df
+
+    if reference_date is not None and reference_col is not None:
+        msg = 'ERROR: both reference date and column provided'
+        log(msg, 'dk.date_delta', verbosity)
+        return df
+
+    if 'reference_date' in df.columns:
+        msg = 'WARNING: column "reference_date" already exists, overwriting'
+        log(msg, 'dk.date_delta', verbosity)
+    if reference_date is not None:
+        df['reference_date'] = date_(reference_date)
+        reference_col = str(reference_date)
+    else:
+        df['reference_date'] = df[reference_col].apply(date_)
+
+    cols_reorder = ['reference_date'] + [col for col in df.columns if col != 'reference_date']
+    df = df[cols_reorder]
+
+    for col in df.columns:
+        if col == 'reference_date':
+            continue
+
+        name = f'days from<br>{reference_col}<br>to<br>{col}'
+        if name in df.columns:
+            log(f'WARNING: column "{name}" already exists, overwriting',
+                'dk.date_delta', verbosity)
+
+        #difference only works with pd.NA,
+        #but x.days only works with pd.NaT.
+        #_fix_nas converts accordingly
+        col_formatted = df[col].apply(date_).apply(_fix_nas)
+        col_diff = col_formatted - df['reference_date']
+        df[name] = col_diff.fillna(pd.NaT).apply(lambda x: x.days)
+
+    return df
+
+
+def _fix_nas(x):
+    return pd.NA if x is pd.NaT else x

@@ -24,6 +24,7 @@ from .pandas import (
     embed,
     collapse,
     transpose,
+    date_delta,
     )
 from .excel import (
     format,
@@ -76,6 +77,7 @@ __all__ = (
     'embed',
     'collapse',
     'transpose',
+    'date_delta',
     'format',
     'save',
     'Box',
