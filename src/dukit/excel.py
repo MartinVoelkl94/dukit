@@ -62,7 +62,7 @@ def format(
                     'warning: skipping column with'
                     f' no header in sheet "{sheet.title}"'
                     )
-                log(text, 'du.format_excel()', verbosity)
+                log(text, 'dk.format_excel()', verbosity)
                 continue
 
             if colname in cols_hide:
@@ -132,34 +132,3 @@ def save(
 
     if format_excel:
         format(path, sheet=sheet_name)
-
-
-
-@pd.api.extensions.register_dataframe_accessor('save')
-class QueryAccessor():
-
-    def __init__(
-            self,
-            df: pd.DataFrame,
-            ):
-        self.df = df
-
-    def __call__(
-            self,
-            path='temp.xlsx',
-            sheet_name='df',
-            index=False,
-            format_excel=True,
-            **kwargs,
-            ):
-
-        save(
-            df=self.df,
-            path=path,
-            sheet_name=sheet_name,
-            index=index,
-            format_excel=format_excel,
-            **kwargs,
-            )
-
-        return None
