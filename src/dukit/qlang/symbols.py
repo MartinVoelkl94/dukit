@@ -548,7 +548,7 @@ class AliasStyleTable(Symbol):
 
     this is an alias for:
     code = r\"\"\"
-    .replace("\n", "<br>")
+    .replace("\\n", "<br>")
     .wrap(normal)
     .mono()
     .align(left)
@@ -794,7 +794,7 @@ class NewCol(Symbol):
 
 class TagMetadata(Symbol):
     """
-    add a tag about the the currently
+    add a tag about the currently
     selected rows into the metadata col.
 
     assumes the metadata col is named "_meta"

@@ -531,7 +531,13 @@ def date_delta(
     else:
         df['reference_date'] = df[reference_col].apply(date_)
 
-    cols_reorder = ['reference_date'] + [col for col in df.columns if col != 'reference_date']
+    cols_reorder = ['reference_date']
+    cols_reorder += [
+        col
+        for col
+        in df.columns
+        if col != 'reference_date'
+        ]
     df = df[cols_reorder]
 
     for col in df.columns:
