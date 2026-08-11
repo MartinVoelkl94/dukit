@@ -1,7 +1,11 @@
 # dukit - data utilities kit
 
-Provides utilities focused on data exploration, modification and visualization of small but messy datasets in pandas.
+Provides utilities focused on data exploration, modification and visualization of small but messy datasets in pandas.  
 
+hosted on github as [dukit](https://github.com/MartinVoelkl94/dukit)  
+published on pypi as [dukit](https://pypi.org/project/dukit/)  
+<br>
+<br>
 
 
 # qlang
@@ -11,9 +15,9 @@ It is implemented as a pandas [accessor extension](https://pandas.pydata.org/doc
 
 example:
 ```python
-from dukit import get_df
+import dukit as dk
 
-df = get_df()
+df = dk.get_df()
 
 #show all patients with ID > 20000
 df.dk.qs(r'id  >20000')
@@ -34,9 +38,14 @@ df.dk.qs(r'age  >18  &&<80  .color(green)')
 Take a look at "interactive_demo.ipynb" in the github repo for a quick syntax introduction and more examples.
 
 The query language allows for arbitrary code execution via eval(), please be aware of the risks.
+<br>
+<br>
 
-Currently published on [testpypi](https://test.pypi.org/project/dukit/).
 
+
+# dk.diff()
+
+Creates colored diff output between two datasets. See interactive_demo.ipynb for examples. Works with pandas dataframes, csv files, excel files and excel files with multiple sheets.
 <br>
 <br>
 
@@ -45,19 +54,31 @@ Currently published on [testpypi](https://test.pypi.org/project/dukit/).
 
 # other utilities
 
+<br>
+<br>
 
-## logging with dukit.log()
+
+## dk.log()
 
 A small logger to be used in notebooks or the REPL. Makes it easier to keep track of outputs in large notebooks by providing color coded output. Does not log to file, but instead to a dataframe which can then be viewed at the end of the notebook.
 <br>
 <br>
 
 
-## dukit.diff()
 
-creates colored diff output for two dataframes, see interactive_demo.ipynb for examples. Works with pandas dataframes, csv files, excel files and excel files with multiple sheets.
+## df reshaping
+
+these functions offer various ways to deal with non-unique keys/ids.  
+primarily used when merging 2 dfs with a one-to-many relationship.
+
+available functions:
+- df.dk.flatten()
+- df.dk.stagger()
+- df.dk.embed()
+- df.dk.collapse()
 <br>
 <br>
+
 
 
 ## "bashlike" wrappers
@@ -67,35 +88,40 @@ These wrappers use the same names as the bash commands and offer some additional
 
 
 available wrappers:  
-- dukit.ls()  
-- dukit.lsr()  
-- dukit.pwd()  
-- dukit.cd()  
-- dukit.cp()  
-- dukit.mkdir()  
-- dukit.isdir()  
-- dukit.isfile()  
-- dukit.ispath()  
+- dk.ls()  
+- dk.lsr()  
+- dk.pwd()  
+- dk.cd()  
+- dk.cp()  
+- dk.mv()  
+- dk.mkdir()  
+- dk.isdir()  
+- dk.isfile()  
+- dk.ispath()  
 <br>
 <br>
 
 
-## type conversion 
+
+## type utilities
 
 Mostly wrappers for pandas functions but with some additional functionality and generally more lenient handling of edge cases. 
 
-available functions:  
-- dukit.int()  
-- dukit.float()  
-- dukit.num()  
-- dukit.bool()  
-- dukit.date()  
-- dukit.datetime()  
-- dukit.na()  
-- dukit.nk()  
-- dukit.yn()  
-- dukit.type()  
-- dukit.convert()  
+available functions/classes:  
+- dk.type()  
+- dk.convert()  
+- dk.str()
+- dk.int()  
+- dk.float()  
+- dk.num()  
+- dk.bool()  
+- dk.date()  
+- dk.datetime()  
+- dk.na()  
+- dk.nk()  
+- dk.yn()  
+- dk.list()
+- dk.Box  
 <br>
 <br>
 
