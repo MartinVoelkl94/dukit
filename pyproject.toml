@@ -1,21 +1,37 @@
 [project]
 name = "dukit"
-version = "0.2.1"
+version = "0.2.2"
 description = "dukit - data utilities kit for exploring, modifying and visualizing small but messy data using pandas"
 readme = "README.md"
-authors = [
-    { name = "MartinVoelkl94", email = "martinv16248@gmail.com" }
-]
+authors = [{ name = "MartinVoelkl94", email = "martinv16248@gmail.com" }]
+license = "MIT"
 requires-python = ">=3.14"
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = [
+    "pandas",
+    "query",
+    "utility",
+    "data",
+    "diff",
+]
 dependencies = [
     "ipython>=9.15.0",
     "jinja2>=3.1.6",
     "pandas>=3.0.3",
 ]
 
+
+[project.urls]
+Repository = "https://github.com/MartinVoelkl94/dukit"
+
+
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
 build-backend = "uv_build"
+
 
 [dependency-groups]
 dev = [
