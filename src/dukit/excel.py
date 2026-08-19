@@ -19,7 +19,6 @@ def format(
         align_vertical='top',
         align_horizontal='left',
         wrap_text=True,
-        openpyxl_workbook=None,
         verbosity=3,
         ):  #pragma: no cover (does not affect reading of xlsx files)
     """
@@ -29,10 +28,8 @@ def format(
     - hide specified columns
     """
 
-    if openpyxl_workbook:
-        wb = openpyxl_workbook
-    else:
-        wb = openpyxl.load_workbook(path)
+    wb = openpyxl.load_workbook(path)
+
     if sheet:
         sheetnames = list_(sheet)
     else:

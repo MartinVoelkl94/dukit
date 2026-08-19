@@ -1,6 +1,5 @@
 
 import pandas as pd
-import openpyxl
 import typing
 import os
 
@@ -447,7 +446,6 @@ class Diffs:
 
         #format excel file
         if apply_format:
-            wb = openpyxl.load_workbook(path)
 
             #metadata sheets
             sheets_hide = []
@@ -462,7 +460,6 @@ class Diffs:
                 sheet=[sheet_info, sheet_summary, sheet_details],
                 hide_sheets=sheets_hide,
                 freeze_panes='B2',
-                openpyxl_workbook=wb,
                 )
             msg = 'DEBUG: info, summary, details sheets formatted'
             log(msg, context, self.verbosity)
@@ -478,7 +475,6 @@ class Diffs:
                     sheet=diff.name,
                     hide_cols=cols_hide,
                     freeze_panes=freeze_panes,
-                    openpyxl_workbook=wb,
                     )
                 msg = f'DEBUG: diff sheet formatted: "{diff.name}"'
                 log(msg, context, self.verbosity)
