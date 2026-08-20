@@ -582,3 +582,108 @@ def date_delta(
 
 def _fix_nas(x):
     return pd.NA if x is pd.NaT else x
+
+
+
+
+def date_table(
+        df: pd.DataFrame,
+        reference_date: str | datetime.date | pd.Timestamp = None,
+        reference_col: str = None,
+        uid: str = None,
+        upper: int = None,
+        lower: int = None,
+        linebreak: str = '<br>',
+        verbosity: int = 3,
+        ):
+    """
+    Arranges all dates into a table,
+    with positions relative to a
+    reference date or column.
+    """
+
+    if reference_date is None and reference_col is None:
+        msg = 'ERROR: no reference date or column provided'
+        log(msg, 'dk.date_delta', verbosity)
+        return df
+
+    if reference_date is not None and reference_col is not None:
+        msg = 'ERROR: both reference date and column provided'
+        log(msg, 'dk.date_delta', verbosity)
+        return df
+
+    df = df.copy()
+
+    if uid:
+        df.index = df[uid]
+
+    if reference_date is not None:
+        reference = pd.Series(
+            date_(reference_date),
+            index=df.index
+            )
+    else:
+        reference = df[reference_col].apply(date_)
+
+    df = (
+        df
+        .copy()
+        .map(date_)
+        .convert_dtypes()
+        )
+
+    for col in df.columns:
+        if df[col].isna().all():
+            df.drop(columns=col, inplace=True)
+
+
+    blanks = {col: pd.NaT for col in df.columns}
+    deltas = pd.DataFrame(
+        blanks,
+        index=df.index,
+        )
+
+    for col in df.columns:
+        #difference only works with pd.NA,
+        #but x.days only works with pd.NaT.
+        #_fix_nas converts accordingly
+        col_formatted = df[col].apply(date_).apply(_fix_nas)
+        col_diff = col_formatted - reference
+        deltas[col] = (
+            col_diff
+            .fillna(pd.NaT)  #type:ignore (pylance doesnt know date_ enables this)
+            .apply(lambda x: x.days)
+            )
+
+    deltas = deltas.T
+
+
+    if upper is None:
+        upper = int(deltas.max().max())
+    if lower is None:
+        lower = int(deltas.min().min())
+
+    days = list(range(lower, upper + 1))
+    days_df = pd.DataFrame({'days': days})
+
+    df_timeline = days_df.copy()
+
+    for col in deltas.columns:
+        events = pd.DataFrame({
+            'days': deltas[col].astype('Int64'),
+            col: deltas.index,
+            })
+        merged = days_df.copy().merge(events, on='days', how='left').fillna('')
+        collapsed = collapse(
+            merged,
+            on='days',
+            line_start='',
+            line_stop=linebreak,
+            )
+        df_timeline = df_timeline.merge(
+            collapsed,
+            on='days',
+            how='left',
+            )
+
+    return df_timeline

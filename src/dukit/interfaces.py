@@ -14,6 +14,7 @@ from .pandas import (
     collapse,
     transpose,
     date_delta,
+    date_table,
     )
 
 
@@ -142,6 +143,28 @@ class DukitAccessor():
             self.df,
             reference_date=reference_date,
             reference_col=reference_col,
+            linebreak=linebreak,
+            verbosity=verbosity,
+            )
+
+
+    def date_table(
+            self,
+            reference_date: str | datetime.date | pd.Timestamp = None,
+            reference_col: str = None,
+            uid: str = None,
+            upper: int = None,
+            lower: int = None,
+            linebreak: str = '<br>',
+            verbosity: int = 3,
+            ):
+        return date_table(
+            df=self.df,
+            reference_date=reference_date,
+            reference_col=reference_col,
+            uid=uid,
+            upper=upper,
+            lower=lower,
             linebreak=linebreak,
             verbosity=verbosity,
             )
