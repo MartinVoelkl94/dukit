@@ -1,5 +1,6 @@
 
 import pandas as pd
+import datetime
 from .excel import save
 from .qlang import (
     q,
@@ -12,6 +13,7 @@ from .pandas import (
     embed,
     collapse,
     transpose,
+    date_delta,
     )
 
 
@@ -127,6 +129,22 @@ class DukitAccessor():
             header=header,
             )
         return df_new
+
+
+    def date_delta(
+            self,
+            reference_date: str | datetime.date | pd.Timestamp = None,
+            reference_col: str = None,
+            linebreak: str = '<br>',
+            verbosity: int = 3,
+            ):
+        return date_delta(
+            self.df,
+            reference_date=reference_date,
+            reference_col=reference_col,
+            linebreak=linebreak,
+            verbosity=verbosity,
+            )
 
 
     def save(

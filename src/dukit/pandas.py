@@ -494,23 +494,17 @@ def transpose(
 
 
 def date_delta(
-        df,
-        reference_date=None,
-        reference_col=None,
-        verbosity=3,
+        df: pd.DataFrame,
+        reference_date: str | datetime.date | pd.Timestamp = None,
+        reference_col: str = None,
+        linebreak: str = '<br>',
+        verbosity: int = 3,
         ):
     """
     Calculates the number of days
     between a reference date or col
-    and all other cols in the df.
+    and all other date cols in the df.
     """
-
-    df = df.copy().map(date_).convert_dtypes()
-
-    for col in df.columns:
-        if df[col].isna().all():
-            df.drop(columns=col, inplace=True)
-
 
     if reference_date is None and reference_col is None:
         msg = 'ERROR: no reference date or column provided'
@@ -521,6 +515,27 @@ def date_delta(
         msg = 'ERROR: both reference date and column provided'
         log(msg, 'dk.date_delta', verbosity)
         return df
+
+
+    df = df.copy()
+    df_dates = (
+        df
+        .copy()
+        .map(date_)
+        .convert_dtypes()
+        )
+    cols_dates = []
+    cols_all = list(df.columns)
+
+    for col in df_dates.columns:
+        if df_dates[col].isna().all():
+            df_dates.drop(columns=col, inplace=True)
+        else:
+            cols_dates.append(col)
+            df.drop(columns=col, inplace=True)
+
+    df = pd.concat([df, df_dates], axis=1)[cols_all]
+
 
     if 'reference_date' in df.columns:
         msg = 'WARNING: column "reference_date" already exists, overwriting'
@@ -541,10 +556,12 @@ def date_delta(
     df = df[cols_reorder]
 
     for col in df.columns:
+        if col not in cols_dates:
+            continue
         if col == 'reference_date':
             continue
 
-        name = f'days from<br>{reference_col}<br>to<br>{col}'
+        name = f'days from{linebreak}{reference_col}{linebreak}to{linebreak}{col}'
         if name in df.columns:
             log(f'WARNING: column "{name}" already exists, overwriting',
                 'dk.date_delta', verbosity)
@@ -554,7 +571,11 @@ def date_delta(
         #_fix_nas converts accordingly
         col_formatted = df[col].apply(date_).apply(_fix_nas)
         col_diff = col_formatted - df['reference_date']
-        df[name] = col_diff.fillna(pd.NaT).apply(lambda x: x.days)
+        df[name] = (
+            col_diff
+            .fillna(pd.NaT)  #type:ignore (pylance doesnt know date_ enables this)
+            .apply(lambda x: x.days)
+            )
 
     return df
 
