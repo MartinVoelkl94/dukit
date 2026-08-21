@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import copy
-from .utils import log
+from .utils import log, GREEN_LIGHT
 from .typing import date_
 
 def get_df() -> pd.DataFrame:
@@ -446,13 +446,12 @@ def embed(
 def collapse(
         df: pd.DataFrame,
         on: str,
-        template='{colname}',
-        line_start='#',
-        line_stop='\n',
+        template_col='{colname}',
+        template_item='#{counter}: {item}\n',
         ):
     df = df.groupby(on).agg(list)
-    df = df.map(lambda x: _to_lines(x, line_start, line_stop))
-    df.columns = [template.format(colname=col) for col in df.columns]
+    df = df.map(lambda x: _to_lines(x, template_item))
+    df.columns = [template_col.format(colname=col) for col in df.columns]
     df.insert(0, on, df.index)
     df.reset_index(drop=True, inplace=True)
     return df
@@ -460,8 +459,7 @@ def collapse(
 
 def _to_lines(
         x,
-        line_start='#',
-        line_stop='\n',
+        template_item='#{counter}: {item}\n',
         ):
     if not isinstance(x, list):
         return x
@@ -470,7 +468,7 @@ def _to_lines(
     else:
         x_str = ''
         for i, item in enumerate(x):
-            x_str += f'{line_start}{i + 1}: {item}{line_stop}'
+            x_str += template_item.format(counter=i + 1, item=item)
     return x_str
 
 
@@ -497,7 +495,7 @@ def date_delta(
         df: pd.DataFrame,
         reference_date: str | datetime.date | pd.Timestamp = None,
         reference_col: str = None,
-        linebreak: str = '<br>',
+        linebreak: str = '\n',
         verbosity: int = 3,
         ):
     """
@@ -593,9 +591,11 @@ def date_table(
         uid: str = None,
         upper: int = None,
         lower: int = None,
-        linebreak: str = '<br>',
+        start_at_day1: bool = True,
+        schedule: dict = None,
+        linebreak: str = '\n',
         verbosity: int = 3,
-        ):
+        ) -> pd.DataFrame | pd.io.formats.style.Styler:
     """
     Arranges all dates into a table,
     with positions relative to a
@@ -664,21 +664,36 @@ def date_table(
         lower = int(deltas.min().min())
 
     days = list(range(lower, upper + 1))
+    if start_at_day1:
+        days.remove(0)
     days_df = pd.DataFrame({'days': days})
 
     df_timeline = days_df.copy()
+    if schedule is not None:
+        df_schedule = pd.DataFrame({
+            'days': list(schedule.values()),
+            'planned': list(schedule.keys()),
+            })
+        df_timeline = df_timeline.merge(
+            df_schedule,
+            on='days',
+            how='left',
+            ).fillna('')
 
     for col in deltas.columns:
         events = pd.DataFrame({
             'days': deltas[col].astype('Int64'),
             col: deltas.index,
             })
+
+        if start_at_day1:
+            events = _shift_day0(events)
+
         merged = days_df.copy().merge(events, on='days', how='left').fillna('')
         collapsed = collapse(
             merged,
             on='days',
-            line_start='',
-            line_stop=linebreak,
+            template_item='{item}' + linebreak,
             )
         df_timeline = df_timeline.merge(
             collapsed,
@@ -686,4 +701,41 @@ def date_table(
             how='left',
             )
 
+    if schedule is not None:
+        df_timeline = _highlight_schedule(df_timeline, schedule)
+
     return df_timeline
+
+
+def _shift_day0(df: pd.DataFrame) -> pd.DataFrame:
+    if 'days' not in df.columns:
+        return df
+    if 0 not in df['days'].values:
+        return df
+    mask_positive = df['days'] >= 0
+    df.loc[mask_positive, 'days'] += 1
+    return df
+
+
+def _highlight_schedule(
+        df: pd.DataFrame,
+        schedule: dict,
+        ) -> pd.io.formats.style.Styler:
+
+    days_highlight = list(schedule.values())
+
+    df_style = pd.DataFrame(
+        'text-align: left;',
+        columns=df.columns,
+        index=df.index
+        )
+
+    mask_highlight = df['days'].isin(days_highlight)
+    df_style.loc[mask_highlight, :] += f'background-color: {GREEN_LIGHT};'
+
+    df_styled = df.style.apply(
+        lambda x: df_style,
+        axis=None,
+        )
+
+    return df_styled

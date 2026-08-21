@@ -416,9 +416,8 @@ def test_collapse():
     df1, df2 = get_dfs()
     result = df2.dk.collapse(
         on='id',
-        template='{colname}',
-        line_start='#',
-        line_stop='\n',
+        template_col='{colname}',
+        template_item='#{counter}: {item}\n',
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)
@@ -473,9 +472,8 @@ def test_collapse_formatted():
     df1, df2 = get_dfs()
     result = df2.dk.collapse(
         on='id',
-        template='{colname}_collapsed',
-        line_start='(item',
-        line_stop=')',
+        template_col='{colname}_collapsed',
+        template_item='(item{counter}: {item})',
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)

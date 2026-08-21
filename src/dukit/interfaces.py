@@ -107,16 +107,14 @@ class DukitAccessor():
     def collapse(
             self,
             on: str,
-            template='{colname}',
-            line_start='#',
-            line_stop='\n',
+            template_col='{colname}',
+            template_item='#{counter}: {item}\n',
             ):
         df_new = collapse(
             self.df,
             on=on,
-            template=template,
-            line_start=line_start,
-            line_stop=line_stop,
+            template_col=template_col,
+            template_item=template_item,
             )
         return df_new
 
