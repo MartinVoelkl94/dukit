@@ -44,6 +44,8 @@ params = [
     'stylers',
     'viewer',
     'viewers',
+    'flag',
+    'flags',
     ]
 @pytest.mark.parametrize('category', params)
 def test_as_df_helpers(category):

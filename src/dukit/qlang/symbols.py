@@ -6075,7 +6075,19 @@ class ViewParserHelp(Symbol):
                 )
             print('\n\n')
 
+
         if not q.op.operator:
+
+            flags = _get_valid_operators(
+                q.op,
+                'flags',
+                cols_show
+                )
+            _print_or_display(
+                'flags:',
+                flags[cols_show],
+                )
+            print('\n\n')
 
             generic_ops = _get_valid_operators(
                 q.op,
@@ -6657,12 +6669,34 @@ class FlagNegate(Symbol):
     >>> df.dk.qs(r'id   %%!>20000')
     """
     name = 'FlagNegate'
-    category = 'syntax'
+    category = 'flag'
     regex = (r'!',)
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_getter(q)
         q.op.flags['negate'] = 'negate the condition'
+        return q
+
+
+
+
+class FlagIndex(Symbol):
+    """
+    Condition is applied to the index
+    instead of the values.
+
+    Examples
+    --------
+    >>> df.dk.qs(r'%§0')
+    >>> df.dk.qs(r'name  §3')
+    """
+    name = 'FlagIndex'
+    category = 'flag'
+    regex = (r'§',)
+
+    def parse(self, q: Query) -> Query:
+        q = _preparse_for_getter(q)
+        q.op.flags['index'] = 'apply condition to the index'
         return q
 
 
@@ -6678,7 +6712,7 @@ class FlagColref(Symbol):
     >>> df.dk.qs(r'age  <@height')
     """
     name = 'FlagColref'
-    category = 'syntax'
+    category = 'flag'
     regex = (r'@',)
 
     def parse(self, q: Query) -> Query:
@@ -6706,7 +6740,7 @@ class Flag(Symbol):
     >>> df.dk.qs(r'age  %%>30 +strict')
     """
     name = 'Flag'
-    category = 'syntax'
+    category = 'flag'
     regex = (r'\+\w+',)
 
     def build(self, str_matched: str) -> 'Symbol':
@@ -6735,6 +6769,7 @@ getters = []
 setters = []
 stylers = []
 viewers = []
+flags = []
 for _obj in list(locals().values()):
     if isinstance(_obj, type) and issubclass(_obj, Symbol):
         if _obj is not Symbol:
@@ -6758,6 +6793,8 @@ for _obj in list(locals().values()):
             elif _obj.category == 'viewer':
                 operators.append(_obj())
                 viewers.append(_obj())
+            elif _obj.category == 'flag':
+                flags.append(_obj())
 
 
 
@@ -6782,6 +6819,7 @@ def as_df(category='all') -> pd.DataFrame:
         'setter',
         'styler',
         'viewer',
+        'flag',
         )
     if category in singular:
         category += 's'
@@ -6804,6 +6842,8 @@ def as_df(category='all') -> pd.DataFrame:
         symbols = stylers
     elif category == 'viewers':
         symbols = viewers
+    elif category == 'flags':
+        symbols = flags
     else:
         raise ValueError(f"Unknown category: {category}")
 
@@ -6813,7 +6853,7 @@ def as_df(category='all') -> pd.DataFrame:
     descriptions = [_get_description(d) for d in docs]
     examples = [_get_example(d) for d in docs]
     categories = [s.category for s in symbols]
-    flags = ['\n'.join(s.flags) for s in symbols]
+    flags_actual = ['\n'.join(s.flags) for s in symbols]
     flags_allowed = ['\n'.join(s.flags_allowed) for s in symbols]
     scopes_allowed = ['\n'.join(s.scopes_allowed) for s in symbols]
     connectors_allowed = ['\n'.join(s.connectors_allowed) for s in symbols]
@@ -6823,7 +6863,7 @@ def as_df(category='all') -> pd.DataFrame:
         'description': descriptions,
         'example': examples,
         'category': categories,
-        'flags': flags,
+        'flags': flags_actual,
         'flags_allowed': flags_allowed,
         'scopes_allowed': scopes_allowed,
         'connectors_allowed': connectors_allowed,
@@ -6844,7 +6884,17 @@ def as_df_styled(category='all') -> pd.io.formats.style.Styler:
 
 
 def _get_lexemes(symbol: Symbol) -> str:
-    string = '\n'.join(symbol.regex).replace('\\', '')
+    show_raw = [
+        'Newline',
+        'Literal',
+        'Whitespace',
+        'Comment',
+        'Flag',
+        ]
+    if symbol.name in show_raw:
+        string = '\n'.join(symbol.regex)
+    else:
+        string = '\n'.join(symbol.regex).replace('\\', '')
     return string
 
 
