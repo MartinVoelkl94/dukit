@@ -22,6 +22,7 @@ wheels/
 ~$*
 **/temp/**
 *.complexipy_cache
+.coverage
 
 #should be added manually if needed
 *.xlsx

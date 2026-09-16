@@ -580,13 +580,12 @@ def _fix_nas(x):
 
 def date_table(
         df: pd.DataFrame,
-        reference_date: str | datetime.date | pd.Timestamp = None,
         reference_col: str = None,
         uid: str = None,
         upper: int = None,
         lower: int = None,
         start_at_day1: bool = True,
-        schedule: dict = None,
+        schedule: dict[int, str] = None,
         linebreak: str = '\n',
         verbosity: int = 3,
         ) -> pd.DataFrame | pd.io.formats.style.Styler:
@@ -596,28 +595,15 @@ def date_table(
     reference date or column.
     """
 
-    if reference_date is None and reference_col is None:
-        msg = 'ERROR: no reference date or column provided'
+    if reference_col is None:
+        msg = 'ERROR: no reference column provided'
         log(msg, 'dk.date_delta', verbosity)
-        return df
-
-    if reference_date is not None and reference_col is not None:
-        msg = 'ERROR: both reference date and column provided'
-        log(msg, 'dk.date_delta', verbosity)
-        return df
+        return pd.DataFrame()
 
     df = df.copy()
-
     if uid:
         df.index = df[uid]
-
-    if reference_date is not None:
-        reference = pd.Series(
-            date_(reference_date),
-            index=df.index
-            )
-    else:
-        reference = df[reference_col].apply(date_)
+    reference = df[reference_col].apply(date_)
 
     df = (
         df
@@ -653,20 +639,22 @@ def date_table(
 
 
     if upper is None:
-        upper = int(deltas.max().max())
+        upper = int(deltas.max().max()) + 1
     if lower is None:
         lower = int(deltas.min().min())
 
     days = list(range(lower, upper + 1))
     if start_at_day1:
         days.remove(0)
+    else:
+        days.pop(-1)
     days_df = pd.DataFrame({'days': days})
 
     df_timeline = days_df.copy()
     if schedule is not None:
         df_schedule = pd.DataFrame({
-            'days': list(schedule.values()),
-            'planned': list(schedule.keys()),
+            'days': list(schedule.keys()),
+            'planned': list(schedule.values()),
             })
         df_timeline = df_timeline.merge(
             df_schedule,
@@ -716,7 +704,7 @@ def _highlight_schedule(
         schedule: dict,
         ) -> pd.io.formats.style.Styler:
 
-    days_highlight = list(schedule.values())
+    days_highlight = list(schedule.keys())
 
     df_style = pd.DataFrame(
         'text-align: left;',
