@@ -1,68 +1,56 @@
+
 import pandas as pd
-from dukit import (
-    deduplicate,
-    log,
-    )
+from dukit import deduplicate
 
 
-
-def check_message(expected_message):
-    logs = log()
-    logs['text_full'] = logs['level'] + ': ' + logs['text']
-    log_texts = logs['text_full'].to_list()
-    text = f'did not find expected message: {expected_message}\nin logs:\n{log_texts}'
-    assert expected_message in logs['text_full'].values, text
-
-
-#list tests
 
 def test_deduplicate_list():
     obj = [1]
     expected = ['1']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 def test_deduplicate_list1():
     obj = [1, 1]
     expected = ['1', '1_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 def test_deduplicate_list2():
     obj = [1, 2, 2,]
     expected = ['1', '2', '2_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 def test_deduplicate_list3():
     obj = [1, 2, 2, 3, 3, 3]
     expected = ['1', '2', '2_1', '3', '3_1', '3_2']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 def test_deduplicate_list4():
     obj = [3, 1, 3, 2, 3, 2]
     expected = ['3', '1', '3_1', '2', '3_2', '2_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 def test_deduplicate_list5():
     obj = [1, 1, '1_1']
     expected = ['1', '1_1', '1_1_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 def test_deduplicate_list6():
     obj = ['1_1', 1, '1_1_1', 1, '1_1']
     expected = ['1_1', '1', '1_1_1', '1_1_1_1', '1_1_1_1_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
-    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'
+    assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
 
