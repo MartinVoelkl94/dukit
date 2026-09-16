@@ -544,19 +544,13 @@ def date_delta(
     else:
         df['reference_date'] = df[reference_col].apply(date_)
 
-    cols_reorder = ['reference_date']
-    cols_reorder += [
-        col
-        for col
-        in df.columns
-        if col != 'reference_date'
-        ]
+    cols_reorder = [col for col in df.columns]
     df = df[cols_reorder]
 
     for col in df.columns:
         if col not in cols_dates:
             continue
-        if col == 'reference_date':
+        if col in ['reference_date', reference_col]:
             continue
 
         name = f'days from{linebreak}{reference_col}{linebreak}to{linebreak}{col}'
