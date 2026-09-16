@@ -778,3 +778,79 @@ def test_remove_cols_mix_xlsx(tmpdir):
         ).show().data  #type:ignore
 
     assert_frame_equal(result, expected)
+
+
+
+def test_remove_cols_by_suffix_new():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_new()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='new',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_remove_cols_by_suffix_newplus():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_newplus()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='new+',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_remove_cols_by_suffix_mix():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_mix()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_remove_cols_by_suffix_old():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_old()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='old',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
