@@ -1,5 +1,6 @@
 
 import pytest
+import pandas as pd
 
 from pandas.testing import assert_frame_equal
 from dukit import (
@@ -11,6 +12,23 @@ from dukit import (
 
 params = []
 df = get_df()
+
+tstamp = pd.Timestamp('2024-01-01')
+def get_df_types():
+    df_types = pd.DataFrame({
+        'a': ['a'],
+        0: [0],
+        0.1: [0.1],
+        pd.Timestamp('2024-01-01'): [tstamp],
+        True: [True],
+        'unknown': ['unknown'],
+        None: [None],
+        'b': ['a'],
+        }).convert_dtypes()
+    df_types.rename(columns={'b': 'a'}, inplace=True)
+    df_types.columns = df_types.columns.to_series().convert_dtypes()
+    df_types.index = df_types.index.to_series().convert_dtypes()
+    return df_types
 
 def check_message(expected_strings):
 
@@ -176,7 +194,7 @@ params = [
 
     ]
 @pytest.mark.parametrize('code, expected_cols, message', params)
-def test_cols(code, expected_cols: list[str], message):
+def test_basic(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
     assert_frame_equal(result, expected)
@@ -226,7 +244,7 @@ params = [
 
     ]
 @pytest.mark.parametrize('code, expected_cols, message', params)
-def test_cols_connect(code, expected_cols: list[str], message):
+def test_connect(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
     assert_frame_equal(result, expected)
@@ -327,7 +345,7 @@ params = [
 
     ]
 @pytest.mark.parametrize('code, expected_cols, message', params)
-def test_cols_flags(code, expected_cols: list[str], message):
+def test_flags(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
     assert_frame_equal(result, expected)
@@ -403,7 +421,7 @@ params = [
 
     ]
 @pytest.mark.parametrize('code, expected, message', params)
-def test_cols_index(code, expected, message):
+def test_header(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
     if message:
@@ -425,9 +443,46 @@ params = [
 
     ]
 @pytest.mark.parametrize('code, expected_cols, message', params)
-def test_cols_lists(code, expected_cols: list[str], message):
+def test_lists(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+params = [
+    ('%:isstr', ['a', 'unknown'], None),
+    ('%:isint', [0, True], None),
+    ('%:isfloat', [0, 0.1, True], None),
+    ('%:isfloat +strict', [0.1], None),
+    ('%:isnum', [0, 0.1, tstamp, True, None], None),
+    ('%:isbool', [0, True], None),
+    ('%:isdatetime', [tstamp], None),
+    ('%:isdate', [tstamp], None),
+    ('%:isna', [None], None),
+    ('%:isnk', ['unknown'], None),
+    ('%:isyn', [0, True], None),
+    ('%:isunique', [0, 0.1, tstamp, True, 'unknown', None], None),
+    ('%!:isunique', ['a'], None),
+    ('%:isfirst', ['a', 0, 0.1, tstamp, True, 'unknown', None], None),
+    ('%:islast', [0, 0.1, tstamp, True, 'unknown', None, 'a'], None),
+    ]
+@pytest.mark.parametrize('code, expected_cols, message', params)
+def test_types(code, expected_cols: list[str], message):
+
+    df_types = get_df_types()
+    result = df_types.dk.qr(code).result
+
+    if code == '%:isstr':
+        result = result[['a', 'unknown']]  #qlang reorders, while pd does not
+    elif code == '%:isfirst':
+        df_types = df_types.iloc[:, :7]
+    elif code == '%:islast':
+        df_types = df_types.iloc[:, 1:]
+
+    expected = df_types.loc[:, expected_cols]
     assert_frame_equal(result, expected)
     if message:
         check_message(message)
