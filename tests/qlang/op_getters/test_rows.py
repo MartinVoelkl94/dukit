@@ -809,7 +809,7 @@ params = [
 
     ]
 @pytest.mark.parametrize('code, expected, message', params)
-def test_types(code, expected, message):
+def test_typeflags(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
     if message:

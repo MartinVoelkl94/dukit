@@ -4015,6 +4015,7 @@ class SetTypeInfo(Symbol):
     category = 'setter'
     regex = (
         r'\.typeinfo',
+        r'\.type',
         )
 
     #used to validate the current op

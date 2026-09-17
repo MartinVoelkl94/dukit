@@ -1,4 +1,5 @@
 
+import pytest
 import pandas as pd
 
 from pandas.testing import (
@@ -114,3 +115,24 @@ def test_val_setter_compatible():
         )
     expected.loc[:, :] = 'color: blue;'
     assert_frame_equal(result, expected)  # type: ignore
+
+
+
+@pytest.mark.parametrize(
+    'code',
+    [
+        '%.style',
+        '%.style_table',
+    ],
+    )
+def test_style_table_alias(code):
+    query = df.dk.qr(code)
+    result = [op.operator for op in query.ops]
+    expected = [
+        'SetStringReplace',
+        'StyleTextWrap',
+        'StyleMonospace',
+        'StyleAlignement',
+        'StyleAlignement',
+        ]
+    assert result == expected
