@@ -262,7 +262,7 @@ def fetch(path, before='now', verbosity=3):
                 timestamp = datetime_(timestamp_str)
                 if timestamp < datetime_(cutoff):
                     timestamps[timestamp] = (timestamp_str, extension)
-            except Exception:  #pragma: no cover
+            except Exception:
                 pass
     if len(timestamps) == 0:
         text = (

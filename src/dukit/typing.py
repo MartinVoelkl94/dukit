@@ -300,7 +300,7 @@ def date_(x, errors='coerce', na=pd.NaT) -> typing.Any:
         return result.date()
 
     #raise and coerce are handled in _datetime and should not be reached here
-    elif errors == 'raise':  #pragma: no cover
+    elif errors == 'raise':
         raise ValueError(
             f'could not convert "{x}" to datetime.\n'
             'Error handling:\n'
@@ -312,7 +312,7 @@ def date_(x, errors='coerce', na=pd.NaT) -> typing.Any:
     elif errors == 'ignore':
         return x
     elif errors == 'coerce':
-        return na  #pragma: no cover
+        return na
     else:
         return errors
 

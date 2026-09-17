@@ -164,7 +164,7 @@ def log(
         logs.append(message)
 
         #for jupyter
-        if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':  #pragma: no cover
+        if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
 
             #make html friendly
             message['text'] = (

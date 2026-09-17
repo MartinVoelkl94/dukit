@@ -20,7 +20,7 @@ def format(
         align_horizontal='left',
         wrap_text=True,
         verbosity=3,
-        ):  #pragma: no cover (does not affect reading of xlsx files)
+        ):
     """
     applies formatting to an Excel file:
     - adjust col width to max length of cell content (accounts for linebreaks)
