@@ -1,6 +1,6 @@
 [project]
 name = "dukit"
-version = "0.2.3"
+version = "0.2.4"
 description = "dukit - data utilities kit for exploring, modifying and visualizing small but messy data using pandas"
 readme = "README.md"
 authors = [{ name = "MartinVoelkl94", email = "martinv16248@gmail.com" }]
