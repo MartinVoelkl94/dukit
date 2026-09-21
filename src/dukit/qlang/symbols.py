@@ -6683,7 +6683,7 @@ class FlagNegate(Symbol):
 
 class FlagIndex(Symbol):
     """
-    Condition is applied to the index
+    condition is applied to the index
     instead of the values.
 
     Examples

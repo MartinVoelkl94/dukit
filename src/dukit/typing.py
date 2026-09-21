@@ -475,7 +475,7 @@ def yn_(x, errors='coerce', yes='yes', no='no', na=None) -> typing.Any:
 
 def type_(x) -> str:
     """
-    Returns what type something "should" be. e.g.: dk.type('1') == 'int'
+    returns what type something "should" be. e.g.: dk.type('1') == 'int'
     """
 
     if isinstance(x, bool):
@@ -531,7 +531,7 @@ _conversion_mapping = {
     }
 def convert_(value, errors='coerce', na=None) -> typing.Any:
     """
-    Converts to the type something "should" be according to dk.type().
+    converts to the type something "should" be according to dk.type().
     e.g.: dk.convert('1') == 1
     """
     type_name = type_(value)

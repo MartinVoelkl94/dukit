@@ -10,7 +10,12 @@ from .typing import date_, datetime_
 
 def pwd():
     """
-    print working directory
+    return the path to the current working directory.
+
+    Returns
+    -------
+    str
+        current working directory.
     """
     return os.getcwd()
 
@@ -18,7 +23,19 @@ def pwd():
 
 def ls(path='', recursive=False) -> pd.DataFrame:
     """
-    list files directory
+    list files and directories in a path.
+
+    Parameters
+    ----------
+    path : str, default ''
+        directory to inspect. an empty path uses the current directory.
+    recursive : bool, default False
+        whether to include files in nested directories.
+
+    Returns
+    -------
+    pandas.DataFrame
+        file metadata including path, size, timestamps, permissions, and type.
     """
 
     if path == '':
@@ -90,13 +107,26 @@ def ls(path='', recursive=False) -> pd.DataFrame:
 
 
 def lsr(path='') -> pd.DataFrame:
+    """recursively list files and directories below ``path``."""
     return ls(path, recursive=True)
 
 
 
 def cd(path=None, verbosity=3):
     """
-    change directory
+    change the current working directory.
+
+    Parameters
+    ----------
+    path : str, optional
+        destination directory. ``None``, ``''``, and ``'.'`` mean the current
+        directory; ``'..'`` means the parent directory.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    None
     """
 
     if path is None:
@@ -121,7 +151,18 @@ def cd(path=None, verbosity=3):
 
 def cp(src, dest, verbosity=3):
     """
-    copy file or directory
+    copy a file or directory.
+
+    Parameters
+    ----------
+    src, dest : str or os.PathLike
+        source and destination paths.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    None
     """
 
     if os.path.isdir(dest):
@@ -143,7 +184,14 @@ def cp(src, dest, verbosity=3):
 
 def mv(src, dest, verbosity=3):
     """
-    move file or directory
+    move a file or directory.
+
+    Parameters
+    ----------
+    src, dest : str or os.PathLike
+        source and destination paths.
+    verbosity : int, default 3
+        logging verbosity level.
     """
 
     if os.path.isdir(dest):
@@ -163,7 +211,14 @@ def mv(src, dest, verbosity=3):
 
 def mkdir(name, verbosity=3):
     """
-    create directory
+    create a directory if it does not already exist.
+
+    Parameters
+    ----------
+    name : str or os.PathLike
+        directory path.
+    verbosity : int, default 3
+        logging verbosity level.
     """
     if os.path.isdir(name):
         text = f'INFO: directory "{name}" already exists'
@@ -177,16 +232,19 @@ def mkdir(name, verbosity=3):
 
 
 def isdir(name):
+    """return whether ``name`` is an existing directory."""
     return os.path.isdir(name)
 
 
 
 def isfile(name):
+    """return whether ``name`` is an existing file."""
     return os.path.isfile(name)
 
 
 
 def ispath(name):
+    """return whether ``name`` exists as a file or directory."""
     return os.path.exists(name)
 
 
@@ -205,17 +263,22 @@ nums_str = [
     ]
 def fetch(path, before='now', verbosity=3):
     """
-    returns the path to the most recent version of a file
-    assuming that a date is part of the filename.
+    return the most recent dated version of a file.
 
-    "before" defines recency of the file:
-    - now: most recent version
-    - today: most recent version before today
-    - this day: most recent version before today
-    - this week: ...
-    - this month: ...
-    - this year: ...
-    - '2024_01_01': most recent version before 2024_01_01 (accepts many date formats)
+    Parameters
+    ----------
+    path : str or os.PathLike
+        file path or filename prefix.
+    before : str, default 'now'
+        cutoff such as ``'today'``, ``'this week'``, ``'this month'``,
+        ``'this year'``, or a date string.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    str or None
+        path to the newest matching file, if one exists.
     """
 
     if os.path.isfile(path):

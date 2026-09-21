@@ -35,33 +35,56 @@ def diff(
         verbosity=3,
         ) -> Diffs:
     """
-    Calculates differences between dfs,
-    CSV or Excel files and returns a Diffs object.
-
+    compare two dfs or pairs of CSV or Excel files.
 
     Parameters
     ----------
+    old, new : pandas.DataFrame or str
+        data sources to compare. Both arguments must be dfs, CSV
+        paths, or Excel paths.
+    uid : str, False, or None, default None
+        col used to identify corresponding rows. If ``None``, a suitable
+        shared col is selected automatically. If ``False``, the index is
+        used.
+    mode : {'mix', 'old', 'new', 'new+'}, default 'mix'
+        controls the values included in each result.
+        - 'mix': show rows and cols from old and new df.
+        additions and deletions are highlighted.
+        - 'old': show only rows and cols from the old df.
+        deletions are highlighted.
+        - 'new': show only rows and cols from the new df.
+        additions are highlighted.
+        - 'new+': also preserve changed old values in parallel metadata cols.
+    rename_cols : dict, optional
+        mapping of original col names to names used during comparison.
+    remove_cols : list or str, optional
+        cols removed from both inputs before comparison.
+    remove_cols_by_suffix : str, default ''
+        remove cols whose names end with this suffix.
+    retain_cols : list or str, optional
+        keep only the cols from the old df.
+    ignore_cols : list or str, optional
+        cols excluded from comparison.
+    remove_sheets : list or str, optional
+        excel sheet names excluded before comparison.
+    name : str, default 'data'
+        name used for df comparisons and single-sheet files.
+    linebreak : str, default '<br>'
+        text inserted between multiple diff descriptions.
+    suffix_old : str, default ' *old'
+        suffix used for metadata cols containing old values in ``'new+'`` mode.
+    verbosity : int, default 3
+        logging verbosity level.
 
-    old, new : pd.DataFrame or filepath to CSV or Excel file
+    Returns
+    -------
+    Diffs
+        object containing one :class:`Diff` per compared sheet.
 
-    uid : identifies corresponding rows in old and new data.
-        * "COLNAME": use the specified col as unique identifier.
-        * None: try to find a suitable col automatically.
-        * False: use the index as unique identifier.
-
-    mode : how to display differences in the result.
-        * "mix": show rows and cols from old and new df
-        * "old": show only rows and cols from old df
-        * "new": show only rows and cols from new df
-        * "new+": also adds hidden columns with old values for comparison
-
-    rename_cols : dictionary to rename cols before comparison.
-    remove_cols : remove col(s) from both dfs.
-    remove_cols_by_suffix : remove cols that end with the specified suffix.
-    retain_cols : remove col(s) from both dfs, then readd to the result.
-    ignore_cols : keep col(s) but ignore them for comparison.
-    remove_sheets : remove sheets before comparison (only for excel files).
-
+    Raises
+    ------
+    ValueError
+        if the inputs, mode, or UID are invalid.
 
     Examples
     --------
@@ -117,9 +140,9 @@ def rediff(
         verbosity=3,
         ) -> Diffs:
     """
-    Same as diff(), but using defaults appropriate for
+    same as diff(), but using defaults appropriate for
     when the old data is already a diff output.
-    Can be imagined as diffing the data
+    can be imagined as diffing the data
     while managing metadata appropriately.
     """
     diffs = Diffs(
@@ -145,8 +168,8 @@ def rediff(
 
 class Diffs:
     """
-    Stores differences between (multiple) dfs.
-    For more detailed documentation see diff().
+    stores differences between (multiple) dfs.
+    for more detailed documentation see diff().
     """
 
     def __init__(
@@ -218,7 +241,7 @@ class Diffs:
 
     def __getitem__(self, key):
         """
-        Get a specific Diff by sheetname or index.
+        get a specific Diff by sheetname or index.
         """
         if isinstance(key, str):
             item = self.diffs[key]
@@ -229,7 +252,17 @@ class Diffs:
 
     def show(self, sheet=0):
         """
-        Show a styled df with highlighted differences between dfs.
+        return a styled df with highlighted differences.
+
+        Parameters
+        ----------
+        sheet : str or int, default 0
+            sheet name or zero-based position.
+
+        Returns
+        -------
+        pandas.io.formats.style.Styler
+            styled result for the selected sheet.
         """
         diff = self[sheet]
         return diff.result
@@ -237,7 +270,13 @@ class Diffs:
 
     def info(self):
         """
-        Basic information about the dfs.
+        return a df with basic information
+        about the compared data sources.
+
+        Returns
+        -------
+        pandas.DataFrame
+            source names and sizes in kilobytes.
         """
         data = {
             'data': [self.old_name, self.new_name],
@@ -249,7 +288,13 @@ class Diffs:
 
     def summary(self) -> pd.DataFrame:
         """
-        Summary of differences between dfs.
+        return a df with a compact summary
+        of differences for each data source.
+
+        Returns
+        -------
+        pandas.DataFrame
+            counts of changed cols, rows, and values.
         """
 
         details = self.details()
@@ -275,7 +320,13 @@ class Diffs:
 
     def details(self) -> pd.DataFrame:
         """
-        Detailed information about differences between dfs.
+        return a df with detailed information
+        on differences for each data source.
+
+        Returns
+        -------
+        pandas.DataFrame
+            counts and lists of added, removed, and changed items.
         """
 
         names = [name for name in self.diffs.keys()]
@@ -363,29 +414,34 @@ class Diffs:
             hide_summary=False,
             ):
         """
-        Export diff results to an Excel file with formatting.
+        export diff results to an Excel file with formatting.
 
-        Creates an Excel file containing diff metadata and individual
-        sheets for each comparison with highlighted differences. Applies
-        Excel-specific formatting and hides columns with old values.
+        creates an Excel file containing diff metadata and individual
+        sheets for each comparison with highlighted differences. applies
+        excel-specific formatting and hides cols with old values.
 
 
         Parameters
         ----------
-        path : str
-            File path for the output Excel file
+        path : str or os.PathLike
+            destination workbook path.
         index : bool, default False
-            Whether to include row indices in the Excel output
+            whether to include row indices
         apply_format : bool, default True
-            Whether to apply formatting to the Excel file
+            whether to apply worksheet formatting
         freeze_panes : str, default 'C2'
-            Cell reference for freezing panes in the Excel file
+            cell reference for freezing panes
         hide_info : bool, default True
-            Whether to hide the info sheet in the Excel file
+            whether to hide the info sheet
         hide_details : bool, default True
-            Whether to hide the details sheet in the Excel file
+            whether to hide the details sheet
         hide_summary : bool, default False
-            Whether to hide the summary sheet in the Excel file
+            whether to hide the summary sheet.
+
+        Returns
+        -------
+        None
+            the workbook is written to ``path``.
         """
 
         msg = f'DEBUG: saving differences to "{path}"'
@@ -724,8 +780,11 @@ def _get_single_diff(
 
 class Diff:
     """
-    Stores differences between 2 dfs.
-    For more detailed documentation see diff().
+    store differences between two dfs.
+
+    a ``Diff`` is normally created internally by :func:`diff` and contains
+    comparison statistics, difference masks, and a styled result for one
+    sheet.
     """
 
     def __init__(
@@ -821,7 +880,10 @@ class Diff:
 
 def _handle_edgecases(d: Diff) -> Diff:
     """
-    Handle edge cases where one or both dfs are empty.
+    handle comparisons where one or both dfs are empty.
+
+    the result is marked as empty, added, or removed
+    and receives the corresponding worksheet styling.
     """
 
     if d.old.empty and d.new.empty:
@@ -926,8 +988,7 @@ def _remove_cols(d: Diff, cols: list) -> Diff:
 
 def _remove_cols_by_suffix(d: Diff, suffix: str) -> Diff:
     """
-    Remove cols from both dfs ending with
-    a specific suffix before diffing.
+    remove cols ending with ``suffix`` before comparison.
     """
 
     if not suffix:
@@ -955,8 +1016,9 @@ def _remove_cols_by_suffix(d: Diff, suffix: str) -> Diff:
 
 def _set_uid(d: Diff, uid: typing.Any) -> Diff:
     """
-    set unique identifier (uid) column for
-    comparing rows between old and new dfs.
+    set the row identifier used to compare the two dfs.
+
+    duplicate identifiers are made unique with :func:`deduplicate`.
     """
 
     if uid is False:
@@ -989,7 +1051,7 @@ def _set_uid(d: Diff, uid: typing.Any) -> Diff:
         d.uid = uid
 
     else:
-        raise ValueError(f"UID column {uid!r} not found in both dataframes.")
+        raise ValueError(f"UID column {uid!r} not found in both dfs.")
 
 
     if not d.old.index.is_unique:
@@ -1049,7 +1111,7 @@ def _find_uid(
 
 def _retain_cols(d: Diff, cols: list) -> Diff:
     """
-    Remove cols from both dfs before diffing,
+    remove cols from both dfs before diffing,
     then readd the ones from the old df to
     the diff result later.
     """
@@ -1073,8 +1135,7 @@ def _retain_cols(d: Diff, cols: list) -> Diff:
 
 def _ignore_cols(d: Diff, cols: list) -> Diff:
     """
-    Ignore columns for diffing,
-    but keep them in both dfs.
+    keep selected cols while excluding them from comparison.
     """
 
     if not cols:

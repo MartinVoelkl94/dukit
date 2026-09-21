@@ -12,6 +12,23 @@ def q(
         code: str = '',
         verbosity: int = 3,
         ) -> Query:
+    """
+    create a query object without executing it.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df queried by the expression.
+    code : str, default ''
+        query expression.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    Query
+        unexecuted query object.
+    """
     query = Query(
         df,
         code,
@@ -28,6 +45,7 @@ def qr(
         code: str = '',
         verbosity: int = 3,
         ) -> Query:
+    """parse and execute a query, returning its query object."""
     query_object = (
         q(df, code, verbosity)
         .scan(verbosity)
@@ -42,6 +60,7 @@ def qs(
         code: str = '',
         verbosity: int = 3,
         ) -> pd.DataFrame | pd.io.formats.style.Styler:
+    """parse and execute a query, returning its df or styled result."""
     result = (
         q(df, code, verbosity)
         .scan(verbosity)

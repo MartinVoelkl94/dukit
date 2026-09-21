@@ -8,7 +8,13 @@ from .typing import date_
 
 def get_df() -> pd.DataFrame:
     """
-    Returns a small sample dataframe containing very messy fake medical data.
+    return the package's sample df.
+
+    Returns
+    -------
+    pandas.DataFrame
+        small, intentionally messy medical-style
+        dataset used in examples and tests.
     """
     data = {
         'ID': [
@@ -237,9 +243,22 @@ def get_dfs():
 
 def deduplicate(obj, name='object', verbosity=3):
     """
-    Deduplicate entries in object which can be converted
-    to pandas Series by appending consecutive numbers.
-    Note that the entries are converted to strings in the process.
+    make values unique by appending consecutive numeric suffixes.
+
+    Parameters
+    ----------
+    obj : object
+        object convertible to a pandas Series.
+    name : str, default 'object'
+        name used in diagnostic messages.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    object
+        deduplicated object, converted back to its original type when
+        possible. Values are converted to strings during processing.
     """
 
     obj = copy.deepcopy(obj)
@@ -317,6 +336,26 @@ def flatten(
         on: str,
         template='{colname} #{counter}',
         ):
+    """
+    arrange values from repeated rows into numbered cols.
+    in contrast to :func:`stagger`, repeated 3 repeated
+    values from cols a, b, c are arranged into new cols:
+    a1, a2, a3, b1, b2, b3, c1, c2, c3.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df containing repeated rows.
+    on : str
+        col used to group rows.
+    template : str, default '{colname} #{counter}'
+        format string for generated col names.
+
+    Returns
+    -------
+    pandas.DataFrame
+        df with one row per group and numbered value cols.
+    """
 
     #aggregate repeating rows into lists
     df = df.groupby(on).agg(list)
@@ -354,6 +393,28 @@ def stagger(
         template='#{counter} {colname}',
         separator_col='#{counter}'
         ):
+    """
+    arrange values from repeated rows into numbered cols.
+    in contrast to :func:`flatten`, repeated 3 repeated
+    values from cols a, b, c are arranged into new cols:
+    #1, a1, b1, c1, #2, a2, b2, c2, #3, a3, b3, c3
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df containing repeated rows.
+    on : str
+        col used to group rows.
+    template : str, default '#{counter} {colname}'
+        format string for generated col names.
+    separator_col : str or None, default '#{counter}'
+        format string for separator cols. use ``None`` to omit them.
+
+    Returns
+    -------
+    pandas.DataFrame
+        df with one row per group and repeated values in cols.
+    """
 
     duplicates_max = df[on].value_counts().max()
     df = df.groupby(on).agg(list)
@@ -401,6 +462,14 @@ def embed(
         spacer='\u00A0',  #non-breaking space
         line_stop='\n',
         ):
+    """
+    combine repeated row values into formatted multiline cols.
+
+    Returns
+    -------
+    pandas.DataFrame
+        flattened df with one row per value in ``on``.
+    """
 
     combined_cols_str = pd.DataFrame({
         on: df[on],
@@ -449,6 +518,14 @@ def collapse(
         template_col='{colname}',
         template_item='#{counter}: {item}\n',
         ):
+    """
+    collapse repeated row values into numbered multiline cols.
+
+    Returns
+    -------
+    pandas.DataFrame
+        df with one row per value in ``on``.
+    """
     df = df.groupby(on).agg(list)
     df = df.map(lambda x: _to_lines(x, template_item))
     df.columns = [template_col.format(colname=col) for col in df.columns]
@@ -477,6 +554,21 @@ def transpose(
         df: pd.DataFrame,
         header='uid',
         ) -> pd.DataFrame:
+    """
+    transpose a df while preserving a designated header col.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df to transpose.
+    header : str, default 'uid'
+        col used as the new header identifier.
+
+    Returns
+    -------
+    pandas.DataFrame
+        transposed df.
+    """
 
     cols_old = df.columns
     cols_new = df[header].values
@@ -499,9 +591,14 @@ def date_delta(
         verbosity: int = 3,
         ):
     """
-    Calculates the number of days
+    calculates the number of days
     between a reference date or col
     and all other date cols in the df.
+
+    Returns
+    -------
+    pandas.DataFrame
+        copy of ``df`` with normalized dates and day-difference cols.
     """
 
     if reference_date is None and reference_col is None:
@@ -590,9 +687,9 @@ def date_table(
         verbosity: int = 3,
         ) -> pd.DataFrame | pd.io.formats.style.Styler:
     """
-    Arranges all dates into a table,
+    arranges all dates into a table,
     with positions relative to a
-    reference date or column.
+    reference date or col.
     """
 
     if reference_col is None:

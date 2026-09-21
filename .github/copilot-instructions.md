@@ -73,3 +73,25 @@ Key points:
   used by nearly all qlang tests; it's deliberately messy (mixed types,
   NA/NK/date variants per column) — inspect its raw values directly rather
   than assuming clean data when deriving expected results.
+
+## Docstring conventions
+
+When writing or updating docstrings across the project, follow the style used
+by the current public APIs, especially `src/dukit/diffing.py`:
+
+- Start descriptive lines with lowercase letters, including continuation lines
+  after section headers. Keep standard NumPy-style section headers such as
+  `Parameters`, `Returns`, `Raises`, `Examples`, and `Notes` unchanged.
+- Use `df` instead of `DataFrame` in descriptive prose, and use `col`/`cols`
+  instead of `column`/`columns`. Preserve technical type expressions such as
+  `pandas.DataFrame` where they identify a return type.
+- Use NumPy-style sections for public functions and methods. Document
+  parameters with their type and default, then document `Returns` and
+  `Raises` where applicable.
+- Keep descriptions concise and behavior-focused. Document accepted values,
+  defaults, side effects, and important edge cases rather than repeating the
+  implementation.
+- Use cross-references such as `:func:`diff`` and ``:class:`Diff``` when a
+  related public API is already documented.
+- Include short doctest examples for user-facing functions when an example
+  clarifies the normal workflow.

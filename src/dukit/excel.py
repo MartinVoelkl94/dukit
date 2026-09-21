@@ -22,10 +22,41 @@ def format(
         verbosity=3,
         ):
     """
-    applies formatting to an Excel file:
-    - adjust col width to max length of cell content (accounts for linebreaks)
-    - set cell alignment to top-left and wrap text
-    - hide specified columns
+        apply formatting to an Excel file in place.
+
+        col widths are adjusted to cell content,
+        text is aligned and wrapped, and requested
+        sheets or cols can be hidden.
+
+        Parameters
+        ----------
+        path : str or os.PathLike
+            file to format.
+        sheet : str or list[str], optional
+            sheets to format. defaults to all sheets.
+        freeze_panes : str, optional
+            excel cell reference for frozen panes.
+        hide_sheets : str or list[str], optional
+            sheets to hide.
+        hide_cols : str or list[str], optional
+            col names to hide.
+        col_width_max : int, default 70
+            maximum calculated col width.
+        col_width_padding : int, default 2
+            extra width added to calculated widths.
+        align_vertical : str, default 'top'
+            vertical cell alignment.
+        align_horizontal : str, default 'left'
+            horizontal cell alignment.
+        wrap_text : bool, default True
+            whether cell contents should wrap.
+        verbosity : int, default 3
+            logging verbosity level.
+
+        Returns
+        -------
+        None
+            the workbook is saved back to ``path``.
     """
 
     wb = openpyxl.load_workbook(path)
@@ -106,6 +137,30 @@ def save(
         format_excel=True,
         **kwargs,
         ):
+    """
+    write a df to an Excel file.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df to write.
+    path : str
+        destination file path.
+    sheet_name : str, default 'df'
+        sheet name.
+    index : bool, default False
+        whether to write the df index.
+    format_excel : bool, default True
+        whether to format the workbook after writing.
+    **kwargs
+        additional keyword arguments passed to
+        :meth:`pandas.DataFrame.to_excel`.
+
+    Returns
+    -------
+    None
+        the df is written to ``path``.
+    """
 
     if os.path.exists(path):
         writer = pd.ExcelWriter(
