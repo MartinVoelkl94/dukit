@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import typing
+import copy
 import re
 
 from IPython.display import display
@@ -623,10 +624,6 @@ class AliasStyleTable(Symbol):
         return q
 
 
-    def run(self, q: Query) -> Query:
-        return q
-
-
 
 
 class CopyCol(Symbol):
@@ -1170,6 +1167,8 @@ def _parse_op_symbol(
         q: Query,
         ) -> Query:
 
+    token = copy.deepcopy(token)
+
     #transfer main attributes
     token.connector = q.op.connector
     token.scope = q.op.scope
@@ -1183,6 +1182,7 @@ def _parse_op_symbol(
     token.args_allowed.update(q.op.args_allowed)
 
     token.operator = token.name
+    token.id = len(q.ops)
     q.op = token
 
     return q
@@ -3126,8 +3126,13 @@ def _process_types(
         arg_new = float_(arg)
 
     elif 'num' in op.flags:
-        series_new = series.apply(num_).convert_dtypes()
-        arg_new = num_(arg)
+        type_name = type_(arg)
+        if type_name == 'float':
+            series_new = series.apply(float_).astype('Float64')
+            arg_new = num_(arg, errors='raise')
+        else:
+            series_new = series.apply(num_).convert_dtypes()
+            arg_new = num_(arg, errors='raise')
 
     elif 'bool' in op.flags:
         series_new = series.apply(bool_).astype('boolean')
