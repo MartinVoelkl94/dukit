@@ -142,3 +142,35 @@ def test_basic6():
         ]
     expected['_meta'] = pd.Series(vals, dtype='string')
     assert_frame_equal(result, expected)
+
+
+
+def test_append():
+    df1 = df.copy()
+    df1['_meta'] = 'a'
+
+    code = r"""
+    .tag('b')
+    %
+    """
+    result = df1.dk.qr(code).result
+    expected = get_df()
+    expected['_meta'] = 'ab'
+    expected['_meta'] = expected['_meta'].astype('string')
+    assert_frame_equal(result, expected)
+
+
+
+def test_coerce_type():
+    df1 = df.copy()
+    df1['_meta'] = 1
+
+    code = r"""
+    .tag('b')
+    %
+    """
+    result = df1.dk.qr(code).result
+    expected = get_df()
+    expected['_meta'] = '1b'
+    expected['_meta'] = expected['_meta'].astype('string')
+    assert_frame_equal(result, expected)

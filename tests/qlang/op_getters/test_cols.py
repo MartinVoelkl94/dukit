@@ -10,10 +10,50 @@ from dukit import (
 
 
 
-params = []
 df = get_df()
-
 tstamp = pd.Timestamp('2024-01-01')
+params = []
+cols1 = [
+    'name',
+    'date of birth',
+    'age',
+    'gender',
+    'height',
+    'weight',
+    'bp systole',
+    'bp diastole',
+    'cholesterol',
+    'diabetes',
+    'dose',
+    ]
+cols2 = [
+    'ID',
+    'name',
+    'age',
+    'gender',
+    'height',
+    'weight',
+    'bp systole',
+    'bp diastole',
+    'cholesterol',
+    'diabetes',
+    'dose',
+    ]
+cols3 = [
+    'ID',
+    'name',
+    'gender',
+    'height',
+    'weight',
+    'bp systole',
+    'bp diastole',
+    'cholesterol',
+    'diabetes',
+    'dose',
+    ]
+
+
+
 def get_df_types():
     df_types = pd.DataFrame({
         'a': ['a'],
@@ -256,26 +296,6 @@ def test_connect(code, expected_cols: list[str], message):
 
 params = [
 
-    #negate
-    (
-        '%!="date of birth"',
-        [
-            'ID',
-            'name',
-            'age',
-            'gender',
-            'height',
-            'weight',
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-            'dose',
-        ],
-        None
-    ),
-
-
     #strict
     ('%==(ID, +strict)', ['ID'], None),
     ('% ==(ID, +strict)', ['ID'], None),
@@ -346,6 +366,318 @@ params = [
     ]
 @pytest.mark.parametrize('code, expected_cols, message', params)
 def test_flags(code, expected_cols: list[str], message):
+    result = df.dk.qr(code).result
+    expected = get_df().loc[:, expected_cols]
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+params = [
+
+    #prefix
+    ('§0', ['ID'], None),
+    ('§ 0', ['ID'], None),
+    ('§0 ', ['ID'], None),
+    ('§ 0 ', ['ID'], None),
+
+    ('§ 0', ['ID'], None),
+    ('§  0', ['ID'], None),
+    ('§ 0 ', ['ID'], None),
+    (' § 0 ', ['ID'], None),
+
+    ('%§0', ['ID'], None),
+    ('%§ 0', ['ID'], None),
+    ('%§0 ', ['ID'], None),
+    ('%§ 0 ', ['ID'], None),
+
+    ('%§==0', ['ID'], None),
+    ('%§ ==0', ['ID'], None),
+    ('%§== 0', ['ID'], None),
+    ('%§ == 0 ', ['ID'], None),
+    ('%§ == 0 ', ['ID'], None),
+    ('%§  == 0 ', ['ID'], None),
+
+
+
+    #postfix
+    ('0+index', ['ID'], None),
+    (' 0+index', ['ID'], None),
+    ('0 +index', ['ID'], None),
+    (' 0 +index', ['ID'], None),
+
+    (r'%0+index', ['ID'], None),
+    (r'% 0+index', ['ID'], None),
+    (r'%0 +index', ['ID'], None),
+    (r'% 0 +index', ['ID'], None),
+
+    ('%==0+index', ['ID'], None),
+    ('% ==0+index', ['ID'], None),
+    ('%== 0+index', ['ID'], None),
+    ('% == 0 +index', ['ID'], None),
+    ('% == 0 +index', ['ID'], None),
+    ('%  == 0 +index', ['ID'], None),
+
+    ]
+@pytest.mark.parametrize('code, expected_cols, message', params)
+def test_flags_index(code, expected_cols: list[str], message):
+    result = df.dk.qr(code).result
+    expected = get_df().loc[:, expected_cols]
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+params = [
+
+    #prefix
+    ('!ID', cols1, None),
+    ('! ID', cols1, None),
+    ('!ID ', cols1, None),
+    (' !ID ', cols1, None),
+
+    ('%!ID', cols1, None),
+    ('%! ID', cols1, None),
+    ('%!ID ', cols1, None),
+    ('% !ID ', cols1, None),
+
+    ('%!==ID', cols1, None),
+    ('%! ==ID', cols1, None),
+    ('%!== ID', cols1, None),
+    ('% !== ID ', cols1, None),
+    ('%! == ID ', cols1, None),
+    ('% ! == ID ', cols1, None),
+
+    ('%!=ID', cols1, None),  #technically not a flag, but identical result
+    ('%!= ID', cols1, None),  #technically not a flag, but identical result
+    ('% !=ID ', cols1, None),  #technically not a flag, but identical result
+    ('% != ID ', cols1, None),  #technically not a flag, but identical result
+
+    ('!"date of birth"', cols2, None),
+    ('%!"date of birth"', cols2, None),
+    ('!"date of birth"    &!age', cols3, None),
+    ('!"date of birth"    &!age', cols3, None),
+    ('%!"date of birth"    &!=age', cols3, None),
+
+    (
+        """!ID
+        """,
+        cols1,
+        None
+    ),
+
+    (
+        """
+        !ID""",
+        cols1,
+        None
+    ),
+
+    (
+        """
+        !ID
+        """,
+        cols1,
+        None
+    ),
+
+    (
+        r"""!ID""",
+        cols1,
+        None
+    ),
+
+    (
+        r"""!ID
+        """,
+        cols1,
+        None
+    ),
+
+    (
+        r"""
+        !ID""",
+        cols1,
+        None
+    ),
+
+    (
+        r"""
+        !ID
+        """,
+        cols1,
+        None
+    ),
+
+
+
+    #postfix
+    ('ID+negate', cols1, None),
+    (' ID+negate', cols1, None),
+    ('ID +negate', cols1, None),
+    (' ID +negate', cols1, None),
+
+    ('%ID+negate', cols1, None),
+    ('% ID+negate', cols1, None),
+    ('%ID +negate', cols1, None),
+    ('% ID +negate', cols1, None),
+
+    ('%==ID+negate', cols1, None),
+    ('% ==ID+negate', cols1, None),
+    ('%== ID+negate', cols1, None),
+    ('% == ID +negate', cols1, None),
+    ('% == ID +negate', cols1, None),
+    ('%  == ID +negate', cols1, None),
+
+    ]
+@pytest.mark.parametrize('code, expected_cols, message', params)
+def test_flags_negate(code, expected_cols: list[str], message):
+    result = df.dk.qr(code).result
+    expected = get_df().loc[:, expected_cols]
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+params = [
+
+    #prefix
+    ('§!0', cols1, None),
+    ('§! 0', cols1, None),
+    ('§!0 ', cols1, None),
+    ('§ !0 ', cols1, None),
+
+    ('§ !0', cols1, None),
+    ('§ ! 0', cols1, None),
+    ('§ !0 ', cols1, None),
+    (' § !0 ', cols1, None),
+
+    ('%§!0', cols1, None),
+    ('%§! 0', cols1, None),
+    ('%§!0 ', cols1, None),
+    ('%§ !0 ', cols1, None),
+
+    ('%§!==0', cols1, None),
+    ('%§! ==0', cols1, None),
+    ('%§!== 0', cols1, None),
+    ('%§ !== 0 ', cols1, None),
+    ('%§! == 0 ', cols1, None),
+    ('%§ ! == 0 ', cols1, None),
+
+    ('!§0', cols1, None),
+    ('!§ 0', cols1, None),
+    ('!§0 ', cols1, None),
+    ('! §0 ', cols1, None),
+
+    ('! §0', cols1, None),
+    ('! § 0', cols1, None),
+    ('! §0 ', cols1, None),
+    (' ! §0 ', cols1, None),
+
+    ('% §!0', cols1, None),
+    ('% §! 0', cols1, None),
+    ('% §!0 ', cols1, None),
+    ('% § !0 ', cols1, None),
+
+    ('% §!==0', cols1, None),
+    ('% §! ==0', cols1, None),
+    ('% §!== 0', cols1, None),
+    ('% § !== 0 ', cols1, None),
+    ('% §! == 0 ', cols1, None),
+    ('% § ! == 0 ', cols1, None),
+
+    ('§!2', cols2, None),
+    ('%§!2', cols2, None),
+    ('§!2    &§!3', cols3, None),
+    ('§!2    &§!3', cols3, None),
+    ('%§!2    &§!=3', cols3, None),
+
+    ('!§2', cols2, None),
+    ('%!§2', cols2, None),
+    ('!§2    &!§3', cols3, None),
+    ('!§2    &!§3', cols3, None),
+    ('%!§2    &!§3', cols3, None),
+
+
+
+    #postfix
+    ('0+index+negate', cols1, None),
+    ('0 +index+negate', cols1, None),
+    ('0+index +negate', cols1, None),
+    ('0 +index +negate', cols1, None),
+
+    ('0+negate+index', cols1, None),
+    ('0 +negate+index', cols1, None),
+    ('0+negate +index', cols1, None),
+    ('0 +negate +index', cols1, None),
+
+    (r'%0+index+negate', cols1, None),
+    (r'%0 +index+negate', cols1, None),
+    (r'%0+index +negate', cols1, None),
+    (r'%0 +index +negate', cols1, None),
+
+    (r'% 0+negate+index', cols1, None),
+    (r'% 0 +negate+index', cols1, None),
+    (r'% 0+negate +index', cols1, None),
+    (r'% 0 +negate +index', cols1, None),
+
+
+
+    #mixed
+    ('§0+negate', cols1, None),
+    ('§ 0+negate', cols1, None),
+    ('§0 +negate', cols1, None),
+    ('§ 0 +negate', cols1, None),
+
+    ('!0+index', cols1, None),
+    ('! 0+index', cols1, None),
+    ('!0 +index', cols1, None),
+    ('! 0 +index', cols1, None),
+
+    ('%§0+negate', cols1, None),
+    ('%§ 0+negate', cols1, None),
+    ('%§0 +negate', cols1, None),
+    ('%§ 0 +negate', cols1, None),
+
+    ('% !0+index', cols1, None),
+    ('% ! 0+index', cols1, None),
+    ('% !0 +index', cols1, None),
+    ('% ! 0 +index', cols1, None),
+
+    ('%§==0+negate', cols1, None),
+    ('%§== 0+negate', cols1, None),
+    ('%§==0 +negate', cols1, None),
+    ('%§== 0 +negate', cols1, None),
+
+    ('%!==0+index', cols1, None),
+    ('%!== 0+index', cols1, None),
+    ('%!==0 +index', cols1, None),
+    ('%!== 0 +index', cols1, None),
+
+    ('%§ ==0+negate', cols1, None),
+    ('%§ == 0+negate', cols1, None),
+    ('%§ ==0 +negate', cols1, None),
+    ('%§ == 0 +negate', cols1, None),
+
+    ('%! ==0+index', cols1, None),
+    ('%! == 0+index', cols1, None),
+    ('%! ==0 +index', cols1, None),
+    ('%! == 0 +index', cols1, None),
+
+    ('%!=0+index', cols1, None),  #technically not a flag, but identical result
+    ('%!= 0+index', cols1, None),  #technically not a flag, but identical result
+    ('%!=0 +index', cols1, None),  #technically not a flag, but identical result
+    ('%!= 0 +index', cols1, None),  #technically not a flag, but identical result
+
+    ]
+@pytest.mark.parametrize('code, expected_cols, message', params)
+def test_flags_negate_index(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
     assert_frame_equal(result, expected)
