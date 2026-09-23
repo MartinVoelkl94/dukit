@@ -3649,7 +3649,7 @@ class SetVals(Symbol):
         'vals': 'get or set vals within current row and col selection',
         }
     flags_allowed = {
-        'colref': 'use a col reference for setting/getting vals',
+        'colref': 'use a col reference for setting vals',
         'strict': 'force strict type conversion',
         'str': 'convert to string type',
         'int': 'convert to integer type',
@@ -3719,7 +3719,7 @@ class SetVals(Symbol):
 
 
 
-class SetSum(Symbol):
+class SetAdd(Symbol):
     """
     add an arg or a col to the
     current selection using
@@ -3731,7 +3731,7 @@ class SetSum(Symbol):
     """
 
     #symbol attributes
-    name = 'SetSum'
+    name = 'SetAdd'
     category = 'setter'
     regex = (r'\+=',)
 
@@ -3745,14 +3745,15 @@ class SetSum(Symbol):
         'vals': 'get or set vals within current row and col selection',
         }
     flags_allowed = {
-        'colref': 'use a col reference for setting/getting vals',
-        'str': 'string type comparison',
-        'int': 'integer type comparison',
-        'float': 'float type comparison',
-        'num': 'numeric type comparison',
-        'bool': 'boolean type comparison',
-        'date': 'date type comparison',
-        'datetime': 'datetime type comparison',
+        'colref': 'use a col reference for setting vals',
+        'negate': 'concat string to the left instead of the right',
+        'str': 'convert to string type',
+        'int': 'convert to integer type',
+        'float': 'convert to float type',
+        'num': 'convert to numeric type',
+        'bool': 'convert to boolean type',
+        'date': 'convert to date type',
+        'datetime': 'convert to datetime type',
         }
     args_allowed = {}
     args_min = 1
@@ -3807,14 +3808,24 @@ class SetSum(Symbol):
                 q,
                 )
 
-        series[mask] += arg
+
+        if isinstance(arg, str) and 'negate' in self.flags:
+            series[mask] = arg + series[mask]
+        elif isinstance(arg, str):
+            series[mask] += arg
+        elif 'negate' in self.flags:
+            msg = 'ERROR: cannot negate addition of a non-string value'
+            context = _build_log_context('dk.qlang.symbols.SetAdd.setter')
+            log(msg, context, q.verbosity)
+        else:
+            series[mask] += arg
 
         return series
 
 
 
 
-class SetDifference(Symbol):
+class SetSub(Symbol):
     """
     subtract an arg or a col from the
     currently selected cols using
@@ -3826,7 +3837,7 @@ class SetDifference(Symbol):
     """
 
     #symbol attributes
-    name = 'SetDifference'
+    name = 'SetSub'
     category = 'setter'
     regex = (r'-=',)
 
@@ -3840,14 +3851,15 @@ class SetDifference(Symbol):
         'vals': 'get or set vals within current row and col selection',
         }
     flags_allowed = {
-        'colref': 'use a col reference for setting/getting vals',
-        'str': 'string type comparison',
-        'int': 'integer type comparison',
-        'float': 'float type comparison',
-        'num': 'numeric type comparison',
-        'bool': 'boolean type comparison',
-        'date': 'date type comparison',
-        'datetime': 'datetime type comparison',
+        'colref': 'use a col reference for setting vals',
+        'negate': 'strip string from the left instead of the right',
+        'str': 'convert to string type',
+        'int': 'convert to integer type',
+        'float': 'convert to float type',
+        'num': 'convert to numeric type',
+        'bool': 'convert to boolean type',
+        'date': 'convert to date type',
+        'datetime': 'convert to datetime type',
         }
     args_allowed = {}
     args_min = 1
@@ -3902,7 +3914,16 @@ class SetDifference(Symbol):
                 q,
                 )
 
-        series[mask] -= arg
+        if isinstance(arg, str) and 'negate' in self.flags:
+            series[mask] = series[mask].str.removeprefix(arg)
+        elif isinstance(arg, str):
+            series[mask] = series[mask].str.removesuffix(arg)
+        elif 'negate' in self.flags:
+            msg = 'ERROR: cannot negate substraction of a non-string value'
+            context = _build_log_context('dk.qlang.symbols.SetSub.setter')
+            log(msg, context, q.verbosity)
+        else:
+            series[mask] -= arg
 
         return series
 
