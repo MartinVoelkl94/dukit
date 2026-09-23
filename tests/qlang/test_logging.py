@@ -363,7 +363,7 @@ def test_invalid_arg_type():
     op = engine.Symbol()
     query = df.dk.q()
 
-    symbols._infer_types_for_getter(
+    symbols._infer_types_getter(
         series,
         arg,  # type: ignore
         op,

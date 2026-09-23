@@ -1212,7 +1212,7 @@ def _get_equals(
             op,
             q,
             )
-        series, series_other = _process_types_series(
+        series, series_other = _process_types_series_getter(
             series,
             series_other,
             op,
@@ -1221,7 +1221,7 @@ def _get_equals(
         mask = series == series_other
 
     else:
-        series, arg = _process_types(
+        series, arg = _process_types_getter(
             series,
             arg,
             op,
@@ -1535,7 +1535,7 @@ class GetGreaterEqual(Symbol):
                 self,
                 q,
                 )
-            series, series_other = _process_types_series(
+            series, series_other = _process_types_series_getter(
                 series,
                 series_other,
                 self,
@@ -1544,7 +1544,7 @@ class GetGreaterEqual(Symbol):
             mask = series >= series_other
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_getter(
                 series,
                 arg,
                 self,
@@ -1629,7 +1629,7 @@ class GetSmallerEqual(Symbol):
                 self,
                 q,
                 )
-            series, series_other = _process_types_series(
+            series, series_other = _process_types_series_getter(
                 series,
                 series_other,
                 self,
@@ -1638,7 +1638,7 @@ class GetSmallerEqual(Symbol):
             mask = series <= series_other
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_getter(
                 series,
                 arg,
                 self,
@@ -1722,7 +1722,7 @@ class GetGreater(Symbol):
                 self,
                 q,
                 )
-            series, series_other = _process_types_series(
+            series, series_other = _process_types_series_getter(
                 series,
                 series_other,
                 self,
@@ -1731,7 +1731,7 @@ class GetGreater(Symbol):
             mask = series > series_other
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_getter(
                 series,
                 arg,
                 self,
@@ -1815,7 +1815,7 @@ class GetSmaller(Symbol):
                 self,
                 q,
                 )
-            series, series_other = _process_types_series(
+            series, series_other = _process_types_series_getter(
                 series,
                 series_other,
                 self,
@@ -1824,7 +1824,7 @@ class GetSmaller(Symbol):
             mask = series < series_other
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_getter(
                 series,
                 arg,
                 self,
@@ -3112,7 +3112,7 @@ def _process_colref(
 
 
 
-def _process_types(
+def _process_types_getter(
         series: pd.Series,
         arg: str,
         op: Symbol,
@@ -3161,17 +3161,13 @@ def _process_types(
         series_new = series.apply(datetime_).astype('datetime64[us]')
         arg_new = datetime_(arg)
 
-    elif op.category == 'getter':
-        series_new, arg_new = _infer_types_for_getter(
+    else:
+        series_new, arg_new = _infer_types_getter(
             series,
             arg,
             op,
             q,
             )
-
-    else:
-        series_new = series.astype('object')
-        arg_new = convert_(arg)
 
     return series_new, arg_new
 
@@ -3220,7 +3216,7 @@ def _process_types_strict(
 
 
 
-def _infer_types_for_getter(
+def _infer_types_getter(
         series: pd.Series,
         arg: str,
         op: Symbol,
@@ -3263,7 +3259,7 @@ def _infer_types_for_getter(
 
     else:
         msg = f'WARNING: unable to infer type for arg "{arg}".'
-        context = _build_log_context('dk.qlang.symbols._infer_types_for_getter')
+        context = _build_log_context('dk.qlang.symbols._infer_types_getter')
         log(msg, context, q.verbosity)
         series_new = series
         arg_new = arg
@@ -3272,7 +3268,7 @@ def _infer_types_for_getter(
 
 
 
-def _process_types_series(
+def _process_types_series_getter(
         series: pd.Series,
         series_other: pd.Series,
         op: Symbol,
@@ -3701,7 +3697,7 @@ class SetVals(Symbol):
                 self,
                 q,
                 )
-            series, arg = _process_types_series(
+            series, arg = _process_types_series_setter(
                 series,
                 series_other,
                 self,
@@ -3709,7 +3705,7 @@ class SetVals(Symbol):
                 )
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_setter(
                 series,
                 arg,
                 self,
@@ -3726,7 +3722,7 @@ class SetVals(Symbol):
 class SetSum(Symbol):
     """
     add an arg or a col to the
-    currently selected cols using
+    current selection using
     automatic type conversion.
 
     Examples
@@ -3796,7 +3792,7 @@ class SetSum(Symbol):
                 self,
                 q,
                 )
-            series, arg = _process_types_series(
+            series, arg = _process_types_series_setter(
                 series,
                 series_other,
                 self,
@@ -3804,7 +3800,7 @@ class SetSum(Symbol):
                 )
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_setter(
                 series,
                 arg,
                 self,
@@ -3891,7 +3887,7 @@ class SetDifference(Symbol):
                 self,
                 q,
                 )
-            series, arg = _process_types_series(
+            series, arg = _process_types_series_setter(
                 series,
                 series_other,
                 self,
@@ -3899,7 +3895,7 @@ class SetDifference(Symbol):
                 )
 
         else:
-            series, arg = _process_types(
+            series, arg = _process_types_setter(
                 series,
                 arg,
                 self,
@@ -4004,7 +4000,7 @@ class SetEval(Symbol):
             else:
                 series_new = pd.Series(eval_result, index=series.index)
 
-        series, series_new = _process_types_series(
+        series, series_new = _process_types_series_setter(
             series,
             series_new,
             self,
@@ -5100,6 +5096,119 @@ def _preparse_for_setter_or_styler(q: Query) -> Query:
         q.op.scope = 'vals'
 
     return q
+
+
+
+def _process_types_setter(
+        series: pd.Series,
+        arg: str,
+        op: Symbol,
+        q: Query,
+        ) -> tuple[pd.Series, typing.Any]:
+
+    if 'strict' in op.flags:
+        series_new, arg_new = _process_types_strict(
+            series,
+            arg,
+            op,
+            q,
+            )
+        return series_new, arg_new
+
+    elif 'str' in op.flags:
+        series_new = series.astype('string')
+        arg_new = arg.lower()
+
+    elif 'int' in op.flags:
+        series_new = series.apply(int_).astype('Int64')
+        arg_new = int_(arg)
+
+    elif 'float' in op.flags:
+        series_new = series.apply(float_).astype('Float64')
+        arg_new = float_(arg)
+
+    elif 'num' in op.flags:
+        type_name = type_(arg)
+        if type_name == 'float':
+            series_new = series.apply(float_).astype('Float64')
+            arg_new = num_(arg, errors='raise')
+        else:
+            series_new = series.apply(num_).convert_dtypes()
+            arg_new = num_(arg, errors='raise')
+
+    elif 'bool' in op.flags:
+        series_new = series.apply(bool_).astype('boolean')
+        arg_new = bool_(arg)
+
+    elif 'date' in op.flags:
+        series_new = series.apply(date_).astype('datetime64[us]').dt.date
+        arg_new = date_(arg)
+
+    elif 'datetime' in op.flags:
+        series_new = series.apply(datetime_).astype('datetime64[us]')
+        arg_new = datetime_(arg)
+
+    else:
+        series_new = series.astype('object')
+        arg_new = convert_(arg)
+
+    return series_new, arg_new
+
+
+
+def _process_types_series_setter(
+        series: pd.Series,
+        series_other: pd.Series,
+        op: Symbol,
+        q: Query,
+        ) -> tuple[pd.Series, pd.Series]:
+
+    if 'strict' in op.flags:
+        series_new, series_other_new = _process_types_series_strict(
+            series,
+            series_other,
+            op,
+            q,
+            )
+        return series_new, series_other_new
+
+    elif 'str' in op.flags:
+        series_new = series.astype('string')
+        series_other_new = series_other.astype('string')
+
+    elif 'int' in op.flags:
+        series_new = series.apply(int_).astype('Int64')
+        series_other_new = series_other.apply(int_).astype('Int64')
+
+    elif 'float' in op.flags:
+        series_new = series.apply(float_).astype('Float64')
+        series_other_new = series_other.apply(float_).astype('Float64')
+
+    elif 'num' in op.flags:
+        series_new = series.apply(num_).convert_dtypes()
+        series_other_new = series_other.apply(num_).convert_dtypes()
+
+    elif 'bool' in op.flags:
+        series_new = series.apply(bool_).astype('boolean')
+        series_other_new = series_other.apply(bool_).astype('boolean')
+
+    elif 'date' in op.flags:
+        series_new = series.apply(date_).astype('datetime64[us]').dt.date
+        series_other_new = series_other.apply(date_).astype('datetime64[us]').dt.date
+
+    elif 'datetime' in op.flags:
+        series_new = series.apply(datetime_).astype('datetime64[us]')
+        series_other_new = series_other.apply(datetime_).astype('datetime64[us]')
+
+    elif series.dtype != series_other.dtype:
+        series_new = series.astype('object')
+        series_other_new = series_other.astype('object')
+
+    else:
+        series_new = series
+        series_other_new = series_other
+
+    return series_new, series_other_new
 
 
 

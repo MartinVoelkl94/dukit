@@ -92,7 +92,7 @@ params = [
 def test_infer_types_for_getter(series, series_expected, arg, arg_expected):
     op = engine.Symbol()
     query = df.dk.q()
-    series_new, arg_new = symbols._infer_types_for_getter(series, arg, op, query)
+    series_new, arg_new = symbols._infer_types_getter(series, arg, op, query)
 
     assert_series_equal(series_new, series_expected)
     assert arg_new == arg_expected
@@ -232,12 +232,12 @@ params = [
     ),
 ]
 @pytest.mark.parametrize('flags, series, series_expected, arg, arg_expected', params)
-def test_process_types(flags, series, series_expected, arg, arg_expected):
+def test_process_types_getter(flags, series, series_expected, arg, arg_expected):
     op = engine.Symbol()
     op.flags = flags.copy()
     op.category = 'getter'
     query = df.dk.q()
-    series_new, arg_new = symbols._process_types(series, arg, op, query)
+    series_new, arg_new = symbols._process_types_getter(series, arg, op, query)
 
     assert_series_equal(series_new, series_expected)
     assert arg_new == arg_expected
@@ -245,13 +245,13 @@ def test_process_types(flags, series, series_expected, arg, arg_expected):
 
 
 
-def test_process_types_default():
+def test_process_types_setter():
     op = engine.Symbol()
     op.category = 'setter'
     query = df.dk.q()
     series = pd.Series(['A', 'B'])
 
-    series_new, arg_new = symbols._process_types(series, 'abc', op, query)
+    series_new, arg_new = symbols._process_types_setter(series, 'abc', op, query)
 
     assert_series_equal(series_new, series.astype('object'))
     assert arg_new == 'abc'
@@ -453,12 +453,12 @@ params = [
     ),
 ]
 @pytest.mark.parametrize('flags, series1, series1_expected, series2, series2_expected', params)  # noqa: E501
-def test_process_types_series(flags, series1, series1_expected, series2, series2_expected):  # noqa: E501
+def test_process_types_series_getter(flags, series1, series1_expected, series2, series2_expected):  # noqa: E501
     query = df.dk.q()
 
     op = engine.Symbol()
     op.flags = flags.copy()
-    series1_new, series2_new = symbols._process_types_series(
+    series1_new, series2_new = symbols._process_types_series_getter(
         series1,
         series2,
         op,
