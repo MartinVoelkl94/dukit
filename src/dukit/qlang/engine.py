@@ -191,6 +191,7 @@ class Symbol(Box):
         if self.operator:
             txt = (
                 f'--------Operation {self.id}--------\n'
+                f'str_matched: {self.str_matched!r}\n'
                 f'connector: {self.connector!r}\n'
                 f'scope: {self.scope!r}\n'
                 f'operator: {self.operator!r}\n'
@@ -220,6 +221,7 @@ class Symbol(Box):
         if self.operator:
             txt = (
                 f'----Operation {self.id}----\n'
+                f'str_matched: {self.str_matched!r}\n'
                 f'connector: {self.connector!r}\n'
                 f'scope: {self.scope!r}\n'
                 f'operator: {self.operator!r}\n'

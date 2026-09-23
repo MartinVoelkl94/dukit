@@ -1153,6 +1153,10 @@ def _preparse_for_generic_op(q: Query) -> Query:
     if q.op.scope and not q.op.operator:
         pass
 
+    elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+        q.op.connector = 'new'
+        q.op.scope = 'global'
+
     else:
         q = _process_op(q)
         q.op.connector = 'new'
@@ -1259,6 +1263,7 @@ class GetEquals(Symbol):
         'vals': 'get or set vals within current row and col selection',
         }
     flags_allowed = {
+        'negate': 'negate the condition',
         'regex': 'parse arg as regex',
         'colref': 'parse arg as col reference',
 
@@ -1328,7 +1333,10 @@ class GetNotEquals(Symbol):
     #symbol attributes
     name = 'GetNotEquals'
     category = 'getter'
-    regex = (r'!=',)
+    regex = (
+        r'!==',  #to cover discouraged use of negate flag '!' + GetEquals '=='
+        r'!=',
+        )
 
     #used to validate the current op
     connectors_allowed = GetEquals.connectors_allowed
@@ -3058,6 +3066,13 @@ def _preparse_for_getter(q: Query) -> Query:
 
     if q.op.scope and not q.op.operator:
         pass
+
+    elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+        msg = 'Trace: inferring rows scope for getter.'
+        context = _build_log_context('dk.qlang.symbols._preparse_for_getter')
+        log(msg, context, q.verbosity)
+        q.op.connector = 'new'
+        q.op.scope = 'rows'
 
     else:
         q = _process_op(q)
@@ -5069,6 +5084,13 @@ def _preparse_for_setter_or_styler(q: Query) -> Query:
     if q.op.scope and not q.op.operator:
         pass
 
+    elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+        msg = 'Trace: inferring vals scope for setter or styler.'
+        context = _build_log_context('dk.qlang.symbols._preparse_for_setter')
+        log(msg, context, q.verbosity)
+        q.op.connector = 'new'
+        q.op.scope = 'vals'
+
     else:
         q = _process_op(q)
         msg = 'Trace: inferring vals scope for setter or styler.'
@@ -6433,6 +6455,15 @@ def _preparse_for_literal(token: Symbol, q: Query) -> Query:
         q = GetEquals().parse(q)
         _check_if_operator_named(token.literal, q)
 
+    elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+        msg = 'Trace: inferring cols scope for literal token.'
+        context = _build_log_context('dk.qlang.symbols._preparse_for_literal')
+        log(msg, context, q.verbosity)
+        q.op.connector = 'new'
+        q.op.scope = 'cols'
+        q = GetEquals().parse(q)
+        _check_if_operator_named(token.literal, q)
+
     else:
         q = _process_op(q)
         msg = 'Trace: inferring cols scope for literal token.'
@@ -6679,8 +6710,13 @@ class FlagNegate(Symbol):
     regex = (r'!',)
 
     def parse(self, q: Query) -> Query:
-        q = _preparse_for_getter(q)
-        q.op.flags['negate'] = 'negate the condition'
+        if q.op.scope and not q.op.operator:
+            q.op.flags['negate'] = 'negate the condition'
+        elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+            q.op.flags['negate'] = 'negate the condition'
+        else:
+            q = _process_op(q)
+            q.op.flags['negate'] = 'negate the condition'
         return q
 
 
@@ -6701,8 +6737,13 @@ class FlagIndex(Symbol):
     regex = (r'§',)
 
     def parse(self, q: Query) -> Query:
-        q = _preparse_for_getter(q)
-        q.op.flags['index'] = 'apply condition to the index'
+        if q.op.scope and not q.op.operator:
+            q.op.flags['index'] = 'apply condition to the index'
+        elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+            q.op.flags['index'] = 'apply condition to the index'
+        else:
+            q = _process_op(q)
+            q.op.flags['index'] = 'apply condition to the index'
         return q
 
 
@@ -6722,16 +6763,13 @@ class FlagColref(Symbol):
     regex = (r'@',)
 
     def parse(self, q: Query) -> Query:
-
         if not q.op.operator:
             msg = 'ERROR: flag "colref" cannot be used without an operator.'
             context = _build_log_context('dk.qlang.symbols.FlagColref.parse')
             log(msg, context, q.verbosity)
-            return q
-
         else:
             q.op.flags['colref'] = 'use a col reference for setting/getting vals'
-            return q
+        return q
 
 
 
