@@ -802,6 +802,11 @@ params = [
         None
     ),
     (
+        r'age  ==40.0  +num',
+        df.loc[[4], ['age']],
+        None
+    ),
+    (
         r'age  ==40  +str',
         df.loc[[], ['age']],
         None
