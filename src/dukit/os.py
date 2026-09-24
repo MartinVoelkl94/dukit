@@ -45,9 +45,9 @@ def ls(path='', recursive=False) -> pd.DataFrame:
         filepaths = []
         for root, dirs, filenames in os.walk(path):
             for filename in filenames:
-                filepaths.append(f'{root}\\{filename}')
+                filepaths.append(os.path.join(root, filename))
     else:
-        filepaths = [f'{path}\\{filename}' for filename in os.listdir(path)]
+        filepaths = [os.path.join(path, filename) for filename in os.listdir(path)]
 
     files = pd.DataFrame()
     files['_path'] = filepaths
@@ -315,7 +315,8 @@ def fetch(path, before='now', verbosity=3):
     timestamps = pd.Series([])
     for file in os.listdir(folder):
         #check if file starts with name and is a file
-        if os.path.isfile(f'{folder}\\{file}') and file.startswith(name):
+        filepath = os.path.join(folder, file)
+        if os.path.isfile(filepath) and file.startswith(name):
             try:
                 timestamp_str_full = file.split(name)[-1]
                 if timestamp_str_full[0] not in nums_str:
@@ -338,6 +339,6 @@ def fetch(path, before='now', verbosity=3):
         timestamps = timestamps.sort_index()
         latest = timestamps.iloc[len(timestamps) - 1][0]
         extension = timestamps.iloc[len(timestamps) - 1][1]
-        path = f'{folder}\\{name}{latest}{extension}'
+        path = os.path.join(folder, f'{name}{latest}{extension}')
         log(f'INFO: found file "{path}"', 'dk.fetch()', verbosity)
         return path

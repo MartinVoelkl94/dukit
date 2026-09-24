@@ -183,7 +183,7 @@ def test_fetch_latest(tmp_path):
     ignored2.write_text('ignored')
 
     result = dk.os.fetch(tmp_path / 'report', verbosity=0)
-    assert result == f'{tmp_path}\\report2020-01-03.csv'
+    assert result == str(latest)
 
 
 
@@ -203,7 +203,7 @@ def test_fetch_before(tmp_path):
         before='2020-01-03',
         verbosity=0,
         )
-    assert result == f'{tmp_path}\\report2020-01-01.csv'
+    assert result == str(first)
 
 
 
