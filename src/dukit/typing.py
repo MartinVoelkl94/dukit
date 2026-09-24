@@ -324,6 +324,8 @@ def datetime_(x, errors='coerce', na=pd.NaT) -> typing.Any:
         return x
     elif isinstance(x, datetime.date):
         return pd.to_datetime(x)
+    elif isinstance(x, int):
+        x = str(x)
     elif isinstance(x, str):
         x = x.replace('.', '-')
         x = x.replace('/', '-')

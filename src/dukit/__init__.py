@@ -1,4 +1,7 @@
 
+from importlib.metadata import version
+__version__ = version('dukit')
+
 from . import qlang
 from .qlang import (
     q,
@@ -64,6 +67,8 @@ from .typing import (
 
 
 __all__ = (
+    '__version__',
+
     'qlang',
     'q',
     'qr',
