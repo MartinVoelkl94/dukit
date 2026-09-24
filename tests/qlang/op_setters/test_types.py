@@ -1,7 +1,7 @@
 
-import pandas as pd
-import numpy as np
 import pytest
+import numpy as np
+import pandas as pd
 
 from pandas.testing import assert_frame_equal
 from dukit import (
@@ -10,8 +10,6 @@ from dukit import (
     )
 
 
-
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -56,7 +54,7 @@ def test_raw_rep():
 
 
 
-params = [
+@pytest.mark.parametrize('code, error_type', [
     (
         r'weight .toint(+strict)',
         ValueError,
@@ -73,8 +71,7 @@ params = [
         r'diabetes .tobool(+strict)',
         TypeError,
     ),
-    ]
-@pytest.mark.parametrize('code, error_type', params)
+    ])
 def test_strict_type_errors(code, error_type):
     with pytest.raises(error_type):
         _ = df.dk.qr(code).result

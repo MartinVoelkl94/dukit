@@ -32,7 +32,7 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('series, series_expected, arg, arg_expected', [
     (
         pd.Series(['A', 'b']),
         pd.Series(['a', 'b'], dtype='string'),
@@ -87,8 +87,8 @@ params = [
         '2020-01-01 00:00:00',
         pd.to_datetime('2020-01-01 00:00:00'),
     ),
-]
-@pytest.mark.parametrize('series, series_expected, arg, arg_expected', params)
+
+    ])
 def test_infer_types_for_getter(series, series_expected, arg, arg_expected):
     op = engine.Symbol()
     query = df.dk.q()
@@ -100,7 +100,8 @@ def test_infer_types_for_getter(series, series_expected, arg, arg_expected):
 
 
 
-params = [
+@pytest.mark.parametrize('flags, series, series_expected, arg, arg_expected', [
+
     (
         {'str': ''},
         pd.Series(['A', 'b']),
@@ -230,8 +231,8 @@ params = [
         'abc',
         'abc',
     ),
-]
-@pytest.mark.parametrize('flags, series, series_expected, arg, arg_expected', params)
+
+    ])
 def test_process_types_getter(flags, series, series_expected, arg, arg_expected):
     op = engine.Symbol()
     op.flags = flags.copy()
@@ -259,7 +260,8 @@ def test_process_types_setter():
 
 
 
-params = [
+@pytest.mark.parametrize('flags, s1, s1_expected, s2, s2_expected', [
+
     (
         {'str': ''},
 
@@ -451,19 +453,19 @@ params = [
         pd.Series(['abc', 'def'], dtype='object'),
         pd.Series(['abc', 'def'], dtype='string'),
     ),
-]
-@pytest.mark.parametrize('flags, series1, series1_expected, series2, series2_expected', params)  # noqa: E501
-def test_process_types_series_getter(flags, series1, series1_expected, series2, series2_expected):  # noqa: E501
+
+    ])  # noqa: E501
+def test_process_types_series_getter(flags, s1, s1_expected, s2, s2_expected):  # noqa: E501
     query = df.dk.q()
 
     op = engine.Symbol()
     op.flags = flags.copy()
-    series1_new, series2_new = symbols._process_types_series_getter(
-        series1,
-        series2,
+    s1_new, s2_new = symbols._process_types_series_getter(
+        s1,
+        s2,
         op,
         query,
         )
 
-    assert_series_equal(series1_new, series1_expected)
-    assert_series_equal(series2_new, series2_expected)
+    assert_series_equal(s1_new, s1_expected)
+    assert_series_equal(s2_new, s2_expected)

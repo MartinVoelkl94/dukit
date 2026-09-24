@@ -1,6 +1,6 @@
 
-import pandas as pd
 import pytest
+import pandas as pd
 
 from dukit.qlang import symbols
 from dukit import (
@@ -27,7 +27,7 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('category', [
     'all',
     'syntax',
     'scope',
@@ -46,8 +46,7 @@ params = [
     'viewers',
     'flag',
     'flags',
-    ]
-@pytest.mark.parametrize('category', params)
+    ])
 def test_as_df_helpers(category):
 
     result = symbols.as_df(category)
@@ -79,19 +78,16 @@ def test_as_df_invalid_category():
         symbols.as_df('does-not-exist')
 
 
-
-def test_lexeme_helpers():
-    assert symbols._get_lexemes(symbols.GetContains()) == '?'
-    assert symbols._get_lexemes(symbols.SetToStr()) == '.tostring\n.tostr'
-
-
-
 def test_docstring_helpers():
     doc = 'summary line\n\nExamples\n--------\n>>> alpha\n>>> beta'
     assert symbols._get_description(doc) == 'summary line'
     assert symbols._get_example(doc) == 'alpha\nbeta'
     assert symbols._get_example('summary only') == ''
 
+
+def test_lexeme_helpers():
+    assert symbols._get_lexemes(symbols.GetContains()) == '?'
+    assert symbols._get_lexemes(symbols.SetToStr()) == '.tostring\n.tostr'
 
 
 def test_print_or_display_print(monkeypatch, capsys):

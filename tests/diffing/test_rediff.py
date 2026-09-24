@@ -1,7 +1,8 @@
 
+import openpyxl
 import pandas as pd
 import dukit as dk
-import openpyxl
+
 from dukit._test_utils import _get_dfs
 
 

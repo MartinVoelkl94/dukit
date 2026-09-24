@@ -1,5 +1,6 @@
 
 import dukit as dk
+
 from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
     _setup_csv,
@@ -13,7 +14,275 @@ from dukit._test_utils import (
 
 
 
-def test_remove_col_a_new():
+def test_cols_by_suffix_mix():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_mix()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_cols_by_suffix_new():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_new()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='new',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_cols_by_suffix_newplus():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_newplus()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='new+',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_cols_by_suffix_old():
+
+    df_old, df_new = _get_dfs()
+    df_old['metadata *old'] = 'old'
+    df_new['metadata *old'] = 'new'
+    expected = _get_expected_old()
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='old',
+        remove_cols_by_suffix=' *old',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_a():
+
+    df_old, df_new = _get_dfs()
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['a'], inplace=True)
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        remove_cols='a',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_a_csv(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['a'], inplace=True)
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        remove_cols='a',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_a_xlsx(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['a'], inplace=True)
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        remove_cols='a',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_b():
+
+    df_old, df_new = _get_dfs()
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['b'], inplace=True)
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        remove_cols='b',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_b_csv(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['b'], inplace=True)
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        remove_cols='b',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_b_xlsx(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['b'], inplace=True)
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        remove_cols='b',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_cols():
+
+    df_old, df_new = _get_dfs()
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['a', 'b'], inplace=True)
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        remove_cols=['a', 'b'],
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_cols_csv(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['a', 'b'], inplace=True)
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        remove_cols=['a', 'b'],
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_cols_xlsx(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.drop(columns=['a', 'b'], inplace=True)
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = ''
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        remove_cols=['a', 'b'],
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_new_col_a():
 
     df_old, df_new = _get_dfs()
 
@@ -34,7 +303,7 @@ def test_remove_col_a_new():
 
 
 
-def test_remove_col_a_new_csv(tmpdir):
+def test_new_col_a_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -56,7 +325,7 @@ def test_remove_col_a_new_csv(tmpdir):
 
 
 
-def test_remove_col_a_new_xlsx(tmpdir):
+def test_new_col_a_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -78,7 +347,7 @@ def test_remove_col_a_new_xlsx(tmpdir):
 
 
 
-def test_remove_col_b_new():
+def test_new_col_b():
 
     df_old, df_new = _get_dfs()
 
@@ -98,7 +367,7 @@ def test_remove_col_b_new():
 
 
 
-def test_remove_col_b_new_csv(tmpdir):
+def test_new_col_b_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -119,7 +388,7 @@ def test_remove_col_b_new_csv(tmpdir):
 
 
 
-def test_remove_col_b_new_xlsx(tmpdir):
+def test_new_col_b_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -140,7 +409,7 @@ def test_remove_col_b_new_xlsx(tmpdir):
 
 
 
-def test_remove_cols_new():
+def test_new_cols():
 
     df_old, df_new = _get_dfs()
 
@@ -161,7 +430,7 @@ def test_remove_cols_new():
 
 
 
-def test_remove_cols_new_csv(tmpdir):
+def test_new_cols_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -183,7 +452,7 @@ def test_remove_cols_new_csv(tmpdir):
 
 
 
-def test_remove_cols_new_xlsx(tmpdir):
+def test_new_cols_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -205,7 +474,7 @@ def test_remove_cols_new_xlsx(tmpdir):
 
 
 
-def test_remove_col_a_newplus():
+def test_newplus_col_a():
 
     df_old, df_new = _get_dfs()
 
@@ -226,7 +495,7 @@ def test_remove_col_a_newplus():
 
 
 
-def test_remove_col_a_newplus_csv(tmpdir):
+def test_newplus_col_a_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -248,7 +517,7 @@ def test_remove_col_a_newplus_csv(tmpdir):
 
 
 
-def test_remove_col_a_newplus_xlsx(tmpdir):
+def test_newplus_col_a_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -270,7 +539,7 @@ def test_remove_col_a_newplus_xlsx(tmpdir):
 
 
 
-def test_remove_col_b_newplus():
+def test_newplus_col_b():
 
     df_old, df_new = _get_dfs()
 
@@ -290,7 +559,7 @@ def test_remove_col_b_newplus():
 
 
 
-def test_remove_col_b_newplus_csv(tmpdir):
+def test_newplus_col_b_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -311,7 +580,7 @@ def test_remove_col_b_newplus_csv(tmpdir):
 
 
 
-def test_remove_col_b_newplus_xlsx(tmpdir):
+def test_newplus_col_b_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -332,7 +601,7 @@ def test_remove_col_b_newplus_xlsx(tmpdir):
 
 
 
-def test_remove_cols_newplus():
+def test_newplus_cols():
 
     df_old, df_new = _get_dfs()
 
@@ -353,7 +622,7 @@ def test_remove_cols_newplus():
 
 
 
-def test_remove_cols_newplus_csv(tmpdir):
+def test_newplus_cols_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -375,7 +644,7 @@ def test_remove_cols_newplus_csv(tmpdir):
 
 
 
-def test_remove_cols_newplus_xlsx(tmpdir):
+def test_newplus_cols_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -397,7 +666,7 @@ def test_remove_cols_newplus_xlsx(tmpdir):
 
 
 
-def test_remove_col_a_old():
+def test_old_col_a():
 
     df_old, df_new = _get_dfs()
 
@@ -418,7 +687,7 @@ def test_remove_col_a_old():
 
 
 
-def test_remove_col_a_old_csv(tmpdir):
+def test_old_col_a_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -440,7 +709,7 @@ def test_remove_col_a_old_csv(tmpdir):
 
 
 
-def test_remove_col_a_old_xlsx(tmpdir):
+def test_old_col_a_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -462,7 +731,7 @@ def test_remove_col_a_old_xlsx(tmpdir):
 
 
 
-def test_remove_col_b_old():
+def test_old_col_b():
 
     df_old, df_new = _get_dfs()
 
@@ -482,7 +751,7 @@ def test_remove_col_b_old():
 
 
 
-def test_remove_col_b_old_csv(tmpdir):
+def test_old_col_b_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -503,7 +772,7 @@ def test_remove_col_b_old_csv(tmpdir):
 
 
 
-def test_remove_col_b_old_xlsx(tmpdir):
+def test_old_col_b_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -524,7 +793,7 @@ def test_remove_col_b_old_xlsx(tmpdir):
 
 
 
-def test_remove_cols_old():
+def test_old_cols():
 
     df_old, df_new = _get_dfs()
 
@@ -545,7 +814,7 @@ def test_remove_cols_old():
 
 
 
-def test_remove_cols_old_csv(tmpdir):
+def test_old_cols_csv(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
@@ -567,7 +836,7 @@ def test_remove_cols_old_csv(tmpdir):
 
 
 
-def test_remove_cols_old_xlsx(tmpdir):
+def test_old_cols_xlsx(tmpdir):
 
     df_old, df_new = _get_dfs()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
@@ -582,274 +851,6 @@ def test_remove_cols_old_xlsx(tmpdir):
         df_new_file,
         mode='old',
         remove_cols=['a', 'b'],
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_col_a_mix():
-
-    df_old, df_new = _get_dfs()
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['a'], inplace=True)
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        remove_cols='a',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_col_a_mix_csv(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['a'], inplace=True)
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        remove_cols='a',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_col_a_mix_xlsx(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['a'], inplace=True)
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        remove_cols='a',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_col_b_mix():
-
-    df_old, df_new = _get_dfs()
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['b'], inplace=True)
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        remove_cols='b',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_col_b_mix_csv(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['b'], inplace=True)
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        remove_cols='b',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_col_b_mix_xlsx(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['b'], inplace=True)
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        remove_cols='b',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_mix():
-
-    df_old, df_new = _get_dfs()
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = ''
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        remove_cols=['a', 'b'],
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_mix_csv(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = ''
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        remove_cols=['a', 'b'],
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_mix_xlsx(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.drop(columns=['a', 'b'], inplace=True)
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = ''
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        remove_cols=['a', 'b'],
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_by_suffix_new():
-
-    df_old, df_new = _get_dfs()
-    df_old['metadata *old'] = 'old'
-    df_new['metadata *old'] = 'new'
-    expected = _get_expected_new()
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='new',
-        remove_cols_by_suffix=' *old',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_by_suffix_newplus():
-
-    df_old, df_new = _get_dfs()
-    df_old['metadata *old'] = 'old'
-    df_new['metadata *old'] = 'new'
-    expected = _get_expected_newplus()
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='new+',
-        remove_cols_by_suffix=' *old',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_by_suffix_mix():
-
-    df_old, df_new = _get_dfs()
-    df_old['metadata *old'] = 'old'
-    df_new['metadata *old'] = 'new'
-    expected = _get_expected_mix()
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        remove_cols_by_suffix=' *old',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_remove_cols_by_suffix_old():
-
-    df_old, df_new = _get_dfs()
-    df_old['metadata *old'] = 'old'
-    df_new['metadata *old'] = 'new'
-    expected = _get_expected_old()
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='old',
-        remove_cols_by_suffix=' *old',
         verbosity=0,
         ).show().data  #type:ignore
 

@@ -1,6 +1,7 @@
 
-import pandas as pd
 import datetime
+import pandas as pd
+
 from .excel import save
 from .qlang import (
     q,
@@ -8,13 +9,13 @@ from .qlang import (
     qs,
     )
 from .pandas import (
-    flatten,
-    stagger,
-    embed,
-    collapse,
-    transpose,
     date_delta,
     date_table,
+    collapse,
+    embed,
+    flatten,
+    stagger,
+    transpose,
     )
 
 
@@ -53,6 +54,80 @@ class DukitAccessor():
         return qr(self.df, code, verbosity)
 
 
+    def date_delta(
+            self,
+            reference_date: str | datetime.date | pd.Timestamp = None,
+            reference_col: str = None,
+            linebreak: str = '<br>',
+            verbosity: int = 3,
+            ):
+        return date_delta(
+            self.df,
+            reference_date=reference_date,
+            reference_col=reference_col,
+            linebreak=linebreak,
+            verbosity=verbosity,
+            )
+
+
+    def date_table(
+            self,
+            reference_col: str = None,
+            uid: str = None,
+            upper: int = None,
+            lower: int = None,
+            linebreak: str = '<br>',
+            verbosity: int = 3,
+            ):
+        return date_table(
+            df=self.df,
+            reference_col=reference_col,
+            uid=uid,
+            upper=upper,
+            lower=lower,
+            linebreak=linebreak,
+            verbosity=verbosity,
+            )
+
+
+    def collapse(
+            self,
+            on: str,
+            template_col='{colname}',
+            template_item='#{counter}: {item}\n',
+            ):
+        df_new = collapse(
+            self.df,
+            on=on,
+            template_col=template_col,
+            template_item=template_item,
+            )
+        return df_new
+
+
+    def embed(
+            self,
+            on: str,
+            colname='',
+            template='{colname}_#{counter}',
+            line_start='',
+            separator=':',
+            spacer='\u00A0',  #non-breaking space
+            line_stop='\n',
+            ):
+        df_new = embed(
+            self.df,
+            on=on,
+            colname=colname,
+            template=template,
+            line_start=line_start,
+            separator=separator,
+            spacer=spacer,
+            line_stop=line_stop,
+            )
+        return df_new
+
+
     def flatten(
             self,
             on: str,
@@ -81,44 +156,6 @@ class DukitAccessor():
         return df_new
 
 
-    def embed(
-            self,
-            on: str,
-            colname='',
-            template='{colname}_#{counter}',
-            line_start='',
-            separator=':',
-            spacer='\u00A0',  #non-breaking space
-            line_stop='\n',
-            ):
-        df_new = embed(
-            self.df,
-            on=on,
-            colname=colname,
-            template=template,
-            line_start=line_start,
-            separator=separator,
-            spacer=spacer,
-            line_stop=line_stop,
-            )
-        return df_new
-
-
-    def collapse(
-            self,
-            on: str,
-            template_col='{colname}',
-            template_item='#{counter}: {item}\n',
-            ):
-        df_new = collapse(
-            self.df,
-            on=on,
-            template_col=template_col,
-            template_item=template_item,
-            )
-        return df_new
-
-
     def transpose(
             self,
             header='uid',
@@ -128,44 +165,6 @@ class DukitAccessor():
             header=header,
             )
         return df_new
-
-
-    def date_delta(
-            self,
-            reference_date: str | datetime.date | pd.Timestamp = None,
-            reference_col: str = None,
-            linebreak: str = '<br>',
-            verbosity: int = 3,
-            ):
-        return date_delta(
-            self.df,
-            reference_date=reference_date,
-            reference_col=reference_col,
-            linebreak=linebreak,
-            verbosity=verbosity,
-            )
-
-
-    def date_table(
-            self,
-            reference_date: str | datetime.date | pd.Timestamp = None,
-            reference_col: str = None,
-            uid: str = None,
-            upper: int = None,
-            lower: int = None,
-            linebreak: str = '<br>',
-            verbosity: int = 3,
-            ):
-        return date_table(
-            df=self.df,
-            reference_date=reference_date,
-            reference_col=reference_col,
-            uid=uid,
-            upper=upper,
-            lower=lower,
-            linebreak=linebreak,
-            verbosity=verbosity,
-            )
 
 
     def save(
@@ -188,7 +187,7 @@ class DukitAccessor():
 
 
     def style(self):
-        code = """
+        code = r"""
         .replace("\n", "<br>")
         .wrap(normal)
         .mono()

@@ -1,6 +1,6 @@
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from pandas.testing import assert_frame_equal
 from dukit import (
@@ -9,8 +9,6 @@ from dukit import (
     )
 
 
-
-params = []
 df = get_df()
 
 def check_message(expected_strings):

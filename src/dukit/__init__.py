@@ -1,11 +1,4 @@
 
-from .utils import (
-    log,
-    )
-from .diffing import (
-    diff,
-    rediff,
-    )
 from . import qlang
 from .qlang import (
     q,
@@ -13,23 +6,42 @@ from .qlang import (
     qs,
     )
 from .interfaces import (
-    DukitAccessor,
+    DukitAccessor
     )
-from .pandas import (
-    get_df,
-    get_dfs,
-    deduplicate,
-    flatten,
-    stagger,
-    embed,
-    collapse,
-    transpose,
-    date_delta,
-    date_table,
+from .diffing import (
+    diff,
+    rediff,
+    )
+from .utils import (
+    log,
+    ensure_unique_string,
     )
 from .excel import (
     format,
     save,
+    )
+from .pandas import (
+    collapse,
+    date_delta,
+    date_table,
+    deduplicate,
+    embed,
+    flatten,
+    get_df,
+    get_dfs,
+    stagger,
+    transpose,
+    )
+from .os import (
+    cd,
+    cp,
+    fetch,
+    isdir,
+    isfile,
+    ispath,
+    mv,
+    mkdir,
+    pwd,
     )
 from .typing import (
     Box,
@@ -49,39 +61,45 @@ from .typing import (
     typeinfostrict_ as typeinfostrict,
     list_ as list,
     )
-from .os import (
-    pwd,
-    cd,
-    cp,
-    mv,
-    mkdir,
-    isdir,
-    isfile,
-    ispath,
-    fetch,
-    )
+
 
 __all__ = (
-    'log',
-    'diff',
-    'rediff',
     'qlang',
     'q',
     'qr',
     'qs',
     'DukitAccessor',
-    'get_df',
-    'get_dfs',
-    'deduplicate',
-    'flatten',
-    'stagger',
-    'embed',
-    'collapse',
-    'transpose',
-    'date_delta',
-    'date_table',
+
+    'diff',
+    'rediff',
+
+    'log',
+    'ensure_unique_string',
+
     'format',
     'save',
+
+    'collapse',
+    'date_delta',
+    'date_table',
+    'deduplicate',
+    'embed',
+    'flatten',
+    'get_df',
+    'get_dfs',
+    'stagger',
+    'transpose',
+
+    'cd',
+    'cp',
+    'fetch',
+    'isdir',
+    'isfile',
+    'ispath',
+    'mv',
+    'mkdir',
+    'pwd',
+
     'Box',
     'str',
     'int',
@@ -98,13 +116,4 @@ __all__ = (
     'typeinfo',
     'typeinfostrict',
     'list',
-    'pwd',
-    'cd',
-    'cp',
-    'mv',
-    'mkdir',
-    'isdir',
-    'isfile',
-    'ispath',
-    'fetch',
     )

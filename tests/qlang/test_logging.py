@@ -1,7 +1,7 @@
 
-import pandas as pd
 import pytest
 import typing
+import pandas as pd
 
 from dukit.qlang import (
     engine,
@@ -13,7 +13,6 @@ from dukit import (
     )
 
 
-params = []
 df = get_df()
 
 
@@ -44,7 +43,82 @@ def check_message(expected_strings):
 
 
 
-params = [
+def test_invalid_operator():
+    log(clear=True)
+    query = df.dk.q()
+    query.op = engine.Symbol()
+    query.op.connector = 'new'
+    symbols._process_op(query)
+    messages = 'ERROR: op is missing an operator.'
+    check_message(messages)
+
+
+def test_invalid_getter_mask():
+
+    log(clear=True)
+    series = pd.Series([1, 2, 3])
+    mask = pd.Series([True, False, True])
+
+    def getter_invalid(
+            series: pd.Series,
+            mask: pd.Series[bool],
+            arg: typing.Any,
+            q: engine.Query,
+            ) -> pd.Series:
+        mask = pd.Series([True, False])
+        return mask
+    op = engine.Symbol()
+    op.getter = getter_invalid
+    query = df.dk.q()
+
+    symbols._apply_getter(
+        series,
+        mask,
+        op,
+        query,
+        )
+    message = 'ERROR: getter returned invalid mask.'
+    check_message(message)
+
+
+
+def test_invalid_op():
+    log(clear=True)
+
+    query = df.dk.q()
+    query.op = engine.Symbol()
+    symbols._validate_op_essentials(query, True)
+    messages = [
+        'ERROR: op is missing a connector.',
+        'ERROR: op is missing a scope.',
+        'ERROR: op is missing an operator.',
+        'ERROR: op has an invalid connector.',
+        'ERROR: op has an invalid scope.',
+        ]
+    check_message(messages)
+
+
+def test_invalid_arg_type():
+    log(clear=True)
+
+    series = pd.Series([1, 2, 3])
+    arg = None
+    op = engine.Symbol()
+    query = df.dk.q()
+
+    symbols._infer_types_getter(
+        series,
+        arg,  # type: ignore
+        op,
+        query,
+        )
+    message = 'WARNING: unable to infer type for arg "None".'
+    check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, message', [
 
     #engine internals
 
@@ -290,84 +364,9 @@ params = [
         """,
         'ERROR: flag "colref" cannot be used without an operator.',
     ),
-    ]
-@pytest.mark.parametrize('code, message', params)
+
+    ])
 def test_log_messages(code, message):
     log(clear=True)
     df.dk.qs(code)
-    check_message(message)
-
-
-
-
-def test_invalid_operator():
-    log(clear=True)
-    query = df.dk.q()
-    query.op = engine.Symbol()
-    query.op.connector = 'new'
-    symbols._process_op(query)
-    messages = 'ERROR: op is missing an operator.'
-    check_message(messages)
-
-
-def test_invalid_getter_mask():
-
-    log(clear=True)
-    series = pd.Series([1, 2, 3])
-    mask = pd.Series([True, False, True])
-
-    def getter_invalid(
-            series: pd.Series,
-            mask: pd.Series[bool],
-            arg: typing.Any,
-            q: engine.Query,
-            ) -> pd.Series:
-        mask = pd.Series([True, False])
-        return mask
-    op = engine.Symbol()
-    op.getter = getter_invalid
-    query = df.dk.q()
-
-    symbols._apply_getter(
-        series,
-        mask,
-        op,
-        query,
-        )
-    message = 'ERROR: getter returned invalid mask.'
-    check_message(message)
-
-
-
-def test_invalid_op():
-    log(clear=True)
-
-    query = df.dk.q()
-    query.op = engine.Symbol()
-    symbols._validate_op_essentials(query, True)
-    messages = [
-        'ERROR: op is missing a connector.',
-        'ERROR: op is missing a scope.',
-        'ERROR: op is missing an operator.',
-        'ERROR: op has an invalid connector.',
-        'ERROR: op has an invalid scope.',
-        ]
-    check_message(messages)
-
-
-def test_invalid_arg_type():
-    log(clear=True)
-
-    series = pd.Series([1, 2, 3])
-    arg = None
-    op = engine.Symbol()
-    query = df.dk.q()
-
-    symbols._infer_types_getter(
-        series,
-        arg,  # type: ignore
-        op,
-        query,
-        )
-    message = 'WARNING: unable to infer type for arg "None".'
     check_message(message)

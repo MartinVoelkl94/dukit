@@ -1,52 +1,53 @@
 
 import pandas as pd
+
 from dukit import deduplicate
 
 
 
-def test_deduplicate_list():
+def test_list():
     obj = [1]
     expected = ['1']
     result = deduplicate(obj, name='test_list', verbosity=3)
     assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
-def test_deduplicate_list1():
+def test_list1():
     obj = [1, 1]
     expected = ['1', '1_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
     assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
-def test_deduplicate_list2():
+def test_list2():
     obj = [1, 2, 2,]
     expected = ['1', '2', '2_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
     assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
-def test_deduplicate_list3():
+def test_list3():
     obj = [1, 2, 2, 3, 3, 3]
     expected = ['1', '2', '2_1', '3', '3_1', '3_2']
     result = deduplicate(obj, name='test_list', verbosity=3)
     assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
-def test_deduplicate_list4():
+def test_list4():
     obj = [3, 1, 3, 2, 3, 2]
     expected = ['3', '1', '3_1', '2', '3_2', '2_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
     assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
-def test_deduplicate_list5():
+def test_list5():
     obj = [1, 1, '1_1']
     expected = ['1', '1_1', '1_1_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
     assert result == expected, f'EXPECTED: {expected}\nRESULT: {result}'  #type: ignore
 
 
-def test_deduplicate_list6():
+def test_list6():
     obj = ['1_1', 1, '1_1_1', 1, '1_1']
     expected = ['1_1', '1', '1_1_1', '1_1_1_1', '1_1_1_1_1']
     result = deduplicate(obj, name='test_list', verbosity=3)
@@ -55,63 +56,63 @@ def test_deduplicate_list6():
 
 
 
-def test_deduplicate_series():
+def test_series():
     obj = pd.Series([1])
     expected = pd.Series(['1'])
     result = deduplicate(obj, name='test_series', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series1():
+def test_series1():
     obj = pd.Series([1, 1])
     expected = pd.Series(['1', '1_1'])
     result = deduplicate(obj, name='test_series1', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series2():
+def test_series2():
     obj = pd.Series([1, 2, 2])
     expected = pd.Series(['1', '2', '2_1'])
     result = deduplicate(obj, name='test_series2', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series3():
+def test_series3():
     obj = pd.Series([1, 2, 2, 3, 3, 3])
     expected = pd.Series(['1', '2', '2_1', '3', '3_1', '3_2'])
     result = deduplicate(obj, name='test_series3', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series4():
+def test_series4():
     obj = pd.Series([3, 1, 3, 2, 3, 2])
     expected = pd.Series(['3', '1', '3_1', '2', '3_2', '2_1'])
     result = deduplicate(obj, name='test_series4', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series5():
+def test_series5():
     obj = pd.Series([1, 1, '1_1'])
     expected = pd.Series(['1', '1_1', '1_1_1'])
     result = deduplicate(obj, name='test_series5', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series6():
+def test_series6():
     obj = pd.Series(['1_1', 1, '1_1_1', 1, '1_1'])
     expected = pd.Series(['1_1', '1', '1_1_1', '1_1_1_1', '1_1_1_1_1'])
     result = deduplicate(obj, name='test_series6', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series_index():
+def test_series_index():
     obj = pd.Series([1, 1, '1_1'], index=['a', 'b', 'c'])
     expected = pd.Series(['1', '1_1', '1_1_1'], index=['a', 'b', 'c'])
     result = deduplicate(obj, name='test_series_index', verbosity=3)
     assert result.equals(expected), f'EXPECTED: {expected}\nRESULT: {result}'
 
 
-def test_deduplicate_series_index1():
+def test_series_index1():
     obj = pd.Series([1, 1, '1_1'], index=['a', 'b', 'b'])
     expected = pd.Series(['1', '1_1', '1_1_1'], index=['a', 'b', 'b_1'])
     result = deduplicate(obj, name='test_series_index1', verbosity=3)

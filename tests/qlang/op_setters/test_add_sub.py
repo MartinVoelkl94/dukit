@@ -1,7 +1,8 @@
 
-import pandas as pd
-from pandas.testing import assert_frame_equal
 import pytest
+import pandas as pd
+
+from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
@@ -9,7 +10,6 @@ from dukit import (
 
 
 
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -76,7 +76,7 @@ def test_add_rows():
 
 
 
-params = [
+@pytest.mark.parametrize('code, col, vals, dtype, message', [
 
     (
         r'age  .toint  +=1',
@@ -198,8 +198,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, col, vals, dtype, message', params)
+    ])
 def test_add_vals(code, col, vals, dtype, message):
     result = df.dk.qr(code).result
     expected = pd.DataFrame({col: vals}, dtype=dtype)
@@ -268,7 +267,7 @@ def test_sub_rows():
 
 
 
-params = [
+@pytest.mark.parametrize('code, col, vals, dtype, message', [
 
     (
         r'age  .toint  -=1',
@@ -429,8 +428,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, col, vals, dtype, message', params)
+    ])
 def test_sub_vals(code, col, vals, dtype, message):
     result = df.dk.qr(code).result
     expected = pd.DataFrame({col: vals}, dtype=dtype)

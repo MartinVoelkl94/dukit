@@ -1,5 +1,6 @@
 
 import pandas as pd
+
 from pandas.testing import assert_frame_equal
 from dukit import get_dfs
 
@@ -65,175 +66,112 @@ def _get_expected_flatten():
 
 
 
-def test_flatten():
+def test_collapse():
 
-    df1, df2 = get_dfs()
-    expected = _get_expected_flatten()
+    expected = pd.DataFrame()
 
-    result = df2.dk.flatten(
-        on='id',
-        template='{colname}#{counter}',
-        ).convert_dtypes()
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_flatten_template():
-
-    df1, df2 = get_dfs()
-    temp = _get_expected_flatten()
-    expected = temp[['id']]
-
-    for col in temp.columns:
-        if col == 'id':
-            continue
-        counter = col.split('#')[1]
-        colname = col.split('#')[0]
-        expected[f'#{counter}_{colname}'] = temp[col]
-
-    result = df2.dk.flatten(
-        on='id',
-        template='#{counter}_{colname}',
-        ).convert_dtypes()
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_stagger():
-
-    df1, df2 = get_dfs()
-    expected = _get_expected_flatten()
-    expected['#1'] = ''
-    expected['#2'] = ''
-    expected['#3'] = ''
-    cols_reordered = [
-        'id',
-        '#1',
-        'medication#1',
-        'dose#1',
-        'unit#1',
-        '#2',
-        'medication#2',
-        'dose#2',
-        'unit#2',
-        '#3',
-        'medication#3',
-        'dose#3',
-        'unit#3',
+    expected['id'] = [
+        10002,
+        20001,
+        30001,
         ]
-    expected = expected[cols_reordered].convert_dtypes()
+    expected.loc[0, 'medication'] = 'Aspirin'
+    expected.loc[1, 'medication'] = (
+        '#1: Ibuprofen\n'
+        '#2: Paracetamol\n'
+        )
+    expected.loc[2, 'medication'] = (
+        '#1: Amoxicillin\n'
+        '#2: Ciprofloxacin\n'
+        '#3: Metformin\n'
+        )
 
-    result = df2.dk.stagger(
+    expected['dose'] = pd.Series(dtype='object')
+    expected.loc[0, 'dose'] = 100
+    expected.loc[1, 'dose'] = (
+        '#1: 200\n'
+        '#2: <NA>\n'
+        )
+    expected.loc[2, 'dose'] = (
+        '#1: 250\n'
+        '#2: 500\n'
+        '#3: 1000\n'
+        )
+
+    expected.loc[0, 'unit'] = 'mg'
+    expected.loc[1, 'unit'] = (
+        '#1: mg\n'
+        '#2: \n'
+        )
+    expected.loc[2, 'unit'] = (
+        '#1: mg\n'
+        '#2: ml\n'
+        '#3: mg\n'
+        )
+
+    expected = expected.convert_dtypes()
+
+    df1, df2 = get_dfs()
+    result = df2.dk.collapse(
         on='id',
-        template='{colname}#{counter}',
-        separator_col='#{counter}',
+        template_col='{colname}',
+        template_item='#{counter}: {item}\n',
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)
 
 
 
-def test_stagger_template():
+def test_collapse_formatted():
+
+    expected = pd.DataFrame()
+
+    expected['id'] = [
+        10002,
+        20001,
+        30001,
+        ]
+    expected.loc[0, 'medication_collapsed'] = 'Aspirin'
+    expected.loc[1, 'medication_collapsed'] = (
+        '(item1: Ibuprofen)'
+        '(item2: Paracetamol)'
+        )
+    expected.loc[2, 'medication_collapsed'] = (
+        '(item1: Amoxicillin)'
+        '(item2: Ciprofloxacin)'
+        '(item3: Metformin)'
+        )
+
+    expected['dose_collapsed'] = pd.Series(dtype='object')
+    expected.loc[0, 'dose_collapsed'] = 100
+    expected.loc[1, 'dose_collapsed'] = (
+        '(item1: 200)'
+        '(item2: <NA>)'
+        )
+    expected.loc[2, 'dose_collapsed'] = (
+        '(item1: 250)'
+        '(item2: 500)'
+        '(item3: 1000)'
+        )
+
+    expected.loc[0, 'unit_collapsed'] = 'mg'
+    expected.loc[1, 'unit_collapsed'] = (
+        '(item1: mg)'
+        '(item2: )'
+        )
+    expected.loc[2, 'unit_collapsed'] = (
+        '(item1: mg)'
+        '(item2: ml)'
+        '(item3: mg)'
+        )
+
+    expected = expected.convert_dtypes()
 
     df1, df2 = get_dfs()
-    temp = _get_expected_flatten()
-    expected = temp[['id']]
-
-    for col in temp.columns:
-        if col == 'id':
-            continue
-        counter = col.split('#')[1]
-        colname = col.split('#')[0]
-        expected[f'#{counter}_{colname}'] = temp[col]
-
-    expected['#1'] = ''
-    expected['#2'] = ''
-    expected['#3'] = ''
-    cols_reordered = [
-        'id',
-        '#1',
-        '#1_medication',
-        '#1_dose',
-        '#1_unit',
-        '#2',
-        '#2_medication',
-        '#2_dose',
-        '#2_unit',
-        '#3',
-        '#3_medication',
-        '#3_dose',
-        '#3_unit',
-        ]
-    expected = expected[cols_reordered].convert_dtypes()
-
-    result = df2.dk.stagger(
+    result = df2.dk.collapse(
         on='id',
-        template='#{counter}_{colname}',
-        separator_col='#{counter}',
-        ).convert_dtypes()
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_stagger_separator_col():
-
-    df1, df2 = get_dfs()
-    expected = _get_expected_flatten()
-    expected['staggered_col1:'] = ''
-    expected['staggered_col2:'] = ''
-    expected['staggered_col3:'] = ''
-    cols_reordered = [
-        'id',
-        'staggered_col1:',
-        'medication#1',
-        'dose#1',
-        'unit#1',
-        'staggered_col2:',
-        'medication#2',
-        'dose#2',
-        'unit#2',
-        'staggered_col3:',
-        'medication#3',
-        'dose#3',
-        'unit#3',
-        ]
-    expected = expected[cols_reordered].convert_dtypes()
-
-    result = df2.dk.stagger(
-        on='id',
-        template='{colname}#{counter}',
-        separator_col='staggered_col{counter}:',
-        ).convert_dtypes()
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_stagger_no_separator_col():
-
-    df1, df2 = get_dfs()
-    expected = _get_expected_flatten()
-    cols_reordered = [
-        'id',
-        'medication#1',
-        'dose#1',
-        'unit#1',
-        'medication#2',
-        'dose#2',
-        'unit#2',
-        'medication#3',
-        'dose#3',
-        'unit#3',
-        ]
-    expected = expected[cols_reordered].convert_dtypes()
-
-    result = df2.dk.stagger(
-        on='id',
-        template='{colname}#{counter}',
-        separator_col=None,
+        template_col='{colname}_collapsed',
+        template_item='(item{counter}: {item})',
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)
@@ -370,112 +308,175 @@ def test_embed_formatted():
 
 
 
-def test_collapse():
-
-    expected = pd.DataFrame()
-
-    expected['id'] = [
-        10002,
-        20001,
-        30001,
-        ]
-    expected.loc[0, 'medication'] = 'Aspirin'
-    expected.loc[1, 'medication'] = (
-        '#1: Ibuprofen\n'
-        '#2: Paracetamol\n'
-        )
-    expected.loc[2, 'medication'] = (
-        '#1: Amoxicillin\n'
-        '#2: Ciprofloxacin\n'
-        '#3: Metformin\n'
-        )
-
-    expected['dose'] = pd.Series(dtype='object')
-    expected.loc[0, 'dose'] = 100
-    expected.loc[1, 'dose'] = (
-        '#1: 200\n'
-        '#2: <NA>\n'
-        )
-    expected.loc[2, 'dose'] = (
-        '#1: 250\n'
-        '#2: 500\n'
-        '#3: 1000\n'
-        )
-
-    expected.loc[0, 'unit'] = 'mg'
-    expected.loc[1, 'unit'] = (
-        '#1: mg\n'
-        '#2: \n'
-        )
-    expected.loc[2, 'unit'] = (
-        '#1: mg\n'
-        '#2: ml\n'
-        '#3: mg\n'
-        )
-
-    expected = expected.convert_dtypes()
+def test_flatten():
 
     df1, df2 = get_dfs()
-    result = df2.dk.collapse(
+    expected = _get_expected_flatten()
+
+    result = df2.dk.flatten(
         on='id',
-        template_col='{colname}',
-        template_item='#{counter}: {item}\n',
+        template='{colname}#{counter}',
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)
 
 
 
-def test_collapse_formatted():
-
-    expected = pd.DataFrame()
-
-    expected['id'] = [
-        10002,
-        20001,
-        30001,
-        ]
-    expected.loc[0, 'medication_collapsed'] = 'Aspirin'
-    expected.loc[1, 'medication_collapsed'] = (
-        '(item1: Ibuprofen)'
-        '(item2: Paracetamol)'
-        )
-    expected.loc[2, 'medication_collapsed'] = (
-        '(item1: Amoxicillin)'
-        '(item2: Ciprofloxacin)'
-        '(item3: Metformin)'
-        )
-
-    expected['dose_collapsed'] = pd.Series(dtype='object')
-    expected.loc[0, 'dose_collapsed'] = 100
-    expected.loc[1, 'dose_collapsed'] = (
-        '(item1: 200)'
-        '(item2: <NA>)'
-        )
-    expected.loc[2, 'dose_collapsed'] = (
-        '(item1: 250)'
-        '(item2: 500)'
-        '(item3: 1000)'
-        )
-
-    expected.loc[0, 'unit_collapsed'] = 'mg'
-    expected.loc[1, 'unit_collapsed'] = (
-        '(item1: mg)'
-        '(item2: )'
-        )
-    expected.loc[2, 'unit_collapsed'] = (
-        '(item1: mg)'
-        '(item2: ml)'
-        '(item3: mg)'
-        )
-
-    expected = expected.convert_dtypes()
+def test_flatten_template():
 
     df1, df2 = get_dfs()
-    result = df2.dk.collapse(
+    temp = _get_expected_flatten()
+    expected = temp[['id']]
+
+    for col in temp.columns:
+        if col == 'id':
+            continue
+        counter = col.split('#')[1]
+        colname = col.split('#')[0]
+        expected[f'#{counter}_{colname}'] = temp[col]
+
+    result = df2.dk.flatten(
         on='id',
-        template_col='{colname}_collapsed',
-        template_item='(item{counter}: {item})',
+        template='#{counter}_{colname}',
+        ).convert_dtypes()
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_stagger():
+
+    df1, df2 = get_dfs()
+    expected = _get_expected_flatten()
+    expected['#1'] = ''
+    expected['#2'] = ''
+    expected['#3'] = ''
+    cols_reordered = [
+        'id',
+        '#1',
+        'medication#1',
+        'dose#1',
+        'unit#1',
+        '#2',
+        'medication#2',
+        'dose#2',
+        'unit#2',
+        '#3',
+        'medication#3',
+        'dose#3',
+        'unit#3',
+        ]
+    expected = expected[cols_reordered].convert_dtypes()
+
+    result = df2.dk.stagger(
+        on='id',
+        template='{colname}#{counter}',
+        separator_col='#{counter}',
+        ).convert_dtypes()
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_stagger_no_separator_col():
+
+    df1, df2 = get_dfs()
+    expected = _get_expected_flatten()
+    cols_reordered = [
+        'id',
+        'medication#1',
+        'dose#1',
+        'unit#1',
+        'medication#2',
+        'dose#2',
+        'unit#2',
+        'medication#3',
+        'dose#3',
+        'unit#3',
+        ]
+    expected = expected[cols_reordered].convert_dtypes()
+
+    result = df2.dk.stagger(
+        on='id',
+        template='{colname}#{counter}',
+        separator_col=None,
+        ).convert_dtypes()
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_stagger_separator_col():
+
+    df1, df2 = get_dfs()
+    expected = _get_expected_flatten()
+    expected['staggered_col1:'] = ''
+    expected['staggered_col2:'] = ''
+    expected['staggered_col3:'] = ''
+    cols_reordered = [
+        'id',
+        'staggered_col1:',
+        'medication#1',
+        'dose#1',
+        'unit#1',
+        'staggered_col2:',
+        'medication#2',
+        'dose#2',
+        'unit#2',
+        'staggered_col3:',
+        'medication#3',
+        'dose#3',
+        'unit#3',
+        ]
+    expected = expected[cols_reordered].convert_dtypes()
+
+    result = df2.dk.stagger(
+        on='id',
+        template='{colname}#{counter}',
+        separator_col='staggered_col{counter}:',
+        ).convert_dtypes()
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_stagger_template():
+
+    df1, df2 = get_dfs()
+    temp = _get_expected_flatten()
+    expected = temp[['id']]
+
+    for col in temp.columns:
+        if col == 'id':
+            continue
+        counter = col.split('#')[1]
+        colname = col.split('#')[0]
+        expected[f'#{counter}_{colname}'] = temp[col]
+
+    expected['#1'] = ''
+    expected['#2'] = ''
+    expected['#3'] = ''
+    cols_reordered = [
+        'id',
+        '#1',
+        '#1_medication',
+        '#1_dose',
+        '#1_unit',
+        '#2',
+        '#2_medication',
+        '#2_dose',
+        '#2_unit',
+        '#3',
+        '#3_medication',
+        '#3_dose',
+        '#3_unit',
+        ]
+    expected = expected[cols_reordered].convert_dtypes()
+
+    result = df2.dk.stagger(
+        on='id',
+        template='#{counter}_{colname}',
+        separator_col='#{counter}',
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)

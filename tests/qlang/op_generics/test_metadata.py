@@ -26,6 +26,21 @@ def check_message(expected_strings):
 
 
 
+def test_append():
+    df1 = df.copy()
+    df1['_meta'] = 'a'
+
+    code = r"""
+    .tag('b')
+    %
+    """
+    result = df1.dk.qr(code).result
+    expected = get_df()
+    expected['_meta'] = 'ab'
+    expected['_meta'] = expected['_meta'].astype('string')
+    assert_frame_equal(result, expected)
+
+
 
 def test_basic1():
     code = r"""
@@ -165,22 +180,6 @@ def test_complex():
     expected = get_df()
     expected['_meta'] = 'a'
     expected = expected.convert_dtypes().loc[[0, 2, 10], ['_meta']]
-    assert_frame_equal(result, expected)
-
-
-
-def test_append():
-    df1 = df.copy()
-    df1['_meta'] = 'a'
-
-    code = r"""
-    .tag('b')
-    %
-    """
-    result = df1.dk.qr(code).result
-    expected = get_df()
-    expected['_meta'] = 'ab'
-    expected['_meta'] = expected['_meta'].astype('string')
     assert_frame_equal(result, expected)
 
 

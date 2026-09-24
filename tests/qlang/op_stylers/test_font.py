@@ -12,7 +12,6 @@ from dukit import (
 
 
 
-params = []
 df = get_df()
 
 def check_message(expected_strings):

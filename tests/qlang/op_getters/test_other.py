@@ -9,7 +9,6 @@ from dukit import (
 
 
 
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -28,7 +27,7 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     #regex flag + type based selection
     (
@@ -313,8 +312,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_complex_queries(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -324,7 +322,7 @@ def test_complex_queries(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r"""
@@ -411,8 +409,7 @@ params = [
         df.loc[:, ['ID', 'name', 'date of birth']],
         None,
     ),
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_trim(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)

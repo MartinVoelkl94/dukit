@@ -6,9 +6,120 @@ import dukit as dk
 
 
 
-def test_pwd(tmp_path):
+def test_cd(tmp_path):
+    src = tmp_path / 'src'
+    target = tmp_path / 'target'
+    src.mkdir()
+    target.mkdir()
+    os.chdir(src)
+
+    dk.os.cd(str(target), verbosity=0)
+    assert os.getcwd() == str(target)
+
+    dk.os.cd(str(src), verbosity=0)
+    assert os.getcwd() == str(src)
+
+
+@pytest.mark.parametrize('path', [None, '', '.', '..'])
+def test_cd_special_paths(path, tmp_path):
     os.chdir(tmp_path)
-    assert dk.os.pwd() == str(tmp_path)
+    original = os.getcwd()
+
+    dk.os.cd(path, verbosity=0)
+    if path == '..':
+        expected = os.path.dirname(original)
+    else:
+        expected = original
+    assert os.getcwd() == expected
+
+
+
+def test_cp(tmp_path):
+    src = tmp_path / 'src.txt'
+    dest = tmp_path / 'dest.txt'
+    copied = tmp_path / 'copied'
+    src.write_text('src')
+    copied.mkdir()
+
+    dk.os.cp(src, dest, verbosity=0)
+    assert dest.read_text() == 'src'
+
+    src.write_text('updated')
+    dk.os.cp(src, dest, verbosity=0)
+    assert dest.read_text() == 'updated'
+
+    dk.os.cp(src, copied, verbosity=0)
+    assert (copied / src.name).read_text() == 'updated'
+
+
+
+def test_cp_dir(tmp_path):
+    dir = tmp_path / 'dir'
+    file_nested = dir / 'nested.txt'
+    dir_copied = tmp_path / 'copied_dir'
+
+    dir.mkdir()
+    file_nested.write_text('nested')
+
+    dk.os.cp(dir, dir_copied, verbosity=0)
+    assert (dir_copied / 'nested.txt').read_text() == 'nested'
+
+
+def test_fetch(tmp_path):
+    direct = tmp_path / 'direct.txt'
+    direct.write_text('direct')
+    result = dk.os.fetch(direct, verbosity=0)
+    assert result == direct
+
+
+
+def test_fetch_before(tmp_path):
+    first = tmp_path / 'report2020-01-01.csv'
+    latest = tmp_path / 'report2020-01-03.csv'
+    ignored1 = tmp_path / 'report-not-a-date.csv'
+    ignored2 = tmp_path / 'report2020bad.csv'
+
+    first.write_text('first')
+    latest.write_text('latest')
+    ignored1.write_text('ignored')
+    ignored2.write_text('ignored')
+
+    result = dk.os.fetch(
+        tmp_path / 'report',
+        before='2020-01-03',
+        verbosity=0,
+        )
+    assert result == str(first)
+
+
+
+@pytest.mark.parametrize(
+    'before',
+    ['today', 'this day', 'this week', 'this month', 'this year'],
+    )
+def test_fetch_cutoff_options(before, tmp_path):
+    with pytest.raises(FileNotFoundError, match='no timestamped files'):
+        dk.os.fetch(tmp_path / 'missing', before=before, verbosity=0)
+
+
+def test_fetch_latest(tmp_path):
+    first = tmp_path / 'report2020-01-01.csv'
+    latest = tmp_path / 'report2020-01-03.csv'
+    ignored1 = tmp_path / 'report-not-a-date.csv'
+    ignored2 = tmp_path / 'report2020bad.csv'
+
+    first.write_text('first')
+    latest.write_text('latest')
+    ignored1.write_text('ignored')
+    ignored2.write_text('ignored')
+
+    result = dk.os.fetch(tmp_path / 'report', verbosity=0)
+    assert result == str(latest)
+
+
+def test_fetch_missing_file(tmp_path):
+    with pytest.raises(FileNotFoundError, match='no timestamped files'):
+        dk.os.fetch(tmp_path / 'missing', verbosity=0)
 
 
 def test_isdir(tmp_path):
@@ -71,65 +182,6 @@ def test_ls_default_path(tmp_path):
     assert result['name'].to_list() == [file.name]
 
 
-def test_cd(tmp_path):
-    src = tmp_path / 'src'
-    target = tmp_path / 'target'
-    src.mkdir()
-    target.mkdir()
-    os.chdir(src)
-
-    dk.os.cd(str(target), verbosity=0)
-    assert os.getcwd() == str(target)
-
-    dk.os.cd(str(src), verbosity=0)
-    assert os.getcwd() == str(src)
-
-
-@pytest.mark.parametrize('path', [None, '', '.', '..'])
-def test_cd_special_paths(path, tmp_path):
-    os.chdir(tmp_path)
-    original = os.getcwd()
-
-    dk.os.cd(path, verbosity=0)
-    if path == '..':
-        expected = os.path.dirname(original)
-    else:
-        expected = original
-    assert os.getcwd() == expected
-
-
-
-def test_cp(tmp_path):
-    src = tmp_path / 'src.txt'
-    dest = tmp_path / 'dest.txt'
-    copied = tmp_path / 'copied'
-    src.write_text('src')
-    copied.mkdir()
-
-    dk.os.cp(src, dest, verbosity=0)
-    assert dest.read_text() == 'src'
-
-    src.write_text('updated')
-    dk.os.cp(src, dest, verbosity=0)
-    assert dest.read_text() == 'updated'
-
-    dk.os.cp(src, copied, verbosity=0)
-    assert (copied / src.name).read_text() == 'updated'
-
-
-
-def test_cp_dir(tmp_path):
-    dir = tmp_path / 'dir'
-    file_nested = dir / 'nested.txt'
-    dir_copied = tmp_path / 'copied_dir'
-
-    dir.mkdir()
-    file_nested.write_text('nested')
-
-    dk.os.cp(dir, dir_copied, verbosity=0)
-    assert (dir_copied / 'nested.txt').read_text() == 'nested'
-
-
 
 def test_mv(tmp_path):
     src = tmp_path / 'src.txt'
@@ -164,58 +216,6 @@ def test_mkdir(tmp_path):
     assert dir_new.is_dir()
 
 
-def test_fetch(tmp_path):
-    direct = tmp_path / 'direct.txt'
-    direct.write_text('direct')
-    result = dk.os.fetch(direct, verbosity=0)
-    assert result == direct
-
-
-def test_fetch_latest(tmp_path):
-    first = tmp_path / 'report2020-01-01.csv'
-    latest = tmp_path / 'report2020-01-03.csv'
-    ignored1 = tmp_path / 'report-not-a-date.csv'
-    ignored2 = tmp_path / 'report2020bad.csv'
-
-    first.write_text('first')
-    latest.write_text('latest')
-    ignored1.write_text('ignored')
-    ignored2.write_text('ignored')
-
-    result = dk.os.fetch(tmp_path / 'report', verbosity=0)
-    assert result == str(latest)
-
-
-
-def test_fetch_before(tmp_path):
-    first = tmp_path / 'report2020-01-01.csv'
-    latest = tmp_path / 'report2020-01-03.csv'
-    ignored1 = tmp_path / 'report-not-a-date.csv'
-    ignored2 = tmp_path / 'report2020bad.csv'
-
-    first.write_text('first')
-    latest.write_text('latest')
-    ignored1.write_text('ignored')
-    ignored2.write_text('ignored')
-
-    result = dk.os.fetch(
-        tmp_path / 'report',
-        before='2020-01-03',
-        verbosity=0,
-        )
-    assert result == str(first)
-
-
-
-@pytest.mark.parametrize(
-    'before',
-    ['today', 'this day', 'this week', 'this month', 'this year'],
-    )
-def test_fetch_cutoff_options(before, tmp_path):
-    with pytest.raises(FileNotFoundError, match='no timestamped files'):
-        dk.os.fetch(tmp_path / 'missing', before=before, verbosity=0)
-
-
-def test_fetch_missing_file(tmp_path):
-    with pytest.raises(FileNotFoundError, match='no timestamped files'):
-        dk.os.fetch(tmp_path / 'missing', verbosity=0)
+def test_pwd(tmp_path):
+    os.chdir(tmp_path)
+    assert dk.os.pwd() == str(tmp_path)

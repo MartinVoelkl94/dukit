@@ -1,5 +1,6 @@
 
 import dukit as dk
+
 from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
     _setup_csv,
@@ -11,6 +12,56 @@ from dukit._test_utils import (
     _get_expected_style_mix,
     )
 
+
+
+def test_style_mode_mix():
+
+    df_old, df_new = _get_dfs()
+    expected = _get_expected_style_mix()
+
+    #in memory dfs
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        verbosity=0,
+        )[0]._style
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_style_mode_mix_csv(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
+    expected = _get_expected_style_mix()
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        verbosity=0,
+        )[0]._style
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_style_mode_mix_xlsx(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
+    expected = _get_expected_style_mix()
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        verbosity=0,
+        )[0]._style
+
+    assert_frame_equal(result, expected)
 
 
 def test_style_mode_new():
@@ -156,57 +207,6 @@ def test_style_mode_old_xlsx(tmpdir):
         df_old_file,
         df_new_file,
         mode='old',
-        verbosity=0,
-        )[0]._style
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_style_mode_mix():
-
-    df_old, df_new = _get_dfs()
-    expected = _get_expected_style_mix()
-
-    #in memory dfs
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        verbosity=0,
-        )[0]._style
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_style_mode_mix_csv(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-    expected = _get_expected_style_mix()
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        verbosity=0,
-        )[0]._style
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_style_mode_mix_xlsx(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-    expected = _get_expected_style_mix()
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
         verbosity=0,
         )[0]._style
 

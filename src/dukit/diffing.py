@@ -1,7 +1,7 @@
 
-import pandas as pd
-import typing
 import os
+import typing
+import pandas as pd
 
 from .pandas import deduplicate
 from .excel import format

@@ -37,6 +37,53 @@ def test_build_log_context():
 
 
 
+@pytest.mark.parametrize(
+    'strategy, taken, expected',
+    [
+        ('increment', {'name', 'name1', 'name2'}, 'name3'),
+        ('increment', set(), 'name'),
+        ('prefix=pre_', {'name', 'pre_name'}, 'pre_pre_name'),
+        ('suffix=_copy', {'name', 'name_copy'}, 'name_copy_copy'),
+        ('datestamp', set(), None),
+    ],
+    )
+def test_ensure_unique_string(strategy, taken, expected):
+    result = dk.utils.ensure_unique_string('name', taken, strategy)
+
+    if expected is None:
+        assert re.fullmatch(r'name_\d{4}_\d{2}_\d{2}', result)
+    else:
+        assert result == expected
+
+
+
+def test_ensure_unique_string_random(monkeypatch):
+    monkeypatch.setattr(
+        dk.utils.random,
+        'choices',
+        lambda chars, k: list('ABC123'),
+        )
+    result = dk.utils.ensure_unique_string('name', {'name'}, 'random')
+    assert result == 'name_ABC123'
+
+
+def test_ensure_unique_string_timestamp(monkeypatch):
+    result = dk.utils.ensure_unique_string(
+        'name',
+        {'name', 'name_2020_01_02_03h04m05s'},
+        'timestamp',
+        )
+    assert re.fullmatch(
+        r'name_\d{4}_\d{2}_\d{2}_\d{2}h\d{2}m\d{2}s',
+        result,
+        )
+
+
+def test_ensure_unique_string_invalid_strategy():
+    with pytest.raises(ValueError, match='Unknown strategy'):
+        dk.utils.ensure_unique_string('name', set(), 'unknown')
+
+
 def test_log_empty(capsys):
     dk.utils.log(clear=True, verbosity=1)
     capsys.readouterr()
@@ -104,56 +151,6 @@ def test_log_display_branch(monkeypatch):
     assert len(dk.utils.log().data) == 1  # type: ignore
     assert dk.utils.log().data.iloc[0]['text'] == '&lt;message&gt;'  # type: ignore
     assert dk.utils.log().data.iloc[0]['context'] == 'line<br>next'  # type: ignore
-
-
-
-@pytest.mark.parametrize(
-    'strategy, taken, expected',
-    [
-        ('increment', {'name', 'name1', 'name2'}, 'name3'),
-        ('increment', set(), 'name'),
-        ('prefix=pre_', {'name', 'pre_name'}, 'pre_pre_name'),
-        ('suffix=_copy', {'name', 'name_copy'}, 'name_copy_copy'),
-        ('datestamp', set(), None),
-    ],
-    )
-def test_ensure_unique_string(strategy, taken, expected):
-    result = dk.utils.ensure_unique_string('name', taken, strategy)
-
-    if expected is None:
-        assert re.fullmatch(r'name_\d{4}_\d{2}_\d{2}', result)
-    else:
-        assert result == expected
-
-
-
-def test_ensure_unique_string_random(monkeypatch):
-    monkeypatch.setattr(
-        dk.utils.random,
-        'choices',
-        lambda chars, k: list('ABC123'),
-        )
-    result = dk.utils.ensure_unique_string('name', {'name'}, 'random')
-    assert result == 'name_ABC123'
-
-
-
-def test_ensure_unique_string_timestamp(monkeypatch):
-    result = dk.utils.ensure_unique_string(
-        'name',
-        {'name', 'name_2020_01_02_03h04m05s'},
-        'timestamp',
-        )
-    assert re.fullmatch(
-        r'name_\d{4}_\d{2}_\d{2}_\d{2}h\d{2}m\d{2}s',
-        result,
-        )
-
-
-
-def test_ensure_unique_string_invalid_strategy():
-    with pytest.raises(ValueError, match='Unknown strategy'):
-        dk.utils.ensure_unique_string('name', set(), 'unknown')
 
 
 def test_now():

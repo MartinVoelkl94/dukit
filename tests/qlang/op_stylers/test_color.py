@@ -11,8 +11,6 @@ from dukit import (
     )
 
 
-
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -30,7 +28,7 @@ def check_message(expected_strings):
 
 
 
-def test_background_color_cols():
+def test_background_cols():
     code = r"""
     %.bg(orange)
     """
@@ -44,7 +42,7 @@ def test_background_color_cols():
 
 
 
-def test_background_color_rows():
+def test_background_rows():
     code = r"""
     %%.bg(orange)
     """
@@ -58,7 +56,7 @@ def test_background_color_rows():
 
 
 
-def test_background_color_vals1():
+def test_background_vals1():
     code = r"""
     %%%.bg(orange)
     """
@@ -73,7 +71,7 @@ def test_background_color_vals1():
 
 
 
-def test_background_color_vals2():
+def test_background_vals2():
     code = r"""
     .bg(orange)
     """
@@ -88,7 +86,7 @@ def test_background_color_vals2():
 
 
 
-def test_background_color_vals3():
+def test_background_vals3():
     code = r"""
     age  <0  .bg(orange)
     """
@@ -104,7 +102,7 @@ def test_background_color_vals3():
 
 
 
-def test_color_cols():
+def test_cols():
     code = r"""
     %.color(orange)
     """
@@ -118,7 +116,7 @@ def test_color_cols():
 
 
 
-def test_color_rows():
+def test_rows():
     code = r"""
     %%.color(orange)
     """
@@ -132,7 +130,7 @@ def test_color_rows():
 
 
 
-def test_color_vals1():
+def test_vals1():
     code = r"""
     %%%.color(orange)
     """
@@ -147,7 +145,7 @@ def test_color_vals1():
 
 
 
-def test_color_vals2():
+def test_vals2():
     code = r"""
     .color(orange)
     """
@@ -162,7 +160,7 @@ def test_color_vals2():
 
 
 
-def test_color_vals3():
+def test_vals3():
     code = r"""
     age  <0  .color(orange)
     """

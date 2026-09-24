@@ -1,14 +1,14 @@
 
 import pytest
+
 from dukit import Box
 
 
 
-params = [
+@pytest.mark.parametrize('kwargs, expected_attr', [
     ({'a': 3}, 3),
     ({'x': 'y'}, 'y'),
-    ]
-@pytest.mark.parametrize('kwargs, expected_attr', params)
+    ])
 def test_basics(kwargs, expected_attr):
     box = Box(**kwargs)
     key = list(kwargs.keys())[0]
@@ -37,29 +37,14 @@ def test_copy_clear_new():
 
 
 
-params = [
-    (1.5, 'x', TypeError),
-    (object(), None, TypeError),
-    ('keys', 1, AttributeError),
-    ]
-@pytest.mark.parametrize('name, value, error_type', params)
-def test_setattr_errors(name, value, error_type):
-    box = Box()
-    with pytest.raises(error_type):
-        setattr(box, name, value)
-
-
-
-params = [
+@pytest.mark.parametrize('key, error_type', [
     (1.5, KeyError),
     (object(), KeyError),
-    ]
-@pytest.mark.parametrize('key, error_type', params)
+    ])
 def test_getitem_errors(key, error_type):
     box = Box()
     with pytest.raises(error_type):
         _ = box[key]
-
 
 
 def test_repr_str_print_eq():
@@ -72,3 +57,14 @@ def test_repr_str_print_eq():
 
     assert (box == Box(a=1)) is True
     assert (box == 'x') is False
+
+
+@pytest.mark.parametrize('name, value, error_type', [
+    (1.5, 'x', TypeError),
+    (object(), None, TypeError),
+    ('keys', 1, AttributeError),
+    ])
+def test_setattr_errors(name, value, error_type):
+    box = Box()
+    with pytest.raises(error_type):
+        setattr(box, name, value)

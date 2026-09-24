@@ -1,10 +1,12 @@
 
-import pandas as pd
-import numpy as np
-import datetime
 import copy
+import datetime
+import numpy as np
+import pandas as pd
+
 from .utils import log, GREEN_LIGHT
 from .typing import date_
+
 
 def get_df() -> pd.DataFrame:
     """
@@ -237,349 +239,6 @@ def get_dfs():
             ]
         })
     return df1, df2
-
-
-
-
-def deduplicate(obj, name='object', verbosity=3):
-    """
-    make values unique by appending consecutive numeric suffixes.
-
-    Parameters
-    ----------
-    obj : object
-        object convertible to a pandas Series.
-    name : str, default 'object'
-        name used in diagnostic messages.
-    verbosity : int, default 3
-        logging verbosity level.
-
-    Returns
-    -------
-    object
-        deduplicated object, converted back to its original type when
-        possible. Values are converted to strings during processing.
-    """
-
-    obj = copy.deepcopy(obj)
-    class_orig = obj.__class__
-    obj = _to_series(obj)
-
-    #Values can only be deduplicated if index is unique
-    if not obj.index.is_unique:
-        msg = (
-            f'info: duplicates found in index of {name}.'
-            ' deduplicating by appending consecutive numbers.'
-            )
-        log(msg, 'dk.pandas.deduplicate', verbosity)
-        obj.index = _deduplicate(_to_series(obj.index))
-
-    rounds = 0
-    while not obj.is_unique:
-        if rounds == 0:
-            msg = (
-                f'debug: duplicates found in {name}.'
-                ' deduplicating by appending consecutive numbers.'
-                )
-        else:
-            msg = (
-                f'debug: duplicates still found in {name} after'
-                f' {rounds} deduplication rounds.'
-                ' deduplicating again by appending consecutive numbers.'
-                )
-        log(msg, 'dk.pandas.deduplicate', verbosity)
-        obj = _deduplicate(obj)
-        rounds += 1
-
-    if not isinstance(obj, class_orig):
-        try:
-            obj = class_orig(obj)
-        except Exception as e:
-            msg = (
-                'Error: could not convert deduplicated object'
-                f' back to original type {class_orig}: {e}'
-                )
-            log(msg, 'dk.pandas.deduplicate', verbosity)
-
-    return obj
-
-
-def _to_series(obj, verbosity=3):
-    try:
-        obj = pd.Series(obj, dtype=str)
-    except Exception as e:
-        msg = (
-            'Error: could not convert input of type'
-            f' {type(obj)} to Series: {e}'
-            )
-        log(msg, 'dk.pandas._to_series', verbosity)
-    return obj
-
-
-def _deduplicate(series):
-    cumulative_count = series.groupby(series).cumcount()
-    duplicates_mask = series.index[cumulative_count > 0]
-    duplicates = series[duplicates_mask]
-    duplicates_new = (
-        duplicates.astype(str)
-        + '_'
-        + cumulative_count[duplicates_mask].astype(str)
-        )
-    series[duplicates_mask] = duplicates_new
-    return series
-
-
-
-
-def flatten(
-        df: pd.DataFrame,
-        on: str,
-        template='{colname} #{counter}',
-        ):
-    """
-    arrange values from repeated rows into numbered cols.
-    in contrast to :func:`stagger`, repeated 3 repeated
-    values from cols a, b, c are arranged into new cols:
-    a1, a2, a3, b1, b2, b3, c1, c2, c3.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        df containing repeated rows.
-    on : str
-        col used to group rows.
-    template : str, default '{colname} #{counter}'
-        format string for generated col names.
-
-    Returns
-    -------
-    pandas.DataFrame
-        df with one row per group and numbered value cols.
-    """
-
-    #aggregate repeating rows into lists
-    df = df.groupby(on).agg(list)
-
-    #create new cols from lists
-    cols_new = []
-    for col in df.columns:
-        n_max = df[col].apply(lambda x: len(x)).max()
-        cols_flat = [
-            template.format(counter=i + 1, colname=col)
-            for i
-            in range(n_max)
-            ]
-        split = pd.DataFrame(df[col].to_list(), columns=cols_flat)
-        split.index = df.index
-        df = df.merge(
-            split,
-            left_index=True,
-            right_index=True,
-            how='left',
-            )
-        cols_new += cols_flat
-
-    df = df[cols_new]
-    df.insert(0, on, df.index)
-    df.reset_index(drop=True, inplace=True)
-
-    return df
-
-
-
-def stagger(
-        df: pd.DataFrame,
-        on: str,
-        template='#{counter} {colname}',
-        separator_col='#{counter}'
-        ):
-    """
-    arrange values from repeated rows into numbered cols.
-    in contrast to :func:`flatten`, repeated 3 repeated
-    values from cols a, b, c are arranged into new cols:
-    #1, a1, b1, c1, #2, a2, b2, c2, #3, a3, b3, c3
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        df containing repeated rows.
-    on : str
-        col used to group rows.
-    template : str, default '#{counter} {colname}'
-        format string for generated col names.
-    separator_col : str or None, default '#{counter}'
-        format string for separator cols. use ``None`` to omit them.
-
-    Returns
-    -------
-    pandas.DataFrame
-        df with one row per group and repeated values in cols.
-    """
-
-    duplicates_max = df[on].value_counts().max()
-    df = df.groupby(on).agg(list)
-    cols = df.columns.tolist()
-    df_new = pd.DataFrame(
-        df.index,
-        index=df.index,
-        )
-
-    for i in range(duplicates_max):
-        if separator_col:
-            separator_vals = pd.Series(
-                '',
-                index=df.index,
-                name=separator_col.format(counter=i + 1),
-                )
-            df_new = pd.concat([df_new, separator_vals], axis=1)
-        for col in cols:
-            if col == on:
-                continue
-            col_new = df[col].apply(lambda x: _get_from_list(x, i))
-            col_new.name = template.format(counter=i + 1, colname=col)
-            df_new = pd.concat([df_new, col_new], axis=1)
-
-    df_new.reset_index(drop=True, inplace=True)
-
-    return df_new
-
-
-def _get_from_list(x, i):
-    if len(x) > i:
-        return x[i]
-    else:
-        return None
-
-
-
-def embed(
-        df: pd.DataFrame,
-        on: str,
-        colname='',
-        template='{colname} #{counter}',
-        line_start='',
-        separator=':',
-        spacer='\u00A0',  #non-breaking space
-        line_stop='\n',
-        ):
-    """
-    combine repeated row values into formatted multiline cols.
-
-    Returns
-    -------
-    pandas.DataFrame
-        flattened df with one row per value in ``on``.
-    """
-
-    combined_cols_str = pd.DataFrame({
-        on: df[on],
-        colname: ''
-        })
-
-    len_max_cols = (
-        df
-        .columns
-        .to_series()
-        .astype('string')
-        .str
-        .len()
-        .max()
-        )
-    for col in df.columns:
-        if col == on:
-            continue
-        len_spacer = (
-            len_max_cols
-            - len(str(col))
-            + 1
-            )
-        combined_cols_str[colname] += (
-            line_start
-            + str(col)
-            + separator
-            + spacer * len_spacer
-            + df[col].apply(str)
-            + line_stop
-            )
-
-    df_new = flatten(
-        combined_cols_str,
-        on=on,
-        template=template,
-        )
-
-    return df_new
-
-
-
-def collapse(
-        df: pd.DataFrame,
-        on: str,
-        template_col='{colname}',
-        template_item='#{counter}: {item}\n',
-        ):
-    """
-    collapse repeated row values into numbered multiline cols.
-
-    Returns
-    -------
-    pandas.DataFrame
-        df with one row per value in ``on``.
-    """
-    df = df.groupby(on).agg(list)
-    df = df.map(lambda x: _to_lines(x, template_item))
-    df.columns = [template_col.format(colname=col) for col in df.columns]
-    df.insert(0, on, df.index)
-    df.reset_index(drop=True, inplace=True)
-    return df
-
-
-def _to_lines(
-        x,
-        template_item='#{counter}: {item}\n',
-        ):
-    if not isinstance(x, list):
-        return x
-    if len(x) == 1:
-        return x[0]
-    else:
-        x_str = ''
-        for i, item in enumerate(x):
-            x_str += template_item.format(counter=i + 1, item=item)
-    return x_str
-
-
-
-def transpose(
-        df: pd.DataFrame,
-        header='uid',
-        ) -> pd.DataFrame:
-    """
-    transpose a df while preserving a designated header col.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        df to transpose.
-    header : str, default 'uid'
-        col used as the new header identifier.
-
-    Returns
-    -------
-    pandas.DataFrame
-        transposed df.
-    """
-
-    cols_old = df.columns
-    cols_new = df[header].values
-
-    df = df.T
-    df.columns = cols_new
-    df.insert(0, header, cols_old)
-    df.drop(header, axis=0, inplace=True)
-    df.reset_index(drop=True, inplace=True)
-
-    return df
 
 
 
@@ -818,3 +477,345 @@ def _highlight_schedule(
         )
 
     return df_styled
+
+
+
+
+def deduplicate(obj, name='object', verbosity=3):
+    """
+    make values unique by appending consecutive numeric suffixes.
+
+    Parameters
+    ----------
+    obj : object
+        object convertible to a pandas Series.
+    name : str, default 'object'
+        name used in diagnostic messages.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    object
+        deduplicated object, converted back to its original type when
+        possible. Values are converted to strings during processing.
+    """
+
+    obj = copy.deepcopy(obj)
+    class_orig = obj.__class__
+    obj = _to_series(obj)
+
+    #Values can only be deduplicated if index is unique
+    if not obj.index.is_unique:
+        msg = (
+            f'info: duplicates found in index of {name}.'
+            ' deduplicating by appending consecutive numbers.'
+            )
+        log(msg, 'dk.pandas.deduplicate', verbosity)
+        obj.index = _deduplicate(_to_series(obj.index))
+
+    rounds = 0
+    while not obj.is_unique:
+        if rounds == 0:
+            msg = (
+                f'debug: duplicates found in {name}.'
+                ' deduplicating by appending consecutive numbers.'
+                )
+        else:
+            msg = (
+                f'debug: duplicates still found in {name} after'
+                f' {rounds} deduplication rounds.'
+                ' deduplicating again by appending consecutive numbers.'
+                )
+        log(msg, 'dk.pandas.deduplicate', verbosity)
+        obj = _deduplicate(obj)
+        rounds += 1
+
+    if not isinstance(obj, class_orig):
+        try:
+            obj = class_orig(obj)
+        except Exception as e:
+            msg = (
+                'Error: could not convert deduplicated object'
+                f' back to original type {class_orig}: {e}'
+                )
+            log(msg, 'dk.pandas.deduplicate', verbosity)
+
+    return obj
+
+
+def _to_series(obj, verbosity=3):
+    try:
+        obj = pd.Series(obj, dtype=str)
+    except Exception as e:
+        msg = (
+            'Error: could not convert input of type'
+            f' {type(obj)} to Series: {e}'
+            )
+        log(msg, 'dk.pandas._to_series', verbosity)
+    return obj
+
+
+def _deduplicate(series):
+    cumulative_count = series.groupby(series).cumcount()
+    duplicates_mask = series.index[cumulative_count > 0]
+    duplicates = series[duplicates_mask]
+    duplicates_new = (
+        duplicates.astype(str)
+        + '_'
+        + cumulative_count[duplicates_mask].astype(str)
+        )
+    series[duplicates_mask] = duplicates_new
+    return series
+
+
+
+def collapse(
+        df: pd.DataFrame,
+        on: str,
+        template_col='{colname}',
+        template_item='#{counter}: {item}\n',
+        ):
+    """
+    collapse repeated row values into numbered multiline cols.
+
+    Returns
+    -------
+    pandas.DataFrame
+        df with one row per value in ``on``.
+    """
+    df = df.groupby(on).agg(list)
+    df = df.map(lambda x: _to_lines(x, template_item))
+    df.columns = [template_col.format(colname=col) for col in df.columns]
+    df.insert(0, on, df.index)
+    df.reset_index(drop=True, inplace=True)
+    return df
+
+
+def _to_lines(
+        x,
+        template_item='#{counter}: {item}\n',
+        ):
+    if not isinstance(x, list):
+        return x
+    if len(x) == 1:
+        return x[0]
+    else:
+        x_str = ''
+        for i, item in enumerate(x):
+            x_str += template_item.format(counter=i + 1, item=item)
+    return x_str
+
+
+
+def embed(
+        df: pd.DataFrame,
+        on: str,
+        colname='',
+        template='{colname} #{counter}',
+        line_start='',
+        separator=':',
+        spacer='\u00A0',  #non-breaking space
+        line_stop='\n',
+        ):
+    """
+    combine repeated row values into formatted multiline cols.
+
+    Returns
+    -------
+    pandas.DataFrame
+        flattened df with one row per value in ``on``.
+    """
+
+    combined_cols_str = pd.DataFrame({
+        on: df[on],
+        colname: ''
+        })
+
+    len_max_cols = (
+        df
+        .columns
+        .to_series()
+        .astype('string')
+        .str
+        .len()
+        .max()
+        )
+    for col in df.columns:
+        if col == on:
+            continue
+        len_spacer = (
+            len_max_cols
+            - len(str(col))
+            + 1
+            )
+        combined_cols_str[colname] += (
+            line_start
+            + str(col)
+            + separator
+            + spacer * len_spacer
+            + df[col].apply(str)
+            + line_stop
+            )
+
+    df_new = flatten(
+        combined_cols_str,
+        on=on,
+        template=template,
+        )
+
+    return df_new
+
+
+
+def flatten(
+        df: pd.DataFrame,
+        on: str,
+        template='{colname} #{counter}',
+        ):
+    """
+    arrange values from repeated rows into numbered cols.
+    in contrast to :func:`stagger`, repeated 3 repeated
+    values from cols a, b, c are arranged into new cols:
+    a1, a2, a3, b1, b2, b3, c1, c2, c3.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df containing repeated rows.
+    on : str
+        col used to group rows.
+    template : str, default '{colname} #{counter}'
+        format string for generated col names.
+
+    Returns
+    -------
+    pandas.DataFrame
+        df with one row per group and numbered value cols.
+    """
+
+    #aggregate repeating rows into lists
+    df = df.groupby(on).agg(list)
+
+    #create new cols from lists
+    cols_new = []
+    for col in df.columns:
+        n_max = df[col].apply(lambda x: len(x)).max()
+        cols_flat = [
+            template.format(counter=i + 1, colname=col)
+            for i
+            in range(n_max)
+            ]
+        split = pd.DataFrame(df[col].to_list(), columns=cols_flat)
+        split.index = df.index
+        df = df.merge(
+            split,
+            left_index=True,
+            right_index=True,
+            how='left',
+            )
+        cols_new += cols_flat
+
+    df = df[cols_new]
+    df.insert(0, on, df.index)
+    df.reset_index(drop=True, inplace=True)
+
+    return df
+
+
+
+def stagger(
+        df: pd.DataFrame,
+        on: str,
+        template='#{counter} {colname}',
+        separator_col='#{counter}'
+        ):
+    """
+    arrange values from repeated rows into numbered cols.
+    in contrast to :func:`flatten`, repeated 3 repeated
+    values from cols a, b, c are arranged into new cols:
+    #1, a1, b1, c1, #2, a2, b2, c2, #3, a3, b3, c3
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df containing repeated rows.
+    on : str
+        col used to group rows.
+    template : str, default '#{counter} {colname}'
+        format string for generated col names.
+    separator_col : str or None, default '#{counter}'
+        format string for separator cols. use ``None`` to omit them.
+
+    Returns
+    -------
+    pandas.DataFrame
+        df with one row per group and repeated values in cols.
+    """
+
+    duplicates_max = df[on].value_counts().max()
+    df = df.groupby(on).agg(list)
+    cols = df.columns.tolist()
+    df_new = pd.DataFrame(
+        df.index,
+        index=df.index,
+        )
+
+    for i in range(duplicates_max):
+        if separator_col:
+            separator_vals = pd.Series(
+                '',
+                index=df.index,
+                name=separator_col.format(counter=i + 1),
+                )
+            df_new = pd.concat([df_new, separator_vals], axis=1)
+        for col in cols:
+            if col == on:
+                continue
+            col_new = df[col].apply(lambda x: _get_from_list(x, i))
+            col_new.name = template.format(counter=i + 1, colname=col)
+            df_new = pd.concat([df_new, col_new], axis=1)
+
+    df_new.reset_index(drop=True, inplace=True)
+
+    return df_new
+
+
+def _get_from_list(x, i):
+    if len(x) > i:
+        return x[i]
+    else:
+        return None
+
+
+
+def transpose(
+        df: pd.DataFrame,
+        header='uid',
+        ) -> pd.DataFrame:
+    """
+    transpose a df while preserving a designated header col.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df to transpose.
+    header : str, default 'uid'
+        col used as the new header identifier.
+
+    Returns
+    -------
+    pandas.DataFrame
+        transposed df.
+    """
+
+    cols_old = df.columns
+    cols_new = df[header].values
+
+    df = df.T
+    df.columns = cols_new
+    df.insert(0, header, cols_old)
+    df.drop(header, axis=0, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
+    return df

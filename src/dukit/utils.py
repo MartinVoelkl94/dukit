@@ -1,13 +1,15 @@
 
+import random
+import datetime
 import pandas as pd
 import string as str_module
-import datetime
-import random
 
 from collections.abc import Iterable
 from IPython.display import display
 from IPython.core.getipython import get_ipython
+
 from .typing import str_
+
 
 GREEN = '#6dae51'
 RED = '#f73434'

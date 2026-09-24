@@ -11,8 +11,6 @@ from dukit import (
     )
 
 
-
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -28,6 +26,78 @@ def check_message(expected_strings):
         error = f'did not find string "{string}" in logs:\n{text_full}'
         assert string in text_full, error
 
+
+
+def test_prewrap1():
+    code = r"""
+    %.wrap(pre)
+    """
+    result = df.dk.qr(code).style_cols
+    expected = pd.Series(
+        '',
+        index=df.columns,
+        )
+    expected[:] = 'white-space: pre;'
+    assert_series_equal(result, expected)  # type: ignore
+
+
+
+def test_prewrap2():
+    code = r"""
+    %%.wrap(pre)
+    """
+    result = df.dk.qr(code).style_rows
+    expected = pd.Series(
+        '',
+        index=df.index,
+        )
+    expected[:] = 'white-space: pre;'
+    assert_series_equal(result, expected)  # type: ignore
+
+
+
+def test_prewrap3():
+    code = r"""
+    %%%.wrap(pre)
+    """
+    result = df.dk.qr(code).style_vals
+    expected = pd.DataFrame(
+        '',
+        index=df.index,
+        columns=df.columns,
+        )
+    expected.loc[:, :] = 'white-space: pre;'
+    assert_frame_equal(result, expected)  # type: ignore
+
+
+
+def test_prewrap4():
+    code = r"""
+    .wrap(pre)
+    """
+    result = df.dk.qr(code).style_vals
+    expected = pd.DataFrame(
+        '',
+        index=df.index,
+        columns=df.columns,
+        )
+    expected.loc[:, :] = 'white-space: pre;'
+    assert_frame_equal(result, expected)  # type: ignore
+
+
+
+def test_prewrap5():
+    code = r"""
+    age  <0  .wrap(pre)
+    """
+    result = df.dk.qr(code).style_vals
+    expected = pd.DataFrame(
+        '',
+        index=df.index,
+        columns=df.columns,
+        )
+    expected.loc[[0], 'age'] = 'white-space: pre;'
+    assert_frame_equal(result, expected)  # type: ignore
 
 
 
@@ -105,7 +175,7 @@ def test_wrap5():
 
 
 
-def test_hard1():
+def test_wrap_hard1():
     code = r"""
     %.wrap(hard)
     """
@@ -119,7 +189,7 @@ def test_hard1():
 
 
 
-def test_hard2():
+def test_wrap_hard2():
     code = r"""
     %%.wrap(hard)
     """
@@ -133,7 +203,7 @@ def test_hard2():
 
 
 
-def test_hard3():
+def test_wrap_hard3():
     code = r"""
     %%%.wrap(hard)
     """
@@ -148,7 +218,7 @@ def test_hard3():
 
 
 
-def test_hard4():
+def test_wrap_hard4():
     code = r"""
     .wrap(hard)
     """
@@ -163,7 +233,7 @@ def test_hard4():
 
 
 
-def test_hard5():
+def test_wrap_hard5():
     code = r"""
     age  <0  .wrap(hard)
     """
@@ -174,78 +244,4 @@ def test_hard5():
         columns=df.columns,
         )
     expected.loc[[0], 'age'] = 'word-spacing: 999999999px;'
-    assert_frame_equal(result, expected)  # type: ignore
-
-
-
-
-def test_pre1():
-    code = r"""
-    %.wrap(pre)
-    """
-    result = df.dk.qr(code).style_cols
-    expected = pd.Series(
-        '',
-        index=df.columns,
-        )
-    expected[:] = 'white-space: pre;'
-    assert_series_equal(result, expected)  # type: ignore
-
-
-
-def test_pre2():
-    code = r"""
-    %%.wrap(pre)
-    """
-    result = df.dk.qr(code).style_rows
-    expected = pd.Series(
-        '',
-        index=df.index,
-        )
-    expected[:] = 'white-space: pre;'
-    assert_series_equal(result, expected)  # type: ignore
-
-
-
-def test_pre3():
-    code = r"""
-    %%%.wrap(pre)
-    """
-    result = df.dk.qr(code).style_vals
-    expected = pd.DataFrame(
-        '',
-        index=df.index,
-        columns=df.columns,
-        )
-    expected.loc[:, :] = 'white-space: pre;'
-    assert_frame_equal(result, expected)  # type: ignore
-
-
-
-def test_pre4():
-    code = r"""
-    .wrap(pre)
-    """
-    result = df.dk.qr(code).style_vals
-    expected = pd.DataFrame(
-        '',
-        index=df.index,
-        columns=df.columns,
-        )
-    expected.loc[:, :] = 'white-space: pre;'
-    assert_frame_equal(result, expected)  # type: ignore
-
-
-
-def test_pre5():
-    code = r"""
-    age  <0  .wrap(pre)
-    """
-    result = df.dk.qr(code).style_vals
-    expected = pd.DataFrame(
-        '',
-        index=df.index,
-        columns=df.columns,
-        )
-    expected.loc[[0], 'age'] = 'white-space: pre;'
     assert_frame_equal(result, expected)  # type: ignore

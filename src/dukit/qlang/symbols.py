@@ -1,13 +1,12 @@
 
-import pandas as pd
-import numpy as np
-import typing
-import copy
 import re
+import copy
+import typing
+import numpy as np
+import pandas as pd
 
 from IPython.display import display
 from IPython.core.getipython import get_ipython
-
 
 from .engine import (
     Query,

@@ -1,9 +1,9 @@
 
-import pandas as pd
 import pytest
-import dukit.qlang as ql
+import pandas as pd
 
 from pandas.testing import assert_frame_equal
+from dukit.qlang import symbols
 from dukit import (
     get_df,
     log,
@@ -12,7 +12,6 @@ from dukit import (
 
 
 df = get_df()
-params = []
 
 def check_message(expected_strings):
 
@@ -81,9 +80,9 @@ def test_ignore_comment():
     assert_frame_equal(result, expected)
 
     code = r"""
-        id
-        #name
-        """
+    id
+    #name
+    """
     result = df.dk.qr(code).result
     expected = get_df().loc[:, ['ID']]
     assert_frame_equal(result, expected)
@@ -113,7 +112,7 @@ def test_returns_dataframe():
 
 
 def test_scope_order():
-    symbol_names = [symbol.name for symbol in ql.symbols.all]
+    symbol_names = [symbol.name for symbol in symbols.all]
     assert symbol_names.index('ScopeValsNew') < symbol_names.index('ScopeRowsNew')
     assert symbol_names.index('ScopeRowsNew') < symbol_names.index('ScopeColsNew')
     assert symbol_names.index('ScopeValsOr') < symbol_names.index('ScopeRowsOr')
@@ -121,7 +120,7 @@ def test_scope_order():
 
 
 
-params = [
+@pytest.mark.parametrize('code, connectors, scopes, message', [
 
     #getter scopes
     (
@@ -628,8 +627,7 @@ params = [
         ['cols', 'vals', 'global'],
         None
     ),
-    ]
-@pytest.mark.parametrize('code, connectors, scopes, message', params)
+    ])
 def test_scope_parsing(code, connectors, scopes, message):
 
     q = df.dk.qr(code, verbosity=0)
@@ -681,7 +679,7 @@ def test_styler_op_returns_styler():
 
 
 def test_symbol_attributes():
-    for symbol in ql.symbols.all:
+    for symbol in symbols.all:
         assert hasattr(symbol, 'id')
         assert hasattr(symbol, 'name')
         assert hasattr(symbol, 'category')
@@ -705,7 +703,7 @@ def test_symbol_order():
     """
 
     symbols_checked = []
-    for symbol in ql.symbols.all[::-1]:
+    for symbol in symbols.all[::-1]:
         for symbol_checked in symbols_checked:
             for regex in symbol.regex:
                 for regex_checked in symbol_checked.regex:
@@ -715,7 +713,7 @@ def test_symbol_order():
 
 
 def test_unique_symbol_names():
-    names = [symbol.name for symbol in ql.symbols.all]
+    names = [symbol.name for symbol in symbols.all]
     assert len(names) == len(set(names))
 
 

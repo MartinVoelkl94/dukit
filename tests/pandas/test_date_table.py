@@ -2,6 +2,7 @@
 import datetime
 import numpy as np
 import pandas as pd
+
 from pandas.testing import assert_frame_equal
 from dukit import date_table, log
 
@@ -94,71 +95,6 @@ def test_col():
 
 
 
-def test_uid():
-
-    result = date_table(
-        get_df(),
-        reference_col='date1',
-        uid='id',
-        )
-
-    expected = pd.DataFrame()
-    expected['days'] = [i for i in range(-21, 24) if i != 0]
-    expected['a'] = ''
-    expected['b'] = ''
-    expected['c'] = ''
-
-    expected.loc[expected['days'] == -21, 'a'] = 'date0'
-    expected.loc[expected['days'] == -13, 'b'] = 'date0'
-
-    expected.loc[expected['days'] == 1, 'a'] = 'date1'
-    expected.loc[expected['days'] == 1, 'b'] = 'date1'
-    expected.loc[expected['days'] == 1, 'c'] = 'date1'
-
-    expected.loc[expected['days'] == 6, 'a'] = 'date2'
-    expected.loc[expected['days'] == 10, 'b'] = 'date2'
-    expected.loc[expected['days'] == 10, 'c'] = 'date2'
-
-    expected.loc[expected['days'] == 19, 'a'] = 'date4\ndate5\n'
-    expected.loc[expected['days'] == 23, 'b'] = 'date5'
-    expected.loc[expected['days'] == 20, 'c'] = 'date5'
-
-    assert_frame_equal(result, expected)  #type: ignore
-
-
-
-def test_upper_lower():
-
-    result = date_table(
-        get_df(),
-        reference_col='date1',
-        upper=20,
-        lower=-20
-        )
-
-    expected = pd.DataFrame()
-    expected['days'] = [i for i in range(-20, 21) if i != 0]
-    expected['0'] = ''
-    expected['1'] = ''
-    expected['2'] = ''
-
-    expected.loc[expected['days'] == -13, '1'] = 'date0'
-
-    expected.loc[expected['days'] == 1, '0'] = 'date1'
-    expected.loc[expected['days'] == 1, '1'] = 'date1'
-    expected.loc[expected['days'] == 1, '2'] = 'date1'
-
-    expected.loc[expected['days'] == 6, '0'] = 'date2'
-    expected.loc[expected['days'] == 10, '1'] = 'date2'
-    expected.loc[expected['days'] == 10, '2'] = 'date2'
-
-    expected.loc[expected['days'] == 19, '0'] = 'date4\ndate5\n'
-    expected.loc[expected['days'] == 20, '2'] = 'date5'
-
-    assert_frame_equal(result, expected)  #type: ignore
-
-
-
 def test_day0():
 
     result = date_table(
@@ -241,3 +177,68 @@ def test_schedule():
     expected.loc[expected['days'] == 20, '2'] = 'date5'
 
     assert_frame_equal(result.data, expected)  #type: ignore
+
+
+
+def test_uid():
+
+    result = date_table(
+        get_df(),
+        reference_col='date1',
+        uid='id',
+        )
+
+    expected = pd.DataFrame()
+    expected['days'] = [i for i in range(-21, 24) if i != 0]
+    expected['a'] = ''
+    expected['b'] = ''
+    expected['c'] = ''
+
+    expected.loc[expected['days'] == -21, 'a'] = 'date0'
+    expected.loc[expected['days'] == -13, 'b'] = 'date0'
+
+    expected.loc[expected['days'] == 1, 'a'] = 'date1'
+    expected.loc[expected['days'] == 1, 'b'] = 'date1'
+    expected.loc[expected['days'] == 1, 'c'] = 'date1'
+
+    expected.loc[expected['days'] == 6, 'a'] = 'date2'
+    expected.loc[expected['days'] == 10, 'b'] = 'date2'
+    expected.loc[expected['days'] == 10, 'c'] = 'date2'
+
+    expected.loc[expected['days'] == 19, 'a'] = 'date4\ndate5\n'
+    expected.loc[expected['days'] == 23, 'b'] = 'date5'
+    expected.loc[expected['days'] == 20, 'c'] = 'date5'
+
+    assert_frame_equal(result, expected)  #type: ignore
+
+
+
+def test_upper_lower():
+
+    result = date_table(
+        get_df(),
+        reference_col='date1',
+        upper=20,
+        lower=-20
+        )
+
+    expected = pd.DataFrame()
+    expected['days'] = [i for i in range(-20, 21) if i != 0]
+    expected['0'] = ''
+    expected['1'] = ''
+    expected['2'] = ''
+
+    expected.loc[expected['days'] == -13, '1'] = 'date0'
+
+    expected.loc[expected['days'] == 1, '0'] = 'date1'
+    expected.loc[expected['days'] == 1, '1'] = 'date1'
+    expected.loc[expected['days'] == 1, '2'] = 'date1'
+
+    expected.loc[expected['days'] == 6, '0'] = 'date2'
+    expected.loc[expected['days'] == 10, '1'] = 'date2'
+    expected.loc[expected['days'] == 10, '2'] = 'date2'
+
+    expected.loc[expected['days'] == 19, '0'] = 'date4\ndate5\n'
+    expected.loc[expected['days'] == 20, '2'] = 'date5'
+
+    assert_frame_equal(result, expected)  #type: ignore

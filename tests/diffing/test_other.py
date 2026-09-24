@@ -1,11 +1,39 @@
 
 import pytest
 import dukit as dk
+
 from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
     _get_dfs,
     _get_expected_new,
     )
+
+
+
+def test_diffs_accessors():
+
+    df_old, df_new = _get_dfs()
+    diffs = dk.diff(df_old, df_new, verbosity=0)
+
+    assert diffs[0] is diffs['data']
+    assert list(diffs) == [diffs['data']]
+    assert diffs.info().shape == (2, 2)
+    assert list(diffs.summary().columns) == [
+        'data',
+        'uid',
+        'in both dfs',
+        'cols shared',
+        'cols added',
+        'cols removed',
+        'rows shared',
+        'rows added',
+        'rows removed',
+        'vals added',
+        'vals removed',
+        'vals changed',
+        ]
+    assert 'Diff objects:' in str(diffs)
+    assert repr(diffs) == str(diffs)
 
 
 
@@ -52,30 +80,3 @@ def test_invalid_uid():
             uid='missing',
             verbosity=0,
             )
-
-
-
-def test_diffs_accessors():
-
-    df_old, df_new = _get_dfs()
-    diffs = dk.diff(df_old, df_new, verbosity=0)
-
-    assert diffs[0] is diffs['data']
-    assert list(diffs) == [diffs['data']]
-    assert diffs.info().shape == (2, 2)
-    assert list(diffs.summary().columns) == [
-        'data',
-        'uid',
-        'in both dfs',
-        'cols shared',
-        'cols added',
-        'cols removed',
-        'rows shared',
-        'rows added',
-        'rows removed',
-        'vals added',
-        'vals removed',
-        'vals changed',
-        ]
-    assert 'Diff objects:' in str(diffs)
-    assert repr(diffs) == str(diffs)

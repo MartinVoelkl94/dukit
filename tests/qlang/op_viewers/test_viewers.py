@@ -7,8 +7,6 @@ from dukit import (
     )
 
 
-
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -27,7 +25,8 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('code, txt', [
+
     ('.query', '----------Query object [q]----------'),
     ('.query', '>>> q.code'),
     ('.query', '>>> q.tokens'),
@@ -55,8 +54,8 @@ params = [
     ('.cols(arg)', 'arg'),
     ('.rows(arg)', 'arg'),
     ('.vals(arg)', 'arg'),
-]
-@pytest.mark.parametrize('code, txt', params)
+
+    ])
 def test_viewers_during_execution(capsys, code, txt):
     df.dk.qs(code, 4)
     out = capsys.readouterr().out
@@ -65,7 +64,8 @@ def test_viewers_during_execution(capsys, code, txt):
 
 
 
-params = [
+@pytest.mark.parametrize('code, txt', [
+
     ('..help', 'available scopes:'),
     ('..help', 'generic Operators (ops):'),
     ('..help', 'get/select/filter cols/rows/vals:'),
@@ -93,8 +93,8 @@ params = [
 
     ('..tokens', ''),
     ('..token', ''),
-]
-@pytest.mark.parametrize('code, txt', params)
+
+    ])
 def test_viewers_during_parsing(capsys, code, txt):
     df.dk.qs(code, 4)
     out = capsys.readouterr().out

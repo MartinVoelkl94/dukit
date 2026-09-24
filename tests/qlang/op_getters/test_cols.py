@@ -12,7 +12,6 @@ from dukit import (
 
 df = get_df()
 tstamp = pd.Timestamp('2024-01-01')
-params = []
 cols1 = [
     'name',
     'date of birth',
@@ -86,7 +85,7 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     #equals getter
     ('', df.columns, None),
@@ -232,8 +231,7 @@ params = [
         None,
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_basic(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -244,7 +242,7 @@ def test_basic(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     ('%?bp   /diabetes', ['bp systole', 'bp diastole', 'diabetes'], None),
     (
@@ -282,8 +280,7 @@ params = [
     ('%?bp   & !?systole   & ?diastole', ['bp diastole'], None),
     ('%?bp   & !?systole   / ?ID', ['ID', 'bp diastole'], None),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_connect(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -294,7 +291,7 @@ def test_connect(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     #strict
     ('%==(ID, +strict)', ['ID'], None),
@@ -363,8 +360,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_flags(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -375,7 +371,7 @@ def test_flags(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     #prefix
     ('§0', ['ID'], None),
@@ -420,8 +416,7 @@ params = [
     ('% == 0 +index', ['ID'], None),
     ('%  == 0 +index', ['ID'], None),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_flags_index(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -432,7 +427,7 @@ def test_flags_index(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     #prefix
     ('!ID', cols1, None),
@@ -533,8 +528,7 @@ params = [
     ('% == ID +negate', cols1, None),
     ('%  == ID +negate', cols1, None),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_flags_negate(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -545,7 +539,7 @@ def test_flags_negate(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     #prefix
     ('§!0', cols1, None),
@@ -675,8 +669,7 @@ params = [
     ('%!=0 +index', cols1, None),  #technically not a flag, but identical result
     ('%!= 0 +index', cols1, None),  #technically not a flag, but identical result
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_flags_negate_index(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -687,7 +680,7 @@ def test_flags_negate_index(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r'% == (3 +index)',
@@ -751,8 +744,7 @@ params = [
         None,
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_header(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -762,7 +754,7 @@ def test_header(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
 
     ('%(ID)', ['ID'], None),
     ('%==(ID)', ['ID'], None),
@@ -773,8 +765,7 @@ params = [
     ('%(ID age, +any)', ['ID', 'age'], None),
     ('%==(ID age, +any)', ['ID', 'age'], None),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_lists(code, expected_cols: list[str], message):
     result = df.dk.qr(code).result
     expected = get_df().loc[:, expected_cols]
@@ -784,7 +775,7 @@ def test_lists(code, expected_cols: list[str], message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols, message', [
     ('%:isstr', ['a', 'unknown'], None),
     ('%:isint', [0, True], None),
     ('%:isfloat', [0, 0.1, True], None),
@@ -800,8 +791,7 @@ params = [
     ('%!:isunique', ['a'], None),
     ('%:isfirst', ['a', 0, 0.1, tstamp, True, 'unknown', None], None),
     ('%:islast', [0, 0.1, tstamp, True, 'unknown', None, 'a'], None),
-    ]
-@pytest.mark.parametrize('code, expected_cols, message', params)
+    ])
 def test_types(code, expected_cols: list[str], message):
 
     df_types = get_df_types()

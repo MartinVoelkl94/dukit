@@ -1,6 +1,6 @@
 
-import pandas as pd
 import pytest
+import pandas as pd
 
 from pandas.testing import assert_frame_equal
 from dukit import (
@@ -27,7 +27,7 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected_cols_vals, message', [
     (
         r'.new(a, b)',
         {'a': 'b'},
@@ -99,8 +99,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected_cols_vals, message', params)
+    ])
 def test_basic(code, expected_cols_vals, message):
 
     result = df.dk.qr(code).result
@@ -149,10 +148,10 @@ def test_complex3():
 
 def test_complex4():
     code = r"""
-        name
-            %%?john
-        .new(a, 1)
-        """
+    name
+        %%?john
+    .new(a, 1)
+    """
     result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
@@ -163,16 +162,16 @@ def test_complex4():
 
 def test_complex5():
     code = r"""
-        name
-            %%?john
+    name
+        %%?john
 
-        .new(a, 1)
+    .new(a, 1)
 
-        name
-            &&?doe
+    name
+        &&?doe
 
-        /a
-        """
+    /a
+    """
     result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1
@@ -183,20 +182,20 @@ def test_complex5():
 
 def test_complex6():
     code = r"""
-        name
-            %%?john
-        .save 1
+    name
+        %%?john
+    .save 1
 
-        .new(a, 1)
+    .new(a, 1)
 
-        %
-        %%
+    %
+    %%
 
-        name
-            %%?doe
-            //:load 1
-        a
-        """
+    name
+        %%?doe
+        //:load 1
+    a
+    """
     result = df.dk.qr(code).result
     expected = get_df()
     expected['a'] = 1

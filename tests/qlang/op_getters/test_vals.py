@@ -10,7 +10,6 @@ from dukit import (
 
 
 
-params = []
 df = get_df()
 
 def check_message(expected_strings):
@@ -29,7 +28,7 @@ def check_message(expected_strings):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r'"date of birth"  %%%1995.01.02  %%:trim',
@@ -112,8 +111,7 @@ params = [
         None,
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_dates(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -123,7 +121,7 @@ def test_dates(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r'age  %%%==30  %%:trim',
@@ -226,8 +224,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_numeric(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -237,7 +234,7 @@ def test_numeric(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     #by evaluating python expressions
     (
@@ -259,8 +256,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_other(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -270,7 +266,7 @@ def test_other(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     #regex equality
     (
@@ -339,8 +335,8 @@ params = [
         df.loc[[0, 1, 4, 5, 7, 9, 10], ['bp systole']],
         None
     ),
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+
+    ])
 def test_regex(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -350,7 +346,7 @@ def test_regex(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r'name  %%%:isstr()  %%:trim',
@@ -520,8 +516,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_typechecks(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -531,7 +526,7 @@ def test_typechecks(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r'age  %%%==40  %%:trim',
@@ -559,8 +554,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_typeflags(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
@@ -570,7 +564,7 @@ def test_typeflags(code, expected, message):
 
 
 
-params = [
+@pytest.mark.parametrize('code, expected, message', [
 
     (
         r"""
@@ -597,8 +591,7 @@ params = [
         None
     ),
 
-    ]
-@pytest.mark.parametrize('code, expected, message', params)
+    ])
 def test_uniqueness(code, expected, message):
     result = df.dk.qr(code).result
     assert_frame_equal(result, expected)
