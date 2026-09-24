@@ -27,87 +27,107 @@ def check_message(expected_strings):
 
 
 
-@pytest.mark.parametrize('code, expected_cols_vals, message', [
+@pytest.mark.parametrize('code, expected_cols_vals, dtype, message', [
     (
         r'.new(a, b)',
         {'a': 'b'},
+        'string',
         None
     ),
     (
         r'.new(a, 1)',
         {'a': 1},
+        'Int64',
         None
     ),
     (
         r'.new(a, 1.0)',
         {'a': 1.0},
+        'Float64',
         None
     ),
     (
-        r'.new(a, 1.0, +int)',
-        {'a': 1},
-        None
-    ),
-    (
-        r'.new(a, 1.0, +float)',
+        r'.new(a, 1.0, +obj)',
         {'a': 1.0},
-        None
-    ),
-    (
-        r'.new(a, 1.0, +num)',
-        {'a': 1.0},
+        'object',
         None
     ),
     (
         r'.new(a, 1.0, +str)',
         {'a': '1.0'},
+        'string',
+        None
+    ),
+    (
+        r'.new(a, 1.0, +int)',
+        {'a': 1},
+        'Int64',
+        None
+    ),
+    (
+        r'.new(a, 1.0, +float)',
+        {'a': 1.0},
+        'Float64',
+        None
+    ),
+    (
+        r'.new(a, 1.0, +num)',
+        {'a': 1.0},
+        'Float64',
         None
     ),
     (
         r'.new(a, 1.0, +bool)',
         {'a': True},
+        'boolean',
         None
     ),
     (
         r'.new(a, 1.0, +date)',
         {'a': pd.NaT},
+        'datetime64[us]',
         None
     ),
     (
         r'.new(a, 1.0, +datetime)',
         {'a': pd.NaT},
+        'datetime64[us]',
         None
     ),
     (
         r'.new(a, 2000.01.02, +date)',
         {'a': pd.to_datetime('2000-01-02').date()},
+        'datetime64[us]',
         None
     ),
     (
         r'.new(a, 2000.01.02, +datetime)',
         {'a': pd.to_datetime('2000-01-02')},
+        'datetime64[us]',
         None
     ),
     (
         r'.new(a, 1)   .new(b, 2)',
         {'b': 2},
+        'Int64',
         None
     ),
     (
         r'.new(a, 1)   .new(b, 2) /a',
         {'a': 1, 'b': 2},
+        'Int64',
         None
     ),
 
     ])
-def test_basic(code, expected_cols_vals, message):
+def test_basic(code, expected_cols_vals, dtype, message):
 
     result = df.dk.qr(code).result
-    expected = get_df()
+    expected = pd.DataFrame(index=df.index)
     for col, value in expected_cols_vals.items():
         expected[col] = value
-    cols_expected = list(expected_cols_vals.keys())
-    expected = expected.convert_dtypes().loc[:, cols_expected]
+        expected[col] = expected[col].astype(dtype)
+    expected.columns = expected.columns.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
 
     if message:

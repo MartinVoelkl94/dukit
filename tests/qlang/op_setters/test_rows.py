@@ -72,8 +72,6 @@ def test_rows3():
     result = df.dk.qr(code).result
     expected = get_df()
     expected['ID'] = expected['ID'].astype('object')
-    expected['weight'] = expected['weight'].astype('string')
-    expected['bp diastole'] = expected['bp diastole'].astype('string')
     expected.loc[[0, 1, 10], :] = 'deleted'
     assert_frame_equal(result, expected)
 

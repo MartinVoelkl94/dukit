@@ -25,6 +25,7 @@ from ..typing import (
     TYPES_BOOL,
     TYPES_DATE,
     type_,
+    dtype_,
     convert_,
     repr_,
     typeinfo_,
@@ -669,6 +670,7 @@ class CopyCol(Symbol):
 
             loc = len(q.df.columns)
             val = q.df.loc[:, colname]
+            dtype = None
 
             if self.args:
                 colname_new = self.args[0]
@@ -689,6 +691,7 @@ class CopyCol(Symbol):
                 loc,
                 colname_new,
                 val,
+                dtype,
                 q,
                 )
 
@@ -725,6 +728,7 @@ class NewCol(Symbol):
         'global': 'make global modifications',
         }
     flags_allowed = {
+        'obj': 'creates object col',
         'str': 'creates string col',
         'int': 'creates integer col',
         'float': 'creates float col',
@@ -757,29 +761,42 @@ class NewCol(Symbol):
 
         if len(self.args) > 1:
             val = self.args[1]
-            if 'str' in self.flags:
+            if 'obj' in self.flags:
+                val = convert_(val)
+                dtype = 'object'
+            elif 'str' in self.flags:
                 val = str(val)
+                dtype = 'string'
             elif 'int' in self.flags:
                 val = int_(val)
+                dtype = 'Int64'
             elif 'float' in self.flags:
                 val = float_(val)
+                dtype = 'Float64'
             elif 'num' in self.flags:
                 val = num_(val)
+                dtype = 'Float64'
             elif 'bool' in self.flags:
                 val = bool_(val)
+                dtype = 'boolean'
             elif 'date' in self.flags:
                 val = date_(val)
+                dtype = 'datetime64[us]'
             elif 'datetime' in self.flags:
                 val = datetime_(val)
+                dtype = 'datetime64[us]'
             else:
                 val = convert_(val)
+                dtype = dtype_(val)
         else:
             val = pd.NA
+            dtype = 'object'
 
         q = _insert_col(
             loc,
             colname_new,
             val,
+            dtype,
             q,
             )
 
@@ -1087,11 +1104,15 @@ def _insert_col(
         loc: int,
         colname: str,
         val,
+        dtype,
         q: Query,
         ) -> Query:
 
     q.df.insert(loc, colname, val)  #pyright: ignore
-    q.df[colname] = q.df[colname].convert_dtypes()
+    if dtype is None:
+        pass
+    else:
+        q.df[colname] = q.df[colname].astype(dtype)
 
     #update selection masks
     q.mask_cols[:] = False
@@ -5169,6 +5190,34 @@ def _process_types_setter(
         arg_new = datetime_(arg)
 
     else:
+        series_new, arg_new = _infer_types_setter(
+            series,
+            arg,
+            op,
+            q,
+            )
+
+    return series_new, arg_new
+
+
+
+def _infer_types_setter(
+        series: pd.Series,
+        arg: str,
+        op: Symbol,
+        q: Query,
+        ) -> tuple[pd.Series, typing.Any]:
+
+    dtype_series = series.dtype.name
+    dtype_arg = dtype_(arg)
+
+    if dtype_arg == 'Int64' and dtype_series == 'Float64':
+        series_new = series
+        arg_new = int_(arg)
+    elif dtype_arg == dtype_series:
+        series_new = series
+        arg_new = convert_(arg)
+    else:
         series_new = series.astype('object')
         arg_new = convert_(arg)
 
@@ -5260,7 +5309,7 @@ def _set_cols(
         q.mask_cols,
         op.args,
         q,
-        ).convert_dtypes()
+        )
 
     q.df.columns = cols_new
     q.mask_cols.index = cols_new
@@ -5303,7 +5352,7 @@ def _set_rows(
         q.mask_rows,
         op.args,
         q,
-        ).convert_dtypes()
+        )
     q.df.index = rows_new
     q.mask_rows.index = rows_new
     q.mask_vals.index = rows_new
@@ -5376,7 +5425,7 @@ def _set_vals(
             mask_vals_col_rows,
             op.args,
             q,
-            ).convert_dtypes()
+            )
         q.df[col] = row_vals_new
 
     return q

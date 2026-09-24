@@ -31,7 +31,13 @@ def test_eval1():
     code = r'%.eval("x.lower()")'
     result = df.dk.qr(code).result
     expected = get_df()
-    expected.columns = expected.columns.astype('string').str.lower()
+    expected.columns = (
+        expected
+        .columns
+        .astype('string')
+        .str.lower()
+        .astype('object')
+        )
     assert_frame_equal(result, expected)
 
 
@@ -42,7 +48,7 @@ def test_eval2():
     result = df.dk.qr(code).result
     expected = get_df().loc[:, ['name']]
     index_new = pd.Index([str(1)] * len(expected), dtype='string')
-    expected.index = index_new
+    expected.index = index_new.astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -55,7 +61,13 @@ def test_eval3():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected.index = expected.index.astype('string').str.lower()
+    expected.index = (
+        expected
+        .index
+        .astype('string')
+        .str.lower()
+        .astype('object')
+        )
     assert_frame_equal(result, expected)
 
 
@@ -68,7 +80,12 @@ def test_eval4():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['name'] = expected['name'].astype('string').str.lower()
+    expected['name'] = (
+        expected['name']
+        .astype('string')
+        .str.lower()
+        .astype('object')
+        )
     assert_frame_equal(result, expected)
 
 
@@ -83,7 +100,12 @@ def test_eval5():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['name'] = expected['name'].astype('string').str.lower()
+    expected['name'] = (
+        expected['name']
+        .astype('string')
+        .str.lower()
+        .astype('object')
+        )
     assert_frame_equal(result, expected)
 
 
@@ -114,7 +136,7 @@ def test_eval7():
     expected = get_df().loc[:, ['ID', 'age']]
     expected['ID'] = str(0)
     expected['age'] = str(0)
-    expected = expected.astype('string')
+    expected = expected.astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -129,7 +151,7 @@ def test_eval8():
     expected = get_df().loc[:, ['ID', 'age']]
     expected['ID'] = str(0)
     expected.loc[[0, 1, 2, 4, 8, 10], 'age'] = str(0)
-    expected['ID'] = expected['ID'].astype('string')
+    expected['ID'] = expected['ID'].astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -143,6 +165,7 @@ def test_eval9():
     result = df.dk.qr(code).result
     rows = [0, 1, 2, 4, 8, 10]
     expected = get_df().loc[rows, ['ID', 'age']]
+    expected['ID'] = expected['ID'].astype('object')
     expected['age'] = expected['age'].astype('object')
     expected.loc[rows, 'ID'] = 0
     expected.loc[rows, 'age'] = 0
@@ -157,7 +180,7 @@ def test_eval_col1():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['ID'] = expected['name']
+    expected['ID'] = expected['name'].astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -169,7 +192,7 @@ def test_eval_col2():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['ID'] = expected['name']
+    expected['ID'] = expected['name'].astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -181,8 +204,8 @@ def test_eval_col3():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['ID'] = expected['name']
-    expected['age'] = expected['name']
+    expected['ID'] = expected['name'].astype('object')
+    expected['age'] = expected['name'].astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -194,7 +217,10 @@ def test_eval_col4():
     result = df.dk.qr(code).result
     expected = get_df()
     for col in expected.columns:
-        expected[col] = expected['name']
+        if col in ['name', 'gender', 'cholesterol', 'dose']:
+            expected[col] = expected['name'].astype('string')
+        else:
+            expected[col] = expected['name'].astype('object')
     assert_frame_equal(result, expected)
 
 
@@ -208,8 +234,8 @@ def test_eval_col5():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['ID'] = expected['name']
-    expected.loc[[0, 1, 2, 4, 8, 10], 'age'] = expected['name']
+    expected['ID'] = expected['name'].astype('object')
+    expected.loc[[0, 1, 2, 4, 8, 10], 'age'] = expected['name'].astype('object')
     assert_frame_equal(result, expected)
 
 

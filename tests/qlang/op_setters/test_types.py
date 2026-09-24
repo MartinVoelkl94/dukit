@@ -932,12 +932,12 @@ def test_to_yn2():
         'yes',
         'yes',
         'no',
-        pd.NA,
+        None,
         pd.NA,
         'no',
         'yes',
         ]
-    expected = pd.DataFrame({'diabetes': vals}, dtype='string')
+    expected = pd.DataFrame({'diabetes': vals}, dtype='object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)

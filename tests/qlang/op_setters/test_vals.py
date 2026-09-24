@@ -32,7 +32,7 @@ def test_basic():
     """
     result = df.dk.qr(code).result
     vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
+    expected = pd.DataFrame({'age': vals}, dtype='object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -102,7 +102,7 @@ def test_tostr():
     """
     result = df.dk.qr(code).result
     vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
+    expected = pd.DataFrame({'age': vals}, dtype='object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -130,7 +130,7 @@ def test_tofloat():
     """
     result = df.dk.qr(code).result
     vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
+    expected = pd.DataFrame({'age': vals}, dtype='Float64')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -158,7 +158,7 @@ def test_tobool():
     """
     result = df.dk.qr(code).result
     vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
+    expected = pd.DataFrame({'age': vals}, dtype='object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -172,7 +172,7 @@ def test_todate():
     """
     result = df.dk.qr(code).result
     vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
+    expected = pd.DataFrame({'age': vals}, dtype='object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -186,7 +186,7 @@ def test_todatetime():
     """
     result = df.dk.qr(code).result
     vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
+    expected = pd.DataFrame({'age': vals}, dtype='object')
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -213,6 +213,9 @@ def test_vals1():
         'dose',
         ]
     expected[cols] = expected[cols]
+    expected['gender'] = expected['gender'].astype('object')
+    expected['cholesterol'] = expected['cholesterol'].astype('object')
+    expected['dose'] = expected['dose'].astype('object')
     expected.loc[[2, 3, 6, 8], 'age'] = None
     expected.loc[[7, 8], 'gender'] = None
     expected.loc[[2, 4, 9], 'height'] = None
@@ -222,7 +225,6 @@ def test_vals1():
     expected.loc[[2, 4, 7, 9], 'cholesterol'] = None
     expected.loc[[2, 7, 8], 'diabetes'] = None
     expected.loc[[1, 6, 7], 'dose'] = None
-    expected = expected.convert_dtypes()
     assert_frame_equal(result, expected)
 
 
