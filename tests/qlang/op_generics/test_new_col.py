@@ -205,52 +205,19 @@ def test_complex6():
 
 
 
-
-def test_metadata():
-
+def test_update_styles_cols():
     code = r"""
-    .tag('')
+    age  %.color(orange)
+    %
+    .new(a)
     %
     """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['_meta'] = ''
-    expected['_meta'] = expected['_meta'].astype('string')
-    assert_frame_equal(result, expected)
-
-
-    code = r"""
-    .tag('', _meta1)
-    %
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['_meta1'] = ''
-    expected['_meta1'] = expected['_meta1'].astype('string')
-    assert_frame_equal(result, expected)
-
-
-    code = r"""
-    .tag(a, _meta1)
-    %
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['_meta1'] = 'a'
-    expected['_meta1'] = expected['_meta1'].astype('string')
-    assert_frame_equal(result, expected)
-
-
-    code = r"""
-    age  <0  .tag('INVALID')
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    vals = [
-        'INVALID',
+    result = df.dk.qr(code).style_cols.to_list()
+    expected = [
         '',
+        '',
+        '',
+        'color: orange;',
         '',
         '',
         '',
@@ -261,54 +228,54 @@ def test_metadata():
         '',
         '',
         ]
-    expected['_meta'] = pd.Series(vals, dtype='string')
-    assert_frame_equal(result, expected)
+    assert result == expected
 
 
+
+def test_update_styles_rows():
     code = r"""
-    age  <0  //!:isnum  .tag('INVALID')
-    %
+    %%§1  %%.color(orange)
     %%
+    .new(a)
+    %
     """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    vals = [
-        'INVALID',
+    result = df.dk.qr(code).style_rows.to_list()
+    expected = [
+        '',
+        'color: orange;',
         '',
         '',
-        'INVALID',
         '',
-        'INVALID',
-        'INVALID',
-        'INVALID',
         '',
-        'INVALID',
+        '',
+        '',
+        '',
+        '',
         '',
         ]
-    expected['_meta'] = pd.Series(vals, dtype='string')
-    assert_frame_equal(result, expected)
+    assert result == expected
 
 
+
+def test_update_styles_vals():
     code = r"""
-    age  <0  //!:isnum  .tag('INVALID age;  ')
-    height <0  //!:isnum  //>220  .tag('INVALID height;  ')
-    %
+    name  =='Bob Brown' .color(orange)
     %%
+    .new(a)
+    %
     """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    vals = [
-        'INVALID age;  ',
-        'INVALID height;  ',
+    result = df.dk.qr(code).style_vals['name'].to_list()
+    expected = [
         '',
-        'INVALID age;  INVALID height;  ',
-        'INVALID height;  ',
-        'INVALID age;  ',
-        'INVALID age;  ',
-        'INVALID age;  INVALID height;  ',
-        'INVALID height;  ',
-        'INVALID age;  ',
+        '',
+        '',
+        'color: orange;',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         '',
         ]
-    expected['_meta'] = pd.Series(vals, dtype='string')
-    assert_frame_equal(result, expected)
+    assert result == expected

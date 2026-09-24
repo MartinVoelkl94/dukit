@@ -145,6 +145,30 @@ def test_basic6():
 
 
 
+def test_complex():
+    code = r"""
+    name
+        %%?john
+    .save 1
+
+    .tag(a)
+
+    %
+    %%
+
+    name
+        %%?doe
+        //:load 1
+    _meta
+    """
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected['_meta'] = 'a'
+    expected = expected.convert_dtypes().loc[[0, 2, 10], ['_meta']]
+    assert_frame_equal(result, expected)
+
+
+
 def test_append():
     df1 = df.copy()
     df1['_meta'] = 'a'
@@ -174,3 +198,80 @@ def test_coerce_type():
     expected['_meta'] = '1b'
     expected['_meta'] = expected['_meta'].astype('string')
     assert_frame_equal(result, expected)
+
+
+
+def test_update_styles_cols():
+    code = r"""
+    age  %.color(orange)
+    %
+    .tag(a)
+    %
+    """
+    result = df.dk.qr(code).style_cols.to_list()
+    expected = [
+        '',
+        '',
+        '',
+        'color: orange;',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ]
+    assert result == expected
+
+
+
+def test_update_styles_rows():
+    code = r"""
+    %%§1  %%.color(orange)
+    %%
+    .tag(a)
+    %
+    """
+    result = df.dk.qr(code).style_rows.to_list()
+    expected = [
+        '',
+        'color: orange;',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ]
+    assert result == expected
+
+
+
+def test_update_styles_vals():
+    code = r"""
+    name  =='Bob Brown' .color(orange)
+    %%
+    .tag(a)
+    %
+    """
+    result = df.dk.qr(code).style_vals['name'].to_list()
+    expected = [
+        '',
+        '',
+        '',
+        'color: orange;',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ]
+    assert result == expected
