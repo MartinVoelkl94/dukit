@@ -520,6 +520,24 @@ def type_(x) -> str:
         return type(x).__name__
 
 
+
+_dtype_mapping = {
+    'str': 'string',
+    'int': 'Int64',
+    'float': 'Float64',
+    'bool': 'boolean',
+    'date': 'datetime64[us]',
+    'datetime': 'datetime64[us]',
+    'na': 'object',
+    }
+def dtype_(x) -> str:
+    type_name = type_(x)
+    if type_name in _dtype_mapping:
+        return _dtype_mapping[type_name]
+    return 'object'
+
+
+
 _conversion_mapping = {
     'int': int_,
     'float': float_,
