@@ -1,4 +1,5 @@
 
+import pytest
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
@@ -96,13 +97,51 @@ def test_flag_num():
 
 
 
-def test_tostr():
-    code = r"""
-    age  .tostr  =1
-    """
+@pytest.mark.parametrize('code, vals, col, dtype', [
+
+
+    #replace
+    (
+        r'name  .replace(John, JOHN)',
+        [
+            'JOHN Doe',
+            'Jane Smith',
+            'Alice JOHNson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'john Doe',
+        ],
+        'name',
+        'string',
+    ),
+    (
+        r'name  ?doe  .replace(John, JOHN)  %%',
+        [
+            'JOHN Doe',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'john Doe',
+        ],
+        'name',
+        'string',
+    ),
+
+    ])
+def test_other(code, vals, col, dtype):
     result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='object')
+    expected = pd.DataFrame({col: vals}, dtype=dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
@@ -110,83 +149,127 @@ def test_tostr():
 
 
 
-def test_toint():
-    code = r"""
-    age  .toint  =1
-    """
+#wip
+# @pytest.mark.parametrize('code, vals, col, dtype', [
+
+#     (
+#         r'age  =1  +obj',
+#         [1] * len(df),
+#         'age',
+#         'object',
+#     ),
+#     (
+#         r'age  =1  +str',
+#         [1] * len(df),
+#         'age',
+#         'object',
+#     ),
+#     (
+#         r'age  =1  +int',
+#         [1] * len(df),
+#         'age',
+#         'Int64',
+#     ),
+#     (
+#         r'age  =1  +float',
+#         [1] * len(df),
+#         'age',
+#         'Float64',
+#     ),
+#     (
+#         r'age  =1  +num',
+#         [1] * len(df),
+#         'age',
+#         'Int64',
+#     ),
+#     (
+#         r'age  =1  +bool',
+#         [1] * len(df),
+#         'age',
+#         'object',
+#     ),
+#     (
+#         r'age  =1  +date',
+#         [1] * len(df),
+#         'age',
+#         'object',
+#     ),
+#     (
+#         r'age =1  +datetime',
+#         [1] * len(df),
+#         'age',
+#         'object',
+#     ),
+
+#     ])
+# def test_type_flags(code, vals, col, dtype):
+#     result = df.dk.qr(code).result
+#     expected = pd.DataFrame({col: vals}, dtype=dtype)
+#     expected.columns = expected.columns.to_series().convert_dtypes()
+#     expected.index = expected.index.to_series().convert_dtypes()
+#     assert_frame_equal(result, expected)
+
+
+
+
+
+
+
+@pytest.mark.parametrize('code, vals, col, dtype', [
+
+    (
+        r'age  .toobj  =1',
+        [1] * len(df),
+        'age',
+        'object',
+    ),
+    (
+        r'age  .tostr  =1',
+        [1] * len(df),
+        'age',
+        'object',
+    ),
+    (
+        r'age  .toint  =1',
+        [1] * len(df),
+        'age',
+        'Int64',
+    ),
+    (
+        r'age  .tofloat  =1',
+        [1] * len(df),
+        'age',
+        'Float64',
+    ),
+    (
+        r'age  .tonum  =1',
+        [1] * len(df),
+        'age',
+        'Int64',
+    ),
+    (
+        r'age  .tobool  =1',
+        [1] * len(df),
+        'age',
+        'object',
+    ),
+    (
+        r'age  .todate  =1',
+        [1] * len(df),
+        'age',
+        'object',
+    ),
+    (
+        r'age  .todatetime  =1',
+        [1] * len(df),
+        'age',
+        'object',
+    ),
+
+    ])
+def test_totype(code, vals, col, dtype):
     result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_tofloat():
-    code = r"""
-    age  .tofloat  =1
-    """
-    result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Float64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_tonum():
-    code = r"""
-    age  .tonum  =1
-    """
-    result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_tobool():
-    code = r"""
-    age  .tobool  =1
-    """
-    result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='object')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_todate():
-    code = r"""
-    age  .todate  =1
-    """
-    result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='object')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_todatetime():
-    code = r"""
-    age  .todatetime  =1
-    """
-    result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='object')
+    expected = pd.DataFrame({col: vals}, dtype=dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
