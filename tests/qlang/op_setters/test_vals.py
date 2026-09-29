@@ -27,257 +27,46 @@ def check_message(expected_strings):
 
 
 
-def test_basic():
-    code = r"""
-    age  =1
-    """
-    result = df.dk.qr(code).result
-    vals = [1] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='object')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-
-
-
-def test_flag_str():
-    code = r"""
-    age  =20000101 +str
-    """
-    result = df.dk.qr(code).result
-    vals = ['20000101'] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_flag_int():
-    code = r"""
-    age  =20000101 +int
-    """
-    result = df.dk.qr(code).result
-    vals = [20000101] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_flag_float():
-    code = r"""
-    age  =20000101 +float
-    """
-    result = df.dk.qr(code).result
-    vals = [20000101.0] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Float64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_flag_num():
-    code = r"""
-    age  =20000101 +num
-    """
-    result = df.dk.qr(code).result
-    vals = [20000101] * len(df)
-    expected = pd.DataFrame({'age': vals}, dtype='Int64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-@pytest.mark.parametrize('code, vals, col, dtype', [
-
-
-    #replace
+    #colref
     (
-        r'name  .replace(John, JOHN)',
-        [
-            'JOHN Doe',
-            'Jane Smith',
-            'Alice JOHNson',
-            'Bob Brown',
-            'eva white',
-            'Frank miller',
-            'Grace TAYLOR',
-            'Harry Clark',
-            'IVY GREEN',
-            'JAck Williams',
-            'john Doe',
-        ],
-        'name',
-        'string',
+        r'name  = age +colref',
+        ['name'],
+        df.index,
+        [df['age']],
+        ['object'],
+        None,
     ),
     (
-        r'name  ?doe  .replace(John, JOHN)  %%',
-        [
-            'JOHN Doe',
-            'Jane Smith',
-            'Alice Johnson',
-            'Bob Brown',
-            'eva white',
-            'Frank miller',
-            'Grace TAYLOR',
-            'Harry Clark',
-            'IVY GREEN',
-            'JAck Williams',
-            'john Doe',
-        ],
-        'name',
-        'string',
+        r'name  = @age',
+        ['name'],
+        df.index,
+        [df['age']],
+        ['object'],
+        None,
     ),
 
     ])
-def test_other(code, vals, col, dtype):
+def test_colref(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = pd.DataFrame({col: vals}, dtype=dtype)
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
+
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
 
 
 
 
-#wip
-# @pytest.mark.parametrize('code, vals, col, dtype', [
-
-#     (
-#         r'age  =1  +obj',
-#         [1] * len(df),
-#         'age',
-#         'object',
-#     ),
-#     (
-#         r'age  =1  +str',
-#         [1] * len(df),
-#         'age',
-#         'object',
-#     ),
-#     (
-#         r'age  =1  +int',
-#         [1] * len(df),
-#         'age',
-#         'Int64',
-#     ),
-#     (
-#         r'age  =1  +float',
-#         [1] * len(df),
-#         'age',
-#         'Float64',
-#     ),
-#     (
-#         r'age  =1  +num',
-#         [1] * len(df),
-#         'age',
-#         'Int64',
-#     ),
-#     (
-#         r'age  =1  +bool',
-#         [1] * len(df),
-#         'age',
-#         'object',
-#     ),
-#     (
-#         r'age  =1  +date',
-#         [1] * len(df),
-#         'age',
-#         'object',
-#     ),
-#     (
-#         r'age =1  +datetime',
-#         [1] * len(df),
-#         'age',
-#         'object',
-#     ),
-
-#     ])
-# def test_type_flags(code, vals, col, dtype):
-#     result = df.dk.qr(code).result
-#     expected = pd.DataFrame({col: vals}, dtype=dtype)
-#     expected.columns = expected.columns.to_series().convert_dtypes()
-#     expected.index = expected.index.to_series().convert_dtypes()
-#     assert_frame_equal(result, expected)
-
-
-
-
-
-
-
-@pytest.mark.parametrize('code, vals, col, dtype', [
-
-    (
-        r'age  .toobj  =1',
-        [1] * len(df),
-        'age',
-        'object',
-    ),
-    (
-        r'age  .tostr  =1',
-        [1] * len(df),
-        'age',
-        'object',
-    ),
-    (
-        r'age  .toint  =1',
-        [1] * len(df),
-        'age',
-        'Int64',
-    ),
-    (
-        r'age  .tofloat  =1',
-        [1] * len(df),
-        'age',
-        'Float64',
-    ),
-    (
-        r'age  .tonum  =1',
-        [1] * len(df),
-        'age',
-        'Int64',
-    ),
-    (
-        r'age  .tobool  =1',
-        [1] * len(df),
-        'age',
-        'object',
-    ),
-    (
-        r'age  .todate  =1',
-        [1] * len(df),
-        'age',
-        'object',
-    ),
-    (
-        r'age  .todatetime  =1',
-        [1] * len(df),
-        'age',
-        'object',
-    ),
-
-    ])
-def test_totype(code, vals, col, dtype):
-    result = df.dk.qr(code).result
-    expected = pd.DataFrame({col: vals}, dtype=dtype)
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_vals1():
+def test_complex1():
     code = r"""
     %%%:isna  = ""
     %%%
@@ -312,7 +101,7 @@ def test_vals1():
 
 
 
-def test_vals2():
+def test_complex2():
     code = r"""
     %age
         %%>30
@@ -332,7 +121,7 @@ def test_vals2():
 
 
 
-def test_vals3():
+def test_complex3():
     code = r"""
     %age
         %%%:isint()
@@ -347,7 +136,7 @@ def test_vals3():
 
 
 
-def test_vals4():
+def test_complex4():
     code = r"""
     %name /age
         %%!?(Grace, alice, +strict, +allcols, +all)
@@ -366,7 +155,7 @@ def test_vals4():
 
 
 
-def test_vals5():
+def test_complex5():
     code = r"""
     %name /age
         %%!?(Grace, alice, +strict +allcols +all)
@@ -382,3 +171,310 @@ def test_vals5():
     expected.loc[5, 'age'] = 'X'
     expected = expected.convert_dtypes()
     assert_frame_equal(result, expected)
+
+
+
+def test_complex6():
+    code = r"""
+    name
+        %%=="john doe"
+            =deleted
+    %
+    %%
+    """
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected.loc[[0, 10], 'name'] = 'deleted'
+    assert_frame_equal(result, expected)
+
+
+
+def test_complex7():
+    code = r"""
+    name
+        %%=="john doe"
+    /age
+        %%%=deleted
+    %
+    %%
+    """
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected.loc[[0, 10], ['name', 'age']] = 'deleted'
+    assert_frame_equal(result, expected)
+
+
+
+def test_complex8():
+    code = r"""
+    name
+        %%=="john doe"
+        %
+        =deleted
+    /age
+        //30
+        %
+        =deleted
+    %
+    %%
+    """
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected['ID'] = expected['ID'].astype('object')
+    expected.loc[[0, 1, 10], :] = 'deleted'
+    assert_frame_equal(result, expected)
+
+
+
+def test_complex9():
+    code = r"""
+    name
+        %%=="john doe"
+    /age
+        //30
+        %%%:all
+        =deleted
+    %
+    %%
+    """
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected.loc[[0, 1, 10], ['name', 'age']] = 'deleted'
+    assert_frame_equal(result, expected)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #replace
+    (
+        r'name  .replace(John, JOHN)',
+        ['name'],
+        df.index,
+        [[
+            'JOHN Doe',
+            'Jane Smith',
+            'Alice JOHNson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'john Doe',
+        ]],
+        ['string'],
+        None,
+    ),
+    (
+        r'name  ?doe  .replace(John, JOHN)  %%',
+        ['name'],
+        df.index,
+        [[
+            'JOHN Doe',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'john Doe',
+        ]],
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_replace(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
+    expected.columns = expected.columns.to_series().convert_dtypes()
+    expected.index = expected.index.to_series().convert_dtypes()
+
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #set values
+    (
+        r'age =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+
+    ])
+def test_set(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
+    expected.columns = expected.columns.to_series().convert_dtypes()
+    expected.index = expected.index.to_series().convert_dtypes()
+
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #type conversion
+    (
+        r'age  .toobj  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .tostr  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .toint  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['Int64'],
+        None,
+    ),
+    (
+        r'age  .tofloat  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['Float64'],
+        None,
+    ),
+    (
+        r'age  .tonum  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['Int64'],
+        None,
+    ),
+    (
+        r'age  .tobool  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .todate  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .todatetime  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+
+    ])
+def test_type_conversion(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
+    expected.columns = expected.columns.to_series().convert_dtypes()
+    expected.index = expected.index.to_series().convert_dtypes()
+
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #type flags
+    (
+        r'age  =20000101 +str',
+        ['age'],
+        df.index,
+        [['20000101'] * len(df)],
+        ['string'],
+        None,
+    ),
+    (
+        r'age  =20000101 +int',
+        ['age'],
+        df.index,
+        [[20000101] * len(df)],
+        ['Int64'],
+        None,
+    ),
+    (
+        r'age  =20000101 +float',
+        ['age'],
+        df.index,
+        [[20000101.0] * len(df)],
+        ['Float64'],
+        None,
+    ),
+    (
+        r'age  =20000101 +num',
+        ['age'],
+        df.index,
+        [[20000101] * len(df)],
+        ['Int64'],
+        None,
+    ),
+
+    ])
+def test_type_flags(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
+    expected.columns = expected.columns.to_series().convert_dtypes()
+    expected.index = expected.index.to_series().convert_dtypes()
+
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+

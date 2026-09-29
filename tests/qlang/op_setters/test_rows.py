@@ -1,4 +1,7 @@
 
+import pytest
+import pandas as pd
+
 from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
@@ -23,96 +26,186 @@ def check_message(expected_strings):
 
 
 
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
+    #set
+    (
+        r'%%§0  %%=1  %%',
+        df.columns,
+        [
+            1,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
 
-def test_rows1():
-    code = r"""
-    name
-        %%=="john doe"
-            =deleted
-    %
-    %%
-    """
+    ])
+def test_set(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
     expected = get_df()
-    expected.loc[[0, 10], 'name'] = 'deleted'
+    expected.index = pd.Series(rows).astype(dtypes[0])
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
 
 
 
-def test_rows2():
-    code = r"""
-    name
-        %%=="john doe"
-    /age
-        %%%=deleted
-    %
-    %%
-    """
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #type conversion
+    (
+        r'%%.toobj',
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['object'],
+        None,
+    ),
+    (
+        r'%%.tostr',
+        df.columns,
+        [
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+        ],
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r'%%.toint',
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r'%%.tofloat',
+        df.columns,
+        [
+            0,
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+        ],
+        None,
+        ['Float64'],
+        None,
+    ),
+    (
+        r'%%.tonum',
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r'%%.tobool',
+        df.columns,
+        [
+            False,
+            True,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+        ],
+        None,
+        ['boolean'],
+        None,
+    ),
+    (
+        r'%%.todate',
+        df.columns,
+        [pd.NaT for ind in df.index],
+        None,
+        ['datetime64[s]'],
+        None,
+    ),
+    (
+        r'%%.todatetime',
+        df.columns,
+        [pd.NaT for ind in df.index],
+        None,
+        ['datetime64[us]'],
+        None,
+    ),
+
+    ])
+def test_type_conversion(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
     expected = get_df()
-    expected.loc[[0, 10], ['name', 'age']] = 'deleted'
+    expected.index = pd.Series(rows).astype(dtypes[0])
     assert_frame_equal(result, expected)
-
-
-
-def test_rows3():
-    code = r"""
-    name
-        %%=="john doe"
-        %
-        =deleted
-    /age
-        //30
-        %
-        =deleted
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['ID'] = expected['ID'].astype('object')
-    expected.loc[[0, 1, 10], :] = 'deleted'
-    assert_frame_equal(result, expected)
-
-
-
-def test_rows4():
-    code = r"""
-    name
-        %%=="john doe"
-    /age
-        //30
-        %%%:all
-        =deleted
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected.loc[[0, 1, 10], ['name', 'age']] = 'deleted'
-    assert_frame_equal(result, expected)
-
-
-
-def test_rows5():
-    code = r"""
-    name  = age +colref
-    %
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['name'] = expected['age']
-    assert_frame_equal(result, expected)
-
-
-
-def test_rows6():
-    code = r"""
-    name  = @age
-    %
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['name'] = expected['age']
-    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)

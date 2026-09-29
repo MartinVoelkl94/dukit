@@ -10,7 +10,6 @@ from dukit import (
 
 
 
-df = get_df()
 tstamp = pd.Timestamp('2024-01-01')
 cols1 = [
     'name',
@@ -51,23 +50,23 @@ cols3 = [
     'dose',
     ]
 
+df = get_df()
+
+df_types = pd.DataFrame({
+    'a': ['a'],
+    0: [0],
+    0.1: [0.1],
+    pd.Timestamp('2024-01-01'): [tstamp],
+    True: [True],
+    'unknown': ['unknown'],
+    None: [None],
+    'b': ['a'],
+    }).convert_dtypes()
+df_types.rename(columns={'b': 'a'}, inplace=True)
+df_types.columns = df_types.columns.to_series().convert_dtypes()
+df_types.index = df_types.index.to_series().convert_dtypes()
 
 
-def get_df_types():
-    df_types = pd.DataFrame({
-        'a': ['a'],
-        0: [0],
-        0.1: [0.1],
-        pd.Timestamp('2024-01-01'): [tstamp],
-        True: [True],
-        'unknown': ['unknown'],
-        None: [None],
-        'b': ['a'],
-        }).convert_dtypes()
-    df_types.rename(columns={'b': 'a'}, inplace=True)
-    df_types.columns = df_types.columns.to_series().convert_dtypes()
-    df_types.index = df_types.index.to_series().convert_dtypes()
-    return df_types
 
 def check_message(expected_strings):
 
@@ -85,94 +84,119 @@ def check_message(expected_strings):
 
 
 
-@pytest.mark.parametrize('code, expected_cols, message', [
-
-    #equals getter
-    ('', df.columns, None),
-    ('ID', ['ID'], None),
-    (' ID', ['ID'], None),
-    ('ID ', ['ID'], None),
-    (' ID ', ['ID'], None),
-
-    ('%', df.columns, None),
-    ('%ID', ['ID'], None),
-    ('% ID', ['ID'], None),
-    ('%ID ', ['ID'], None),
-    ('% ID ', ['ID'], None),
-
-    ('%==ID', ['ID'], None),
-    ('% ==ID', ['ID'], None),
-    ('%== ID', ['ID'], None),
-    ('%== ID ', ['ID'], None),
-    ('% == ID ', ['ID'], None),
-
-    ("""ID""", ['ID'], None),
-    ("""%ID""", ['ID'], None),
-    (""" ID """, ['ID'], None),
-    ("""%==ID""", ['ID'], None),
-    ("""% == ID""", ['ID'], None),
-
-    ('"date of birth"', ['date of birth'], None),
-    ('%"date of birth"', ['date of birth'], None),
-    ('"date of birth"    /age', ['date of birth', 'age'], None),
-    ('"date of birth"    / ==age', ['date of birth', 'age'], None),
-    ('%"date of birth"    / ==age', ['date of birth', 'age'], None),
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     (
-        """ID
-        """,
-        ['ID'],
-        None
+        r'%?bp   /diabetes',
+        [
+            'bp systole',
+            'bp diastole',
+            'diabetes',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?bp   /diabetes   /cholesterol',
+        [
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?bp /cholesterol/diabetes',
+        [
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'cholesterol/diabetes/?bp',
+        [
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?bp   & ?systole',
+        ['bp systole'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?bp   & !?systole',
+        ['bp diastole'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?bp   & !?systole   & ?diastole',
+        ['bp diastole'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?bp   & !?systole   / ?ID',
+        ['ID', 'bp diastole'],
+        df.index,
+        None,
+        None,
+        None,
     ),
 
+    ])
+def test_connect(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #contains substring
     (
-        """
-        ID""",
-        ['ID'],
-        None
+        r'%?bp',
+        ['bp systole', 'bp diastole'],
+        df.index,
+        None,
+        None,
+        None,
     ),
-
     (
-        """
-        ID
-        """,
-        ['ID'],
-        None
-    ),
-
-    (
-        r"""ID""",
-        ['ID'],
-        None
-    ),
-
-    (
-        r"""ID
-        """,
-        ['ID'],
-        None
-    ),
-
-    (
-        r"""
-        ID""",
-        ['ID'],
-        None
-    ),
-
-    (
-        r"""
-        ID
-        """,
-        ['ID'],
-        None
-    ),
-
-
-    #contains getter
-    ('%?bp', ['bp systole', 'bp diastole'], None),
-    (
-        '%?I',
+        r'%?I',
         [
             'ID',
             'date of birth',
@@ -181,24 +205,2244 @@ def check_message(expected_strings):
             'bp diastole',
             'diabetes',
         ],
-        None
+        df.index,
+        None,
+        None,
+        None,
     ),
-    ('%!?I', ['name', 'age', 'gender', 'bp systole', 'cholesterol', 'dose'], None),
-    ('%?I, +strict', ['ID'], None),
-    ('%?I +strict)', ['ID'], None),
-    ('%?(I +strict)', ['ID'], None),
-    ('%?(I, +strict)', ['ID'], None),
-
-
-    ('%:eval("len(x)==2")', ['ID'], None),
-    ('%:eval("x")', df.columns.tolist(), None),
-    ('%:eval("True")', df.columns.tolist(), None),
-    ("""%:eval(" 'ag' in x ")""", ['age'], None),
-
-
-    #invert
     (
-        'id  %:invert',
+        r'%!?I',
+        [
+            'name',
+            'age',
+            'gender',
+            'bp systole',
+            'cholesterol',
+            'dose',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?I, +strict',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?I +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?(I +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%?(I, +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:eval("len(x)==2")',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:eval("x")',
+        df.columns,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:eval("True")',
+        df.columns,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        """%:eval(" 'ag' in x ")""",
+        ['age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_contains(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #equality
+    (
+        r'',
+        df.columns,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'ID ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' ID ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%',
+        df.columns,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%ID ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ID ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%==ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ==ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%== ID',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%== ID ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == ID ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        """%ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        """ ID """,
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        """%==ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        """% == ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'"date of birth"',
+        ['date of birth'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%"date of birth"',
+        ['date of birth'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'"date of birth"    /age',
+        ['date of birth', 'age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'"date of birth"    / ==age',
+        ['date of birth', 'age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%"date of birth"    / ==age',
+        ['date of birth', 'age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """ID
+        """,
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """
+        ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """
+        ID
+        """,
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""ID
+        """,
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""
+        ID""",
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""
+        ID
+        """,
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_equality(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #strict
+    (
+        r'%==(ID, +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ==(ID, +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%== (ID, +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == (ID, +strict)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%==(id, +strict)',
+        [],
+        df.index,
+        None,
+        None,
+        'WARNING: no cols fulfill the condition',
+    ),
+
+    (
+        r'%==ID +strict',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ==ID +strict',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%== ID +strict',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == ID +strict',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%==id +strict',
+        [],
+        df.index,
+        None,
+        None,
+        'WARNING: no cols fulfill the condition',
+    ),
+
+
+    #regex
+    (
+        r'ID +regex',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%=="." +regex',
+        [],
+        df.index,
+        None,
+        None,
+        r'WARNING: no cols fulfill the condition',
+    ),
+    (
+        r'%==".." +regex',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%? ID +regex',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%? "e." +regex',
+        [
+            'date of birth',
+            'gender',
+            'height',
+            'weight',
+            'cholesterol',
+            'diabetes'
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%? "e.o" +regex',
+        [
+            'date of birth',
+            'cholesterol',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%(ID, +regex)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%==(".", +regex)',
+        [],
+        df.index,
+        None,
+        None,
+        r'WARNING: no cols fulfill the condition',
+    ),
+    (
+        r'%==("..", +regex)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%? (ID, +regex)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%? ("e.", +regex)',
+        [
+            'date of birth',
+            'gender',
+            'height',
+            'weight',
+            'cholesterol',
+            'diabetes'
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%? ("e.o", +regex)',
+        [
+            'date of birth',
+            'cholesterol',
+        ],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_flags(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #prefix
+    (
+        r'§0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ 0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' § 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'§ 0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§  0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' § 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ 0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§==0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ ==0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§== 0',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ == 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ == 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§  == 0 ',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+
+
+    #postfix
+    (
+        r'0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' 0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' 0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% 0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% 0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%==0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ==0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%== 0+index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == 0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == 0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%  == 0 +index',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_flags_index(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #prefix
+    (
+        r'!ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'! ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' !ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%!ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%! ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% !ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%!==ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%! ==ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!== ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% !== ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%! == ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ! == ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (  #technically not a flag, but identical result
+        r'%!=ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (  #technically not a flag, but identical result
+        r'%!= ID',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (  #technically not a flag, but identical result
+        r'% !=ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (  #technically not a flag, but identical result
+        r'% != ID ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'!"date of birth"',
+        cols2,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!"date of birth"',
+        cols2,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!"date of birth"    &!age',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!"date of birth"    &!age',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!"date of birth"    &!=age',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """!ID
+        """,
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """
+        !ID""",
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        """
+        !ID
+        """,
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""!ID""",
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""!ID
+        """,
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""
+        !ID""",
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r"""
+        !ID
+        """,
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+
+
+    #postfix
+    (
+        r'ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%==ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ==ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%== ID+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%  == ID +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_flags_negate(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #prefix
+    (
+        r'§!0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§! 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§!0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ !0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'§ !0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ ! 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ !0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' § !0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§!0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§! 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§!0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ !0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§!==0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§! ==0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§!== 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ !== 0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§! == 0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ ! == 0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'!§0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!§ 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!§0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'! §0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'! §0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'! § 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'! §0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r' ! §0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'% §!0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% §! 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% §!0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% § !0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'% §!==0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% §! ==0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% §!== 0',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% § !== 0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% §! == 0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% § ! == 0 ',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'§!2',
+        cols2,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§!2',
+        cols2,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§!2    &§!3',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§!2    &§!3',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§!2    &§!=3',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'!§2',
+        cols2,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!§2',
+        cols2,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!§2    &!§3',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!§2    &!§3',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!§2    &!§3',
+        cols3,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+
+
+    #postfix
+    (
+        r'0+index+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0 +index+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0+index +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0 +index +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'0+negate+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0 +negate+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0+negate +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'0 +negate +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%0+index+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%0 +index+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%0+index +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%0 +index +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'% 0+negate+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% 0 +negate+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% 0+negate +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% 0 +negate +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+
+
+    #mixed
+    (
+        r'§0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ 0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'§ 0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'!0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'! 0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'!0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'! 0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ 0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ 0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'% !0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ! 0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% !0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ! 0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§==0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§== 0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§==0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§== 0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%!==0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!== 0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!==0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!== 0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%§ ==0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ == 0+negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ ==0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%§ == 0 +negate',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%! ==0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%! == 0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%! ==0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%! == 0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (  #technically not a flag, but identical result
+        r'%!=0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (  #technically not a flag, but identical result
+        r'%!= 0+index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (  #technically not a flag, but identical result
+        r'%!=0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (  #technically not a flag, but identical result
+        r'%!= 0 +index',
+        cols1,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_flags_negate_index(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'% == (3 +index)',
+        [3],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% > (5 +index)',
+        [6, 7, 8, 9, 10, 11],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% < (5 +index)',
+        [0, 1, 2, 3, 4],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% >= (5 +index)',
+        [5, 6, 7, 8, 9, 10, 11],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% <= (5 +index)',
+        [0, 1, 2, 3, 4, 5],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% != (5 +index)',
+        [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% == (5 +index)',
+        [5],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% > (5 +index)  & < (8 +index)',
+        [6, 7],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% > (5 +index)  & < (8 +index)  & != (6 +index)',
+        [7],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% > (5 +index)  & < (8 +index)  & != (6 +index)  & != (7 +index)',
+        [],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% > (5 +index)  & < (8 +index)  & != (6, 7 +index +all)',
+        [],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'% ? (1 +index)',
+        [1, 10, 11],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_header(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.iloc[:, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #invert selection
+    (
+        r'id  %:invert',
         [
             'name',
             'date of birth',
@@ -212,10 +2456,13 @@ def check_message(expected_strings):
             'diabetes',
             'dose',
         ],
+        df.index,
+        None,
+        None,
         None,
     ),
     (
-        'name  /gender  %:invert',
+        r'name  /gender  %:invert',
         [
             'ID',
             'date of birth',
@@ -228,583 +2475,233 @@ def check_message(expected_strings):
             'diabetes',
             'dose',
         ],
+        df.index,
+        None,
+        None,
         None,
     ),
 
     ])
-def test_basic(code, expected_cols: list[str], message):
+def test_invert(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected_cols, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    ('%?bp   /diabetes', ['bp systole', 'bp diastole', 'diabetes'], None),
     (
-        '%?bp   /diabetes   /cholesterol',
-        [
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-        ],
-        None
+        r'%(ID)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
-        '%?bp /cholesterol/diabetes',
-        [
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-        ],
-        None
+        r'%==(ID)',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    (
+        r'%(ID, age, +any)',
+        ['ID', 'age'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
-        'cholesterol/diabetes/?bp',
-        [
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-        ],
-        None
+        r'%==(ID, age, +any)',
+        ['ID', 'age'],
+        df.index,
+        None,
+        None,
+        None,
     ),
-    ('%?bp   & ?systole', ['bp systole'], None),
-    ('%?bp   & !?systole', ['bp diastole'], None),
-    ('%?bp   & !?systole   & ?diastole', ['bp diastole'], None),
-    ('%?bp   & !?systole   / ?ID', ['ID', 'bp diastole'], None),
+
+    (
+        r'%(ID age, +any)',
+        ['ID', 'age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%==(ID age, +any)',
+        ['ID', 'age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
 
     ])
-def test_connect(code, expected_cols: list[str], message):
+def test_lists(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
-
-@pytest.mark.parametrize('code, expected_cols, message', [
-
-    #strict
-    ('%==(ID, +strict)', ['ID'], None),
-    ('% ==(ID, +strict)', ['ID'], None),
-    ('%== (ID, +strict)', ['ID'], None),
-    ('% == (ID, +strict)', ['ID'], None),
-    ('%==(id, +strict)', [], 'WARNING: no cols fulfill the condition'),
-
-    ('%==ID +strict', ['ID'], None),
-    ('% ==ID +strict', ['ID'], None),
-    ('%== ID +strict', ['ID'], None),
-    ('% == ID +strict', ['ID'], None),
-    ('%==id +strict', [], 'WARNING: no cols fulfill the condition'),
-
-
-    #regex
-    ('ID +regex', ['ID'], None),
-    ('%=="." +regex', [], r'WARNING: no cols fulfill the condition'),
-    ('%==".." +regex', ['ID'], None),
-
-    ('%? ID +regex', ['ID'], None),
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
     (
-        '%? "e." +regex',
-        [
-            'date of birth',
-            'gender',
-            'height',
-            'weight',
-            'cholesterol',
-            'diabetes'
-        ],
-        None
+        r'%:isstr',
+        ['a', 'unknown'],
+        df_types.index,
+        None,
+        None,
+        None,
     ),
     (
-        '%? "e.o" +regex',
-        [
-            'date of birth',
-            'cholesterol',
-        ],
-        None
-    ),
-
-    ('%(ID, +regex)', ['ID'], None),
-    ('%==(".", +regex)', [], r'WARNING: no cols fulfill the condition'),
-    ('%==("..", +regex)', ['ID'], None),
-
-    ('%? (ID, +regex)', ['ID'], None),
-    (
-        '%? ("e.", +regex)',
-        [
-            'date of birth',
-            'gender',
-            'height',
-            'weight',
-            'cholesterol',
-            'diabetes'
-        ],
-        None
+        r'%:isint',
+        [0, True],
+        df_types.index,
+        None,
+        None,
+        None,
     ),
     (
-        '%? ("e.o", +regex)',
-        [
-            'date of birth',
-            'cholesterol',
-        ],
-        None
+        r'%:isfloat',
+        [0, 0.1, True],
+        df_types.index,
+        None,
+        None,
+        None,
     ),
-
+    (
+        r'%:isfloat +strict',
+        [0.1],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isnum',
+        [0, 0.1, tstamp, True, None],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isbool',
+        [0, True],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isdatetime',
+        [tstamp],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isdate',
+        [tstamp],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isna',
+        [None],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isnk',
+        ['unknown'],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isyn',
+        [0, True],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isunique',
+        [0, 0.1, tstamp, True, 'unknown', None],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%!:isunique',
+        ['a'],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:isfirst',
+        ['a', 0, 0.1, tstamp, True, 'unknown', None],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:islast',
+        [0, 0.1, tstamp, True, 'unknown', None, 'a'],
+        df_types.index,
+        None,
+        None,
+        None,
+    ),
     ])
-def test_flags(code, expected_cols: list[str], message):
-    result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
+def test_types(code, cols, rows, vals, dtypes, message):
 
-
-
-
-@pytest.mark.parametrize('code, expected_cols, message', [
-
-    #prefix
-    ('§0', ['ID'], None),
-    ('§ 0', ['ID'], None),
-    ('§0 ', ['ID'], None),
-    ('§ 0 ', ['ID'], None),
-
-    ('§ 0', ['ID'], None),
-    ('§  0', ['ID'], None),
-    ('§ 0 ', ['ID'], None),
-    (' § 0 ', ['ID'], None),
-
-    ('%§0', ['ID'], None),
-    ('%§ 0', ['ID'], None),
-    ('%§0 ', ['ID'], None),
-    ('%§ 0 ', ['ID'], None),
-
-    ('%§==0', ['ID'], None),
-    ('%§ ==0', ['ID'], None),
-    ('%§== 0', ['ID'], None),
-    ('%§ == 0 ', ['ID'], None),
-    ('%§ == 0 ', ['ID'], None),
-    ('%§  == 0 ', ['ID'], None),
-
-
-
-    #postfix
-    ('0+index', ['ID'], None),
-    (' 0+index', ['ID'], None),
-    ('0 +index', ['ID'], None),
-    (' 0 +index', ['ID'], None),
-
-    (r'%0+index', ['ID'], None),
-    (r'% 0+index', ['ID'], None),
-    (r'%0 +index', ['ID'], None),
-    (r'% 0 +index', ['ID'], None),
-
-    ('%==0+index', ['ID'], None),
-    ('% ==0+index', ['ID'], None),
-    ('%== 0+index', ['ID'], None),
-    ('% == 0 +index', ['ID'], None),
-    ('% == 0 +index', ['ID'], None),
-    ('%  == 0 +index', ['ID'], None),
-
-    ])
-def test_flags_index(code, expected_cols: list[str], message):
-    result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-
-@pytest.mark.parametrize('code, expected_cols, message', [
-
-    #prefix
-    ('!ID', cols1, None),
-    ('! ID', cols1, None),
-    ('!ID ', cols1, None),
-    (' !ID ', cols1, None),
-
-    ('%!ID', cols1, None),
-    ('%! ID', cols1, None),
-    ('%!ID ', cols1, None),
-    ('% !ID ', cols1, None),
-
-    ('%!==ID', cols1, None),
-    ('%! ==ID', cols1, None),
-    ('%!== ID', cols1, None),
-    ('% !== ID ', cols1, None),
-    ('%! == ID ', cols1, None),
-    ('% ! == ID ', cols1, None),
-
-    ('%!=ID', cols1, None),  #technically not a flag, but identical result
-    ('%!= ID', cols1, None),  #technically not a flag, but identical result
-    ('% !=ID ', cols1, None),  #technically not a flag, but identical result
-    ('% != ID ', cols1, None),  #technically not a flag, but identical result
-
-    ('!"date of birth"', cols2, None),
-    ('%!"date of birth"', cols2, None),
-    ('!"date of birth"    &!age', cols3, None),
-    ('!"date of birth"    &!age', cols3, None),
-    ('%!"date of birth"    &!=age', cols3, None),
-
-    (
-        """!ID
-        """,
-        cols1,
-        None
-    ),
-
-    (
-        """
-        !ID""",
-        cols1,
-        None
-    ),
-
-    (
-        """
-        !ID
-        """,
-        cols1,
-        None
-    ),
-
-    (
-        r"""!ID""",
-        cols1,
-        None
-    ),
-
-    (
-        r"""!ID
-        """,
-        cols1,
-        None
-    ),
-
-    (
-        r"""
-        !ID""",
-        cols1,
-        None
-    ),
-
-    (
-        r"""
-        !ID
-        """,
-        cols1,
-        None
-    ),
-
-
-
-    #postfix
-    ('ID+negate', cols1, None),
-    (' ID+negate', cols1, None),
-    ('ID +negate', cols1, None),
-    (' ID +negate', cols1, None),
-
-    ('%ID+negate', cols1, None),
-    ('% ID+negate', cols1, None),
-    ('%ID +negate', cols1, None),
-    ('% ID +negate', cols1, None),
-
-    ('%==ID+negate', cols1, None),
-    ('% ==ID+negate', cols1, None),
-    ('%== ID+negate', cols1, None),
-    ('% == ID +negate', cols1, None),
-    ('% == ID +negate', cols1, None),
-    ('%  == ID +negate', cols1, None),
-
-    ])
-def test_flags_negate(code, expected_cols: list[str], message):
-    result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-
-@pytest.mark.parametrize('code, expected_cols, message', [
-
-    #prefix
-    ('§!0', cols1, None),
-    ('§! 0', cols1, None),
-    ('§!0 ', cols1, None),
-    ('§ !0 ', cols1, None),
-
-    ('§ !0', cols1, None),
-    ('§ ! 0', cols1, None),
-    ('§ !0 ', cols1, None),
-    (' § !0 ', cols1, None),
-
-    ('%§!0', cols1, None),
-    ('%§! 0', cols1, None),
-    ('%§!0 ', cols1, None),
-    ('%§ !0 ', cols1, None),
-
-    ('%§!==0', cols1, None),
-    ('%§! ==0', cols1, None),
-    ('%§!== 0', cols1, None),
-    ('%§ !== 0 ', cols1, None),
-    ('%§! == 0 ', cols1, None),
-    ('%§ ! == 0 ', cols1, None),
-
-    ('!§0', cols1, None),
-    ('!§ 0', cols1, None),
-    ('!§0 ', cols1, None),
-    ('! §0 ', cols1, None),
-
-    ('! §0', cols1, None),
-    ('! § 0', cols1, None),
-    ('! §0 ', cols1, None),
-    (' ! §0 ', cols1, None),
-
-    ('% §!0', cols1, None),
-    ('% §! 0', cols1, None),
-    ('% §!0 ', cols1, None),
-    ('% § !0 ', cols1, None),
-
-    ('% §!==0', cols1, None),
-    ('% §! ==0', cols1, None),
-    ('% §!== 0', cols1, None),
-    ('% § !== 0 ', cols1, None),
-    ('% §! == 0 ', cols1, None),
-    ('% § ! == 0 ', cols1, None),
-
-    ('§!2', cols2, None),
-    ('%§!2', cols2, None),
-    ('§!2    &§!3', cols3, None),
-    ('§!2    &§!3', cols3, None),
-    ('%§!2    &§!=3', cols3, None),
-
-    ('!§2', cols2, None),
-    ('%!§2', cols2, None),
-    ('!§2    &!§3', cols3, None),
-    ('!§2    &!§3', cols3, None),
-    ('%!§2    &!§3', cols3, None),
-
-
-
-    #postfix
-    ('0+index+negate', cols1, None),
-    ('0 +index+negate', cols1, None),
-    ('0+index +negate', cols1, None),
-    ('0 +index +negate', cols1, None),
-
-    ('0+negate+index', cols1, None),
-    ('0 +negate+index', cols1, None),
-    ('0+negate +index', cols1, None),
-    ('0 +negate +index', cols1, None),
-
-    (r'%0+index+negate', cols1, None),
-    (r'%0 +index+negate', cols1, None),
-    (r'%0+index +negate', cols1, None),
-    (r'%0 +index +negate', cols1, None),
-
-    (r'% 0+negate+index', cols1, None),
-    (r'% 0 +negate+index', cols1, None),
-    (r'% 0+negate +index', cols1, None),
-    (r'% 0 +negate +index', cols1, None),
-
-
-
-    #mixed
-    ('§0+negate', cols1, None),
-    ('§ 0+negate', cols1, None),
-    ('§0 +negate', cols1, None),
-    ('§ 0 +negate', cols1, None),
-
-    ('!0+index', cols1, None),
-    ('! 0+index', cols1, None),
-    ('!0 +index', cols1, None),
-    ('! 0 +index', cols1, None),
-
-    ('%§0+negate', cols1, None),
-    ('%§ 0+negate', cols1, None),
-    ('%§0 +negate', cols1, None),
-    ('%§ 0 +negate', cols1, None),
-
-    ('% !0+index', cols1, None),
-    ('% ! 0+index', cols1, None),
-    ('% !0 +index', cols1, None),
-    ('% ! 0 +index', cols1, None),
-
-    ('%§==0+negate', cols1, None),
-    ('%§== 0+negate', cols1, None),
-    ('%§==0 +negate', cols1, None),
-    ('%§== 0 +negate', cols1, None),
-
-    ('%!==0+index', cols1, None),
-    ('%!== 0+index', cols1, None),
-    ('%!==0 +index', cols1, None),
-    ('%!== 0 +index', cols1, None),
-
-    ('%§ ==0+negate', cols1, None),
-    ('%§ == 0+negate', cols1, None),
-    ('%§ ==0 +negate', cols1, None),
-    ('%§ == 0 +negate', cols1, None),
-
-    ('%! ==0+index', cols1, None),
-    ('%! == 0+index', cols1, None),
-    ('%! ==0 +index', cols1, None),
-    ('%! == 0 +index', cols1, None),
-
-    ('%!=0+index', cols1, None),  #technically not a flag, but identical result
-    ('%!= 0+index', cols1, None),  #technically not a flag, but identical result
-    ('%!=0 +index', cols1, None),  #technically not a flag, but identical result
-    ('%!= 0 +index', cols1, None),  #technically not a flag, but identical result
-
-    ])
-def test_flags_negate_index(code, expected_cols: list[str], message):
-    result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-
-@pytest.mark.parametrize('code, expected, message', [
-
-    (
-        r'% == (3 +index)',
-        df.iloc[:, [3]],
-        None,
-    ),
-    (
-        r'% > (5 +index)',
-        df.iloc[:, 6:],
-
-        None,
-    ),
-    (
-        r'% < (5 +index)',
-        df.iloc[:, :5],
-        None,
-    ),
-    (
-        r'% >= (5 +index)',
-        df.iloc[:, 5:],
-        None,
-    ),
-    (
-        r'% <= (5 +index)',
-        df.iloc[:, :6],
-        None,
-    ),
-    (
-        r'% != (5 +index)',
-        df.iloc[:, [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11]],
-        None,
-    ),
-    (
-        r'% == (5 +index)',
-        df.iloc[:, [5]],
-        None,
-    ),
-    (
-        r'% > (5 +index)  & < (8 +index)',
-        df.iloc[:, 6:8],
-        None,
-    ),
-    (
-        r'% > (5 +index)  & < (8 +index)  & != (6 +index)',
-        df.iloc[:, [7]],
-        None,
-    ),
-    (
-        r'% > (5 +index)  & < (8 +index)  & != (6 +index)  & != (7 +index)',
-        df.iloc[:, []],
-        None,
-    ),
-    (
-        r'% > (5 +index)  & < (8 +index)  & != (6, 7 +index +all)',
-        df.iloc[:, []],
-        None,
-    ),
-    (
-        r'% ? (1 +index)',
-        df.iloc[:, [1, 10, 11]],
-        None,
-    ),
-
-    ])
-def test_header(code, expected, message):
-    result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-
-@pytest.mark.parametrize('code, expected_cols, message', [
-
-    ('%(ID)', ['ID'], None),
-    ('%==(ID)', ['ID'], None),
-
-    ('%(ID, age, +any)', ['ID', 'age'], None),
-    ('%==(ID, age, +any)', ['ID', 'age'], None),
-
-    ('%(ID age, +any)', ['ID', 'age'], None),
-    ('%==(ID age, +any)', ['ID', 'age'], None),
-
-    ])
-def test_lists(code, expected_cols: list[str], message):
-    result = df.dk.qr(code).result
-    expected = get_df().loc[:, expected_cols]
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-@pytest.mark.parametrize('code, expected_cols, message', [
-    ('%:isstr', ['a', 'unknown'], None),
-    ('%:isint', [0, True], None),
-    ('%:isfloat', [0, 0.1, True], None),
-    ('%:isfloat +strict', [0.1], None),
-    ('%:isnum', [0, 0.1, tstamp, True, None], None),
-    ('%:isbool', [0, True], None),
-    ('%:isdatetime', [tstamp], None),
-    ('%:isdate', [tstamp], None),
-    ('%:isna', [None], None),
-    ('%:isnk', ['unknown'], None),
-    ('%:isyn', [0, True], None),
-    ('%:isunique', [0, 0.1, tstamp, True, 'unknown', None], None),
-    ('%!:isunique', ['a'], None),
-    ('%:isfirst', ['a', 0, 0.1, tstamp, True, 'unknown', None], None),
-    ('%:islast', [0, 0.1, tstamp, True, 'unknown', None, 'a'], None),
-    ])
-def test_types(code, expected_cols: list[str], message):
-
-    df_types = get_df_types()
     result = df_types.dk.qr(code).result
-
     if code == '%:isstr':
         result = result[['a', 'unknown']]  #qlang reorders, while pd does not
-    elif code == '%:isfirst':
-        df_types = df_types.iloc[:, :7]
-    elif code == '%:islast':
-        df_types = df_types.iloc[:, 1:]
 
-    expected = df_types.loc[:, expected_cols]
-    assert_frame_equal(result, expected)
+    if code == '%:isfirst':
+        expected = df_types.iloc[:, :7]  #type: ignore
+        expected = expected.loc[rows, cols]
+    elif code == '%:islast':
+        expected = df_types.iloc[:, 1:]  #type: ignore
+        expected = expected.loc[rows, cols]
+    else:
+        expected = df_types.loc[rows, cols]
+
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)

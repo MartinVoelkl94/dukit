@@ -1,4 +1,7 @@
 
+import pytest
+import pandas as pd
+
 from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
@@ -23,40 +26,109 @@ def check_message(expected_strings):
 
 
 
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-def test_cols1():
-    code = r'name  %=full_name  %'
+    (
+        r"""
+        name  %=full_name  %
+        """,
+        [
+            'ID',
+            'full_name',
+            'date of birth',
+            'age',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose',
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        name  /age  %=renamed  %
+        """,
+        [
+            'ID',
+            'renamed',
+            'date of birth',
+            'renamed',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose',
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        name %=full_name
+        'date of birth' %=dob
+        %
+        """,
+        [
+            'ID',
+            'full_name',
+            'dob',
+            'age',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose',
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_set(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = get_df().rename(columns={'name': 'full_name'})
-    expected.columns = expected.columns.astype('string')
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
 
 
 
-def test_cols2():
-    code = r'name  /age  %=renamed  %'
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #subtract
+    (
+        r'name  %!-=1  %',
+        df.columns,
+        None,
+        None,
+        ['object'],
+        'ERROR: cannot negate substraction of a non-string value',
+    ),
+
+    ])
+def test_subtract(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    mapping = {
-        'name': 'renamed',
-        'age': 'renamed',
-        }
-    expected = get_df().rename(columns=mapping)
-    expected.columns = expected.columns.astype('string')
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
     assert_frame_equal(result, expected)
-
-
-
-def test_cols3():
-    code = r"""
-    name %=full_name
-    'date of birth' %=dob
-    %
-    """
-    result = df.dk.qr(code).result
-    mapping = {
-        'name': 'full_name',
-        'date of birth': 'dob',
-        }
-    expected = get_df().rename(columns=mapping)
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)

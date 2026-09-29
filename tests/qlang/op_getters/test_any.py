@@ -27,7 +27,7 @@ def check_message(expected_strings):
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     #regex flag + type based selection
     (
@@ -35,8 +35,11 @@ def check_message(expected_strings):
         ID  ==("1...." +regex)
         diabetes  &&:isyn
         """,
-        df.loc[[0, 1], ['diabetes']],
-        None
+        ['diabetes'],
+        [0, 1],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -45,8 +48,11 @@ def check_message(expected_strings):
         diabetes
             &&:isyn
         """,
-        df.loc[[0, 1], ['diabetes']],
-        None
+        ['diabetes'],
+        [0, 1],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -57,8 +63,11 @@ def check_message(expected_strings):
         ID
         /diabetes
         """,
-        df.loc[[0, 1], ['ID', 'diabetes']],
-        None
+        ['ID', 'diabetes'],
+        [0, 1],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -68,8 +77,11 @@ def check_message(expected_strings):
             &&==("1...." +regex)
         /diabetes
         """,
-        df.loc[[0, 1], ['ID', 'diabetes']],
-        None
+        ['ID', 'diabetes'],
+        [0, 1],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -78,10 +90,28 @@ def check_message(expected_strings):
         /ID
             &&==("1...." +regex)
         """,
-        df.loc[[0, 1], ['ID', 'diabetes']],
-        None
+        ['ID', 'diabetes'],
+        [0, 1],
+        None,
+        None,
+        None,
     ),
 
+    ])
+def test_regex_flag(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     #saving and loading selections
     (
@@ -90,8 +120,11 @@ def check_message(expected_strings):
         age
         %:load(1)
         """,
-        df.loc[:, ['name']],
-        None
+        ['name'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -99,8 +132,11 @@ def check_message(expected_strings):
         age
         /:load(1)
         """,
-        df.loc[:, ['name', 'age']],
-        None
+        ['name', 'age'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -115,8 +151,11 @@ def check_message(expected_strings):
             &&:load 1
         ID  /gender
         """,
-        df.loc[[0, 3, 5], ['ID', 'gender']],
-        None
+        ['ID', 'gender'],
+        [0, 3, 5],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -130,8 +169,11 @@ def check_message(expected_strings):
             //male
             &&:load(1)
         """,
-        df.loc[[0, 3, 5], ['gender']],
-        None
+        ['gender'],
+        [0, 3, 5],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -146,8 +188,11 @@ def check_message(expected_strings):
             //== male
             // :load(1)
         """,
-        df.loc[[0, 1, 2, 3, 4, 5], ['gender']],
-        None
+        ['gender'],
+        [0, 1, 2, 3, 4, 5],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -163,8 +208,11 @@ def check_message(expected_strings):
             //:load(1)
         ID
         """,
-        df.loc[[0, 1, 2, 3, 4, 5, 10], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2, 3, 4, 5, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -177,16 +225,22 @@ def check_message(expected_strings):
             %%>30
             && :load 1
         """,
-        df.loc[[10], ['age']],
-        None
+        ['age'],
+        [10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
         age   %%>30   .save(a)
         age   %%<18   //:load(a)
         """,
-        df.loc[[0, 4, 10], ['age']],
-        None
+        ['age'],
+        [0, 4, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -199,8 +253,11 @@ def check_message(expected_strings):
             %%:isyn()
             &&:load('between 40 and 90')
         """,
-        df.loc[[0, 1], ['diabetes']],
-        None
+        ['diabetes'],
+        [0, 1],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -213,8 +270,11 @@ def check_message(expected_strings):
             %%:isyn()
             &&!:load('between 40 and 90')
         """,
-        df.loc[[3, 4, 5, 6, 9, 10], ['diabetes']],
-        None
+        ['diabetes'],
+        [3, 4, 5, 6, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -223,8 +283,11 @@ def check_message(expected_strings):
         %%%
         age  %%%:load(1)
         """,
-        df.loc[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['age']],
-        None
+        ['age'],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -233,8 +296,11 @@ def check_message(expected_strings):
         %%%
         age  %%%:load(1)  %%:trim
         """,
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -243,8 +309,11 @@ def check_message(expected_strings):
         %%%
         age  %%%:load(1)  %%:trim
         """,
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -252,8 +321,11 @@ def check_message(expected_strings):
         %%%
         age  %%%:load(1)  %%:trim
         """,
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -262,8 +334,11 @@ def check_message(expected_strings):
         %%%:isnum
         age  %%%:load(1)  %%:trim
         """,
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -274,8 +349,11 @@ def check_message(expected_strings):
         %%
         age  %%%:load(1)  %%:trim
         """,
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -284,8 +362,11 @@ def check_message(expected_strings):
         %%%
         age  %%%:load(1)  %%:trim
         """,
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -296,8 +377,11 @@ def check_message(expected_strings):
             %%%:isnum
             ///:load(1)  %%:trim
         """,
-        df.loc[[0, 1, 2, 3, 4, 6, 8, 10], ['age']],
-        None
+        ['age'],
+        [0, 1, 2, 3, 4, 6, 8, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -308,29 +392,40 @@ def check_message(expected_strings):
             %%%:isstr
             &&&:load(1)  %%:trim
         """,
-        df.loc[[6, 8], ['age']],
-        None
+        ['age'],
+        [6, 8],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_complex_queries(code, expected, message):
+def test_save_load(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
+    #trim rows and cols based on val selection
     (
         r"""
         name /age
             %%%?john
         %:trim
         """,
-        df.loc[:, ['name']],
+        ['name'],
+        df.index,
+        None,
+        None,
         None,
     ),
     (
@@ -339,7 +434,10 @@ def test_complex_queries(code, expected, message):
             %%%?john
         %%:trim
         """,
-        df.loc[[0, 2, 10], ['name', 'age']],
+        ['name', 'age'],
+        [0, 2, 10],
+        None,
+        None,
         None,
     ),
     (
@@ -348,7 +446,10 @@ def test_complex_queries(code, expected, message):
             %%%?john
         %:trim()
         """,
-        df.loc[:, ['name']],
+        ['name'],
+        df.index,
+        None,
+        None,
         None,
     ),
     (
@@ -357,7 +458,10 @@ def test_complex_queries(code, expected, message):
             %%%?john
         %%:trim()
         """,
-        df.loc[[0, 2, 10], ['name', 'age']],
+        ['name', 'age'],
+        [0, 2, 10],
+        None,
+        None,
         None,
     ),
     (
@@ -366,12 +470,15 @@ def test_complex_queries(code, expected, message):
             %%%?john
         :trim
         """,
-        df.loc[[0, 2, 10], ['name', 'age']],
+        ['name', 'age'],
+        [0, 2, 10],
+        None,
+        None,
         None,
     ),
     (
         r'%%%:isna  %:trim',
-        df.loc[:, [
+        [
             'age',
             'gender',
             'height',
@@ -381,17 +488,23 @@ def test_complex_queries(code, expected, message):
             'cholesterol',
             'diabetes',
             'dose',
-            ]],
+        ],
+        df.index,
+        None,
+        None,
         None,
     ),
     (
         r'%%%:isna  %%:trim',
-        df.loc[[1, 2, 3, 4, 6, 7, 8, 9, 10], :],
+        df.columns,
+        [1, 2, 3, 4, 6, 7, 8, 9, 10],
+        None,
+        None,
         None,
     ),
     (
         r'%%%:isna  %:trim  %%:trim',
-        df.loc[[1, 2, 3, 4, 6, 7, 8, 9, 10], [
+        [
             'age',
             'gender',
             'height',
@@ -401,17 +514,28 @@ def test_complex_queries(code, expected, message):
             'cholesterol',
             'diabetes',
             'dose',
-            ]],
+        ],
+        [1, 2, 3, 4, 6, 7, 8, 9, 10],
+        None,
+        None,
         None,
     ),
     (
         r'%%%:isna  %!:trim  %%%',
-        df.loc[:, ['ID', 'name', 'date of birth']],
+        ['ID', 'name', 'date of birth'],
+        df.index,
+        None,
+        None,
         None,
     ),
+
     ])
-def test_trim(code, expected, message):
+def test_trim(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)

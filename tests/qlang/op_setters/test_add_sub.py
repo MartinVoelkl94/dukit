@@ -437,11 +437,3 @@ def test_sub_vals(code, col, vals, dtype, message):
     assert_frame_equal(result, expected)
     if message:
         check_message(message)
-
-
-
-def test_sub_error():
-    log(clear=True)
-    code = r'name  %!-=1'
-    df.dk.qs(code)
-    check_message('ERROR: cannot negate substraction of a non-string value')

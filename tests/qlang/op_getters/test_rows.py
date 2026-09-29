@@ -1,6 +1,5 @@
 
 import pytest
-import dukit as dk
 
 from pandas.testing import assert_frame_equal
 from dukit import (
@@ -28,147 +27,221 @@ def check_message(expected_strings):
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
     (
         r'id  == @ID',
-        df.loc[:, ['ID']],
-        None
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r'id  == @id',
-        df.loc[[], ['ID']],
-        None
+        ['ID'],
+        [],
+        None,
+        None,
+        None,
     ),
     (
         r'age   == @"bp systole"',
-        df.loc[[8], ['age']],
-        None
+        ['age'],
+        [8],
+        None,
+        None,
+        None,
     ),
     (
         r"""
         age  /height  .tonum
         age  < height +colref
         """,
-        df.loc[[0, 10], ['age']].astype('Int64'),
-        None
+        ['age'],
+        [0, 10],
+        None,
+        ['Int64'],
+        None,
     ),
     (
         r"""
         age  /height  .tonum
         age  < @height
         """,
-        df.loc[[0, 10], ['age']].astype('Int64'),
-        None
+        ['age'],
+        [0, 10],
+        None,
+        ['Int64'],
+        None,
     ),
     (
         r"""
         age  /height  .tonum
         height  > @age
         """,
-        df.loc[[0, 10], ['height']].astype('Int64'),
-        None
+        ['height'],
+        [0, 10],
+        None,
+        ['Int64'],
+        None,
     ),
     (
         r"""
         age  /height  .tonum
         age  <= @height
         """,
-        df.loc[[0, 10], ['age']].astype('Int64'),
-        None
+        ['age'],
+        [0, 10],
+        None,
+        ['Int64'],
+        None,
     ),
     (
         r"""
         age  /height  .tonum
         height  >= @age
         """,
-        df.loc[[0, 10], ['height']].astype('Int64'),
-        None
+        ['height'],
+        [0, 10],
+        None,
+        ['Int64'],
+        None,
     ),
+
     ])
-def test_colref(code, expected, message):
+def test_colref(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
     (
         r'id  /name   ?j',
-        df.loc[[0, 1, 2, 9, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 1, 2, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?o',
-        df.loc[[0, 2, 3, 6, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 2, 3, 6, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?jo',
-        df.loc[[0, 2, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 2, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?(j, o)',
-        df.loc[[0, 2, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 2, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?(j, o, +all)',
-        df.loc[[0, 2, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 2, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?j  &&?o',
-        df.loc[[0, 2, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 2, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?(j, o, +any)',
-        df.loc[[0, 1, 2, 3, 6, 9, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 1, 2, 3, 6, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?j  //?o',
-        df.loc[[0, 1, 2, 3, 6, 9, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 1, 2, 3, 6, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'id  /name   ?j  &&?n',
-        df.loc[[0, 1, 2, 10], ['ID', 'name']],
-        None
+        ['ID', 'name'],
+        [0, 1, 2, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'height  /weight   :isnum',
-        df.loc[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['height', 'weight']],
-        None
+        ['height', 'weight'],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'height  /weight   :isnum +strict',
-        df.loc[[0, 8, 10], ['height', 'weight']],
-        None
+        ['height', 'weight'],
+        [0, 8, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'height  /weight   :isnum(+strict)',
-        df.loc[[0, 8, 10], ['height', 'weight']],
-        None
+        ['height', 'weight'],
+        [0, 8, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'height  /weight   :isnum(+allcols)',
-        df.loc[[0, 6, 9, 10], ['height', 'weight']],
-        None
+        ['height', 'weight'],
+        [0, 6, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'height  /weight   :isnum(+allcols +strict)',
-        df.loc[[0, 10], ['height', 'weight']],
-        None
+        ['height', 'weight'],
+        [0, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'height  /weight   :isnum(+allcols, +strict)',
-        df.loc[[0, 10], ['height', 'weight']],
-        None
+        ['height', 'weight'],
+        [0, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -177,8 +250,11 @@ def test_colref(code, expected, message):
         age
             //<18
         """,
-        df.loc[[0, 4, 10], ['age']],
-        None
+        ['age'],
+        [0, 4, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
@@ -186,664 +262,1020 @@ def test_colref(code, expected, message):
             %%>30
             //<18
         """,
-        df.loc[[0, 4, 10], ['age']],
-        None
+        ['age'],
+        [0, 4, 10],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_connect(code, expected, message):
+def test_connect(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     (
         r'"date of birth"  %%1995.01.02',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%==1995.01.02',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%==1995_01_02',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="1995-01-02"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="1995/01/02"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="1995 01 02"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="1995-Jan-02"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="02-01-1995"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="02-Jan-1995"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="Jan-02-1995"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="02-01.1995"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="02 Jan-1995"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"  %%=="Jan/02_1995"',
-        df.loc[[0], ['date of birth']],
+        ['date of birth'],
+        [0],
+        None,
+        None,
         None,
     ),
     (
         r'"date of birth"   .todatetime()   %%==1995-01-02',
-        df.loc[[0], ['date of birth']].map(dk.datetime),
+        ['date of birth'],
+        [0],
+        None,
+        ['datetime64[us]'],
         None,
     ),
     (
         r'"date of birth"   .todatetime   %%<1950.01.01',
-        df.loc[[10], ['date of birth']].map(dk.datetime),
+        ['date of birth'],
+        [10],
+        None,
+        ['datetime64[us]'],
         None,
     ),
     (
         r'"date of birth"   %%%.todatetime()   %%>"1990/01/01"   &&<"2000-01-01"',
-        df.loc[[0, 1], ['date of birth']].map(dk.datetime),
+        ['date of birth'],
+        [0, 1],
+        None,
+        ['datetime64[us]'],
         None,
     ),
 
     ])
-def test_dates(code, expected, message):
+def test_dates(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
-
-@pytest.mark.parametrize('code, expected, message', [
-
-    (
-        r'%% == (3 +index)',
-        df.iloc[[3], :],
-        None,
-    ),
-    (
-        r'%% > (5 +index)',
-        df.iloc[6:, :],
-        None,
-    ),
-    (
-        r'%% < (5 +index)',
-        df.iloc[:5, :],
-        None,
-    ),
-    (
-        r'%% >= (5 +index)',
-        df.iloc[5:, :],
-        None,
-    ),
-    (
-        r'%% <= (5 +index)',
-        df.iloc[:6, :],
-        None,
-    ),
-    (
-        r'%% != (5 +index)',
-        df.iloc[[0, 1, 2, 3, 4, 6, 7, 8, 9, 10], :],
-        None,
-    ),
-    (
-        r'%% == (5 +index)',
-        df.iloc[[5], :],
-        None,
-    ),
-    (
-        r'%% > (5 +index)  && < (8 +index)',
-        df.iloc[6:8, :],
-        None,
-    ),
-    (
-        r'%% > (5 +index)  && < (8 +index)  && != (6 +index)',
-        df.iloc[[7], :],
-        None,
-    ),
-    (
-        r'%% > (5 +index)  && < (8 +index)  && != (6 +index)  && != (7 +index)',
-        df.iloc[[], :],
-        None,
-    ),
-    (
-        r'%% > (5 +index)  && < (8 +index)  && != (6, 7 +index +all)',
-        df.iloc[[], :],
-        None,
-    ),
-    (
-        r'%% ? (1 +index)',
-        df.iloc[[1, 10], :],
-        None,
-    ),
-
-    ])
-def test_index(code, expected, message):
-    result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-
-
-@pytest.mark.parametrize('code, expected, message', [
-
-    (
-        r'age  ==30',
-        df.loc[[1], ['age']],
-        None
-    ),
-    (
-        r'age  %%30',
-        df.loc[[1], ['age']],
-        None
-    ),
-    (
-        r'age  %%==30',
-        df.loc[[1], ['age']],
-        None
-    ),
-    (
-        r'age  %%==30.0',
-        df.loc[[1], ['age']],
-        None
-    ),
-    (
-        r'age  %%==(30.0 +strict)',
-        df.loc[[], ['age']],
-        None
-    ),
-    (
-        r'age  %%>30',
-        df.loc[[4, 10], ['age']],
-        None
-    ),
-    (
-        r'age  %%>=30',
-        df.loc[[1, 4, 10], ['age']],
-        None
-    ),
-    (
-        r'age  %%<30',
-        df.loc[[0], ['age']],
-        None
-    ),
-    (
-        r'age  %%<=30',
-        df.loc[[0, 1], ['age']],
-        None
-    ),
-    (
-        r'age  %%!=30',
-        df.loc[[0, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['age']],
-        None
-    ),
-    (
-        r'age  %%!=30.0',
-        df.loc[[0, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['age']],
-        None
-    ),
-    (
-        r'age  %%!=(30 +strict)',
-        df.loc[:, ['age']],
-        None
-    ),
-    (
-        r'age  %%!=(30.0, +strict)',
-        df.loc[:, ['age']],
-        None
-    ),
-    (
-        r'age  %% !=30.0 +strict',
-        df.loc[:, ['age']],
-        None
-    ),
-    (
-        r'age  %%!>30',
-        df.loc[[0, 1, 2, 3, 5, 6, 7, 8, 9], ['age']],
-        None
-    ),
-    (
-        r'age  %%!>=30',
-        df.loc[[0, 2, 3, 5, 6, 7, 8, 9], ['age']],
-        None
-    ),
-    (
-        r'age  %%!<30',
-        df.loc[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], ['age']],
-        None
-    ),
-    (
-        r'age  %%!<=30',
-        df.loc[[2, 3, 4, 5, 6, 7, 8, 9, 10], ['age']],
-        None
-    ),
-    (
-        r'weight  %%>70',
-        df.loc[[0, 7, 9], ['weight']],
-        None
-    ),
-    (
-        r'weight  %%70',
-        df.loc[[], ['weight']],
-        None
-    ),
-
-    ])
-def test_numeric(code, expected, message):
-    result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
-    if message:
-        check_message(message)
-
-
-
-
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     #by evaluating python expressions
     (
         r'age  :eval("isinstance(x, int)")',
-        df.loc[[0, 10], ['age']],
-        None
-    ),
-
-
-    #invert
-    (
-        r"""
-        name
-            ?j
-            :invert
-        """,
-        df.loc[3:8, ['name']],
-        None
+        ['age'],
+        [0, 10],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_other(code, expected, message):
+def test_eval(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'%% == (3 +index)',
+        df.columns,
+        [3],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% > (5 +index)',
+        df.columns,
+        [6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% < (5 +index)',
+        df.columns,
+        [0, 1, 2, 3, 4],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% >= (5 +index)',
+        df.columns,
+        [5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% <= (5 +index)',
+        df.columns,
+        [0, 1, 2, 3, 4, 5],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% != (5 +index)',
+        df.columns,
+        [0, 1, 2, 3, 4, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% == (5 +index)',
+        df.columns,
+        [5],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% > (5 +index)  && < (8 +index)',
+        df.columns,
+        [6, 7],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% > (5 +index)  && < (8 +index)  && != (6 +index)',
+        df.columns,
+        [7],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% > (5 +index)  && < (8 +index)  && != (6 +index)  && != (7 +index)',
+        df.columns,
+        [],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% > (5 +index)  && < (8 +index)  && != (6, 7 +index +all)',
+        df.columns,
+        [],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%% ? (1 +index)',
+        df.columns,
+        [1, 10],
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_index(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #by evaluating python expressions
+    (
+        r'age  :eval("isinstance(x, int)")',
+        ['age'],
+        [0, 10],
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_invert(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'age  ==30',
+        ['age'],
+        [1],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%30',
+        ['age'],
+        [1],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%==30',
+        ['age'],
+        [1],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%==30.0',
+        ['age'],
+        [1],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%==(30.0 +strict)',
+        ['age'],
+        [],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%>30',
+        ['age'],
+        [4, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%>=30',
+        ['age'],
+        [1, 4, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%<30',
+        ['age'],
+        [0],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%<=30',
+        ['age'],
+        [0, 1],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!=30',
+        ['age'],
+        [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!=30.0',
+        ['age'],
+        [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!=(30 +strict)',
+        ['age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!=(30.0, +strict)',
+        ['age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %% !=30.0 +strict',
+        ['age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!>30',
+        ['age'],
+        [0, 1, 2, 3, 5, 6, 7, 8, 9],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!>=30',
+        ['age'],
+        [0, 2, 3, 5, 6, 7, 8, 9],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!<30',
+        ['age'],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'age  %%!<=30',
+        ['age'],
+        [2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'weight  %%>70',
+        ['weight'],
+        [0, 7, 9],
+        None,
+        None,
+        None,
+    ),
+    (
+        r'weight  %%70',
+        ['weight'],
+        [],
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_numeric(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     #regex equality
     (
         r'ID  ==("1...." +regex)',
-        df.loc[[0, 1, 2], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2],
+        None,
+        None,
+        None,
     ),
     (
         r'ID  %%("1...." +regex)',
-        df.loc[[0, 1, 2], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2],
+        None,
+        None,
+        None,
     ),
     (
         r'ID  %%==("1...." +regex)',
-        df.loc[[0, 1, 2], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2],
+        None,
+        None,
+        None,
     ),
     (
         r'ID  %% == ("1...." +regex)',
-        df.loc[[0, 1, 2], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2],
+        None,
+        None,
+        None,
     ),
     (
         r'ID  %%!=("3...." +regex)',
-        df.loc[[0, 1, 2, 3, 4, 5], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2, 3, 4, 5],
+        None,
+        None,
+        None,
     ),
     (
         r'ID  %%!=("3...." +regex)',
-        df.loc[[0, 1, 2, 3, 4, 5], ['ID']],
-        None
+        ['ID'],
+        [0, 1, 2, 3, 4, 5],
+        None,
+        None,
+        None,
     ),
     (
         #two words with first letter capitalized and separated by a space
         r'name  %%==("\b[A-Z][a-z]*\s[A-Z][a-z]*\b" +regex)',
-        df.loc[[0, 1, 2, 3, 7], ['name']],
-        None
+        ['name'],
+        [0, 1, 2, 3, 7],
+        None,
+        None,
+        None,
     ),
     (
         #all lowercase
         r'name  %%==("^[^A-Z]*$" +regex)',
-        df.loc[[4], ['name']],
-        None
+        ['name'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         #containing letters and numbers
         r'dose  %%==("^(?=.*[a-zA-Z])(?=.*[0-9]).*$" +regex)',
-        df.loc[[0, 2, 3, 4, 5, 8, 10], ['dose']],
-        None
+        ['dose'],
+        [0, 2, 3, 4, 5, 8, 10],
+        None,
+        None,
+        None,
     ),
 
 
     #regex search
     (
         r'"bp systole"  %%?(m +regex)',
-        df.loc[[4], ['bp systole']],
-        None
+        ['bp systole'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         r'"bp systole"  %%?("\D" +regex)',
-        df.loc[[0, 2, 3, 4, 5, 6, 7], ['bp systole']],
-        None
+        ['bp systole'],
+        [0, 2, 3, 4, 5, 6, 7],
+        None,
+        None,
+        None,
     ),
     (
         r'"bp systole"  %%?("\d" +regex)',
-        df.loc[[0, 1, 4, 5, 7, 9, 10], ['bp systole']],
-        None
+        ['bp systole'],
+        [0, 1, 4, 5, 7, 9, 10],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_regex(code, expected, message):
+def test_regex(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     (
         r'name  %%:isstr()',
-        df.loc[:, ['name']],
-        None
+        ['name'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r'name  %%!:isstr()',
-        df.loc[[], ['name']],
-        None
+        ['name'],
+        [],
+        None,
+        None,
+        None,
     ),
     (
         r'name  %%:isnum()',
-        df.loc[[], ['name']],
-        None
+        ['name'],
+        [],
+        None,
+        None,
+        None,
     ),
     (
         r'name  %%!:isnum()',
-        df.loc[:, ['name']],
-        None
+        ['name'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r'name  %%:isna()',
-        df.loc[[], ['name']],
-        None
+        ['name'],
+        [],
+        None,
+        None,
+        None,
     ),
     (
         r'name  %%:!isna()',
-        df.loc[:, ['name']],
-        None
+        ['name'],
+        df.index,
+        None,
+        None,
+        None,
     ),
 
     (
         r'age   %%:isint()',
-        df.loc[[0, 1, 4, 10], ['age']],
-        None
+        ['age'],
+        [0, 1, 4, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'age   %%:isint(+strict)',
-        df.loc[[0, 10], ['age']],
-        None
+        ['age'],
+        [0, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'age   %%:isfloat()',
-        df.loc[[0, 1, 2, 4, 6, 10], ['age']],
-        None
+        ['age'],
+        [0, 1, 2, 4, 6, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'age   %%:isfloat(+strict)',
-        df.loc[[2], ['age']],
-        None
+        ['age'],
+        [2],
+        None,
+        None,
+        None,
     ),
     (
         r'age   %%:isna()',
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
 
     (
         r'weight  %%:isint()',
-        df.loc[[1, 9, 10], ['weight']],
-        None
+        ['weight'],
+        [1, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'weight  %%:isint(+strict)',
-        df.loc[[10], ['weight']],
-        None
+        ['weight'],
+        [10],
+        None,
+        None,
+        None,
     ),
     (
         r'weight  %%:isfloat()',
-        df.loc[[0, 1, 7, 9, 10], ['weight']],
-        None
+        ['weight'],
+        [0, 1, 7, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'weight  %%:isfloat(+strict)',
-        df.loc[[0], ['weight']],
-        None
+        ['weight'],
+        [0],
+        None,
+        None,
+        None,
     ),
     (
         r'weight  %%:isnum()',
-        df.loc[[0, 1, 4, 6, 7, 9, 10], ['weight']],
-        None
+        ['weight'],
+        [0, 1, 4, 6, 7, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'weight  %%:isnum(+strict)',
-        df.loc[[0, 10], ['weight']],
-        None
+        ['weight'],
+        [0, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'weight  %%:isnum()  &&!:isna()',
-        df.loc[[0, 1, 7, 9, 10], ['weight']],
-        None
+        ['weight'],
+        [0, 1, 7, 9, 10],
+        None,
+        None,
+        None,
     ),
 
     (
         r'height       %%:isbool()',
-        df.loc[[6], ['height']],
-        None
+        ['height'],
+        [6],
+        None,
+        None,
+        None,
     ),
     (
         r'"bp diastole"  %%:isbool()',
-        df.loc[[9], ['bp diastole']],
-        None
+        ['bp diastole'],
+        [9],
+        None,
+        None,
+        None,
     ),
     (
         r'diabetes     %%:isbool()',
-        df.loc[[0, 1, 3, 4, 5, 6, 9, 10], ['diabetes']],
-        None
+        ['diabetes'],
+        [0, 1, 3, 4, 5, 6, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'diabetes     %%:isbool(+strict)',
-        df.loc[[0, 10], ['diabetes']],
-        None
+        ['diabetes'],
+        [0, 10],
+        None,
+        None,
+        None,
     ),
 
     (
         r'"date of birth"  %%:isdate()',
-        df.loc[:, ['date of birth']],
-        None
+        ['date of birth'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r'"date of birth"  %%:isdate()  +strict',
-        df.loc[[0, 1, 5, 6], ['date of birth']],
-        None
+        ['date of birth'],
+        [0, 1, 5, 6],
+        None,
+        None,
+        None,
     ),
     (
         r'"date of birth"  %%:isdatetime()',
-        df.loc[:, ['date of birth']],
-        None
+        ['date of birth'],
+        df.index,
+        None,
+        None,
+        None,
     ),
     (
         r'"date of birth"  %%:isdatetime()  +strict',
-        df.loc[[0, 1, 5, 6], ['date of birth']],
-        None
+        ['date of birth'],
+        [0, 1, 5, 6],
+        None,
+        None,
+        None,
     ),
 
     (
         r'diabetes  %%:isyn()',
-        df.loc[[0, 1, 3, 4, 5, 6, 9, 10], ['diabetes']],
-        None
+        ['diabetes'],
+        [0, 1, 3, 4, 5, 6, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r'diabetes  %%:isna()  //:isyn()',
-        df.loc[:, ['diabetes']],
-        None
+        ['diabetes'],
+        df.index,
+        None,
+        None,
+        None,
     ),
 
     (
         r'cholesterol  %%:isna()',
-        df.loc[[2, 4, 7, 9], ['cholesterol']],
-        None
+        ['cholesterol'],
+        [2, 4, 7, 9],
+        None,
+        None,
+        None,
     ),
     (
         r'age  %%:isna()',
-        df.loc[[2, 3, 6, 8], ['age']],
-        None
+        ['age'],
+        [2, 3, 6, 8],
+        None,
+        None,
+        None,
     ),
     (
         r'age  %%:isna(+strict)',
-        df.loc[[2, 3], ['age']],
-        None
+        ['age'],
+        [2, 3],
+        None,
+        None,
+        None,
     ),
 
     (
         r'age  %%:isnk()',
-        df.loc[[7, 9], ['age']],
-        None
+        ['age'],
+        [7, 9],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_typechecks(code, expected, message):
+def test_typechecks(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     (
         r'age  ==40',
-        df.loc[[4], ['age']],
-        None
+        ['age'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         r'age  ==40  +int',
-        df.loc[[4], ['age']],
-        None
+        ['age'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         r'age  ==40  +float',
-        df.loc[[4], ['age']],
-        None
+        ['age'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         r'age  ==40  +num',
-        df.loc[[4], ['age']],
-        None
+        ['age'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         r'age  ==40.0  +num',
-        df.loc[[4], ['age']],
-        None
+        ['age'],
+        [4],
+        None,
+        None,
+        None,
     ),
     (
         r'age  ==40  +str',
-        df.loc[[], ['age']],
-        None
+        ['age'],
+        [],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_typeflags(code, expected, message):
+def test_typeflags(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
 
-@pytest.mark.parametrize('code, expected, message', [
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
     (
         r"""
         diabetes  :isunique
         %
         """,
-        df.loc[[1, 2, 4, 5, 6, 7, 8, 9, 10], :],
-        None
+        df.columns,
+        [1, 2, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
         diabetes  :isfirst()
         %
         """,
-        df.loc[[0, 1, 2, 4, 5, 6, 7, 8, 9, 10], :],
-        None
+        df.columns,
+        [0, 1, 2, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
     ),
     (
         r"""
         diabetes  %%:islast()
         %
         """,
-        df.loc[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], :],
-        None
+        df.columns,
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        None,
+        None,
+        None,
     ),
 
     ])
-def test_uniqueness(code, expected, message):
+def test_uniqueness(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
