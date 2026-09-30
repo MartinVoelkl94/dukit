@@ -29,23 +29,134 @@ def check_message(expected_strings):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #type conversion
+    (
+        r"""
+        %.toobj
+        """,
+        df.columns,
+        None,
+        None,
+        ['object'],
+        None,
+    ),
+    (
+        r"""
+        %.tostr
+        """,
+        df.columns,
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        %.toint
+        """,
+        [pd.NA for col in df.columns],
+        None,
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r"""
+        %.tofloat
+        """,
+        [pd.NA for col in df.columns],
+        None,
+        None,
+        ['Float64'],
+        None,
+    ),
+    (
+        r"""
+        %.tonum
+        """,
+        [pd.NA for col in df.columns],
+        None,
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r"""
+        %.tobool
+        """,
+        [pd.NA for col in df.columns],
+        None,
+        None,
+        ['boolean'],
+        None,
+    ),
+    (
+        r"""
+        %.todate
+        """,
+        [pd.NaT for col in df.columns],
+        None,
+        None,
+        ['datetime64[s]'],
+        None,
+    ),
+    (
+        r"""
+        %.todatetime
+        """,
+        [pd.NaT for col in df.columns],
+        None,
+        None,
+        ['datetime64[us]'],
+        None,
+    ),
+    (
+        r"""
+        %.tona
+        """,
+        df.columns,
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        %.tonk
+        """,
+        df.columns,
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        %.toyn
+        """,
+        [None for col in df.columns],
+        None,
+        None,
+        ['object'],
+        None,
+    ),
+
+    ])
+def test_cols(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
     (
         r'%%.toobj',
         df.columns,
-        [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-        ],
+        df.index,
         None,
         ['object'],
         None,
@@ -53,19 +164,7 @@ def check_message(expected_strings):
     (
         r'%%.tostr',
         df.columns,
-        [
-            '0',
-            '1',
-            '2',
-            '3',
-            '4',
-            '5',
-            '6',
-            '7',
-            '8',
-            '9',
-            '10',
-        ],
+        df.index,
         None,
         ['string'],
         None,
@@ -73,19 +172,7 @@ def check_message(expected_strings):
     (
         r'%%.toint',
         df.columns,
-        [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-        ],
+        df.index,
         None,
         ['Int64'],
         None,
@@ -93,19 +180,7 @@ def check_message(expected_strings):
     (
         r'%%.tofloat',
         df.columns,
-        [
-            0,
-            1.0,
-            2.0,
-            3.0,
-            4.0,
-            5.0,
-            6.0,
-            7.0,
-            8.0,
-            9.0,
-            10.0,
-        ],
+        df.index,
         None,
         ['Float64'],
         None,
@@ -113,19 +188,7 @@ def check_message(expected_strings):
     (
         r'%%.tonum',
         df.columns,
-        [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-        ],
+        df.index,
         None,
         ['Int64'],
         None,
@@ -164,6 +227,42 @@ def check_message(expected_strings):
         [pd.NaT for ind in df.index],
         None,
         ['datetime64[us]'],
+        None,
+    ),
+    (
+        r'%%.tona',
+        df.columns,
+        df.index,
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r'%%.tonk',
+        df.columns,
+        df.index,
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r'%%.toyn',
+        df.columns,
+        [
+            'no',
+            'yes',
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+        ],
+        None,
+        ['string'],
         None,
     ),
 
