@@ -28,6 +28,20 @@ def check_message(expected_strings):
 
 
 
+def test_default():
+    code = r"""
+    %.wrap
+    """
+    result = df.dk.qr(code).style_cols
+    expected = pd.Series(
+        '',
+        index=df.columns,
+        )
+    expected[:] = 'text-wrap: wrap;'
+    assert_series_equal(result, expected)  # type: ignore
+
+
+
 def test_prewrap1():
     code = r"""
     %.wrap(pre)
