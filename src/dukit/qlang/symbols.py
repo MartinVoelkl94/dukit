@@ -5158,7 +5158,7 @@ def _process_types_setter(
 
     elif 'str' in op.flags:
         series_new = series.astype('string')
-        arg_new = arg.lower()
+        arg_new = arg
 
     elif 'int' in op.flags:
         series_new = series.apply(int_).astype('Int64')
@@ -5256,6 +5256,13 @@ def _process_types_series_setter(
     elif 'num' in op.flags:
         series_new = series.apply(num_).convert_dtypes()
         series_other_new = series_other.apply(num_).convert_dtypes()
+        if series_new.dtype.name == series_other_new.dtype.name == 'Int64':
+            pass
+        elif series_new.dtype.name == series_other_new.dtype.name == 'Float64':
+            pass
+        else:
+            series_new = series.apply(float_).astype('Float64')
+            series_other_new = series_other.apply(float_).astype('Float64')
 
     elif 'bool' in op.flags:
         series_new = series.apply(bool_).astype('boolean')
