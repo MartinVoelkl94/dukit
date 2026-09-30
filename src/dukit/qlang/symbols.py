@@ -111,6 +111,7 @@ class ScopeValsNew(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'new'
         q.op.scope = 'vals'
         return q
@@ -133,6 +134,7 @@ class ScopeValsAnd(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'and'
         q.op.scope = 'vals'
         return q
@@ -155,6 +157,7 @@ class ScopeValsOr(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'or'
         q.op.scope = 'vals'
         return q
@@ -178,6 +181,7 @@ class ScopeRowsNew(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'new'
         q.op.scope = 'rows'
         return q
@@ -200,6 +204,7 @@ class ScopeRowsAnd(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'and'
         q.op.scope = 'rows'
         return q
@@ -222,6 +227,7 @@ class ScopeRowsOr(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'or'
         q.op.scope = 'rows'
         return q
@@ -245,6 +251,7 @@ class ScopeColsNew(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'new'
         q.op.scope = 'cols'
         return q
@@ -267,6 +274,7 @@ class ScopeColsAnd(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'and'
         q.op.scope = 'cols'
         return q
@@ -289,6 +297,7 @@ class ScopeColsOr(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_scope(q)
+        q.op.str_matched = self.str_matched
         q.op.connector = 'or'
         q.op.scope = 'cols'
         return q
@@ -317,7 +326,9 @@ def _preparse_for_scope(q: Query) -> Query:
 
 def _process_op(q: Query) -> Query:
 
-    if q.op == Symbol():
+    check_empty = copy.deepcopy(q.op)
+    check_empty.str_matched = ''  #otherwise, whitestring would be considered non-empty
+    if check_empty == Symbol():
         return q
 
     valid = True
@@ -1194,6 +1205,7 @@ def _parse_op_symbol(
     token = copy.deepcopy(token)
 
     #transfer main attributes
+    token.str_matched = q.op.str_matched + token.str_matched
     token.connector = q.op.connector
     token.scope = q.op.scope
     token.flags.update(q.op.flags)
@@ -5785,7 +5797,7 @@ class StyleTextWrap(Symbol):
         #custom
         'hard': 'wrap at each whitespace character',
         }
-    args_min = 1
+    args_min = 0
     args_max = 1
 
 
@@ -5802,7 +5814,11 @@ class StyleTextWrap(Symbol):
 
     def styler(self) -> str:
 
-        arg = self.args[0].lower()
+        if len(self.args) == 0:
+            arg = 'wrap'
+        else:
+            arg = self.args[0].lower()
+
         args_textwrap = (
             'wrap',
             'nowrap',
@@ -5817,14 +5833,15 @@ class StyleTextWrap(Symbol):
             'pre-line',
             )
 
+        style_str = 'text-wrap: wrap;'
         if arg in args_textwrap:
-            return f'text-wrap: {arg};'
+            style_str = f'text-wrap: {arg};'
         elif arg in args_whitespace:
-            return f'white-space: {arg};'
+            style_str = f'white-space: {arg};'
         elif arg == 'hard':
-            return 'word-spacing: 999999999px;'
-        else:
-            return ''
+            style_str = 'word-spacing: 999999999px;'
+
+        return style_str
 
 
 
@@ -6283,7 +6300,7 @@ class ViewParserHelp(Symbol):
 
         if not q.op.scope:
             _print_or_display(
-                'available scopes:',
+                'scopes:',
                 as_df('scopes')[cols_show],
                 )
             print('\n\n')
@@ -6367,7 +6384,7 @@ class ViewParserHelp(Symbol):
                 columns=['arg', 'description'],
                 )
             _print_or_display(
-                'available args:',
+                'allowed args:',
                 df,
                 )
 
@@ -6377,7 +6394,7 @@ class ViewParserHelp(Symbol):
                 columns=['flag', 'description'],
                 )
             _print_or_display(
-                'available flags:',
+                'allowed flags:',
                 df,
                 )
 
@@ -6626,6 +6643,7 @@ class Literal(Symbol):
 
     def parse(self, q: Query) -> Query:
         q = _preparse_for_literal(self, q)
+        q.op.str_matched += self.str_matched
         q.op.args.append(self.literal)
         return q
 
@@ -6708,6 +6726,7 @@ class ListStart(Symbol):
         #keep cases exhaustive (at the cost of repetition)!
 
         if q.op == Symbol():
+            q.op.str_matched += self.str_matched
             q.op.connector = 'new'
             q.op.scope = 'cols'
             q = GetEquals().parse(q)
@@ -6715,6 +6734,7 @@ class ListStart(Symbol):
             return q
 
         elif not q.op.scope and not q.op.operator:
+            q.op.str_matched += self.str_matched
             q.op.connector = 'new'
             q.op.scope = 'cols'
             q = GetEquals().parse(q)
@@ -6723,6 +6743,7 @@ class ListStart(Symbol):
 
         elif not q.op.operator:
             q = GetEquals().parse(q)
+            q.op.str_matched += self.str_matched
             q.op.list_started = True
             return q
 
@@ -6759,6 +6780,7 @@ class ListStart(Symbol):
             return q
 
         else:
+            q.op.str_matched += self.str_matched
             q.op.list_started = True
 
         return q
@@ -6815,6 +6837,7 @@ class ListStop(Symbol):
             return q
 
         else:
+            q.op.str_matched += self.str_matched
             q.op.list_stopped = True
             return q
 
@@ -6844,6 +6867,10 @@ class Separator(Symbol):
     category = 'syntax'
     regex = (r',',)
 
+    def parse(self, q: Query) -> Query:
+        q.op.str_matched += self.str_matched
+        return q
+
 
 
 
@@ -6865,6 +6892,10 @@ class Whitespace(Symbol):
     name = 'Whitespace'
     category = 'syntax'
     regex = (r'[ \t]+',)
+
+    def parse(self, q: Query) -> Query:
+        q.op.str_matched += self.str_matched
+        return q
 
 
 
@@ -6896,11 +6927,14 @@ class FlagNegate(Symbol):
 
     def parse(self, q: Query) -> Query:
         if q.op.scope and not q.op.operator:
+            q.op.str_matched += self.str_matched
             q.op.flags['negate'] = 'negate the condition'
         elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+            q.op.str_matched += self.str_matched
             q.op.flags['negate'] = 'negate the condition'
         else:
             q = _process_op(q)
+            q.op.str_matched += self.str_matched
             q.op.flags['negate'] = 'negate the condition'
         return q
 
@@ -6923,11 +6957,14 @@ class FlagIndex(Symbol):
 
     def parse(self, q: Query) -> Query:
         if q.op.scope and not q.op.operator:
+            q.op.str_matched += self.str_matched
             q.op.flags['index'] = 'apply condition to the index'
         elif not q.op.scope and not q.op.operator and len(q.op.flags) > 0:
+            q.op.str_matched += self.str_matched
             q.op.flags['index'] = 'apply condition to the index'
         else:
             q = _process_op(q)
+            q.op.str_matched += self.str_matched
             q.op.flags['index'] = 'apply condition to the index'
         return q
 
@@ -6953,6 +6990,7 @@ class FlagColref(Symbol):
             context = _build_log_context('dk.qlang.symbols.FlagColref.parse')
             log(msg, context, q.verbosity)
         else:
+            q.op.str_matched += self.str_matched
             q.op.flags['colref'] = 'use a col reference for setting/getting vals'
         return q
 
@@ -6980,9 +7018,11 @@ class Flag(Symbol):
 
     def parse(self, q: Query) -> Query:
         if self.literal in q.op.flags_allowed:
+            q.op.str_matched += self.str_matched
             #adds the flags description found in flags allowed
             q.op.flags[self.literal] = q.op.flags_allowed[self.literal]
         else:
+            q.op.str_matched += self.str_matched
             q.op.flags[self.literal] = ''
         return q
 
