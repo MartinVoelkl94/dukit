@@ -27,61 +27,138 @@ def check_message(expected_strings):
 
 
 
-def test_cols1():
-    code = r'name  %+=1 +str  %'
-    result = df.dk.qr(code).result
-    expected = get_df().rename(columns={'name': 'name1'})
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
+    (
+        r'name  %+=1 +str  %',
+        [
+            'ID',
+            'name1',
+            'date of birth',
+            'age',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose',
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r'name  /age  %+=1 +str  %',
+        [
+            'ID',
+            'name1',
+            'date of birth',
+            'age1',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose',
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        name %+=1 +str
+        'date of birth' %+=1 +str
+        %
+        """,
+        [
+            'ID',
+            'name1',
+            'date of birth1',
+            'age',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose',
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r'name  %!+=1  %',
+        df.columns,
+        None,
+        None,
+        ['object'],
+        'ERROR: cannot negate addition of a non-string value',
+    ),
 
-
-def test_cols2():
-    code = r'name  /age  %+=1 +str   %'
-    result = df.dk.qr(code).result
-    mapping = {
-        'name': 'name1',
-        'age': 'age1',
-        }
-    expected = get_df().rename(columns=mapping)
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
-
-
-
-def test_cols3():
-    code = r"""
-    name %+=1 +str
-    'date of birth' %+=1 +str
-    %
-    """
-    result = df.dk.qr(code).result
-    mapping = {
-        'name': 'name1',
-        'date of birth': 'date of birth1',
-        }
-    expected = get_df().rename(columns=mapping)
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
-
-
-
-def test_rows():
-    code = r'%%+=1'
+    ])
+def test_cols(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
     expected = get_df()
-    expected.index = expected.index + 1
+    expected.columns = pd.Series(cols).astype(dtypes[0])
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
 
 
 
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-@pytest.mark.parametrize('code, col, vals, dtype, message', [
+    #set
+    (
+        r'%%+=1',
+        df.columns,
+        [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
+
+    ])
+def test_rows(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected.index = pd.Series(rows).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
 
     (
         r'age  .toint  +=1',
-        'age',
-        [
+        ['age'],
+        df.index,
+        [[
             -24,
             31,
             pd.NA,
@@ -93,15 +170,15 @@ def test_rows():
             pd.NA,
             pd.NA,
             36,
-        ],
-        'Int64',
+        ]],
+        ['Int64'],
         None
     ),
-
     (
         r'age  +=1  +int',
-        'age',
-        [
+        ['age'],
+        df.index,
+        [[
             -24,
             31,
             pd.NA,
@@ -113,15 +190,15 @@ def test_rows():
             pd.NA,
             pd.NA,
             36,
-        ],
-        'Int64',
+        ]],
+        ['Int64'],
         None
     ),
-
     (
         r'age  +=1  +str',
-        'age',
-        [
+        ['age'],
+        df.index,
+        [[
             '-251',
             '301',
             pd.NA,
@@ -133,15 +210,15 @@ def test_rows():
             '1',
             'unknown1',
             '351',
-        ],
-        'string',
+        ]],
+        ['string'],
         None
     ),
-
     (
         r'name  +=_',
-        'name',
-        [
+        ['name'],
+        df.index,
+        [[
             'John Doe_',
             'Jane Smith_',
             'Alice Johnson_',
@@ -153,15 +230,15 @@ def test_rows():
             'IVY GREEN_',
             'JAck Williams_',
             'john Doe_',
-        ],
-        'string',
+        ]],
+        ['string'],
         None
     ),
-
     (
         r'name  !+=_',
-        'name',
-        [
+        ['name'],
+        df.index,
+        [[
             '_John Doe',
             '_Jane Smith',
             '_Alice Johnson',
@@ -173,15 +250,15 @@ def test_rows():
             '_IVY GREEN',
             '_JAck Williams',
             '_john Doe',
-        ],
-        'string',
+        ]],
+        ['string'],
         None
     ),
-
     (
         r'height  +=@weight +int',
-        'height',
-        [
+        ['height'],
+        df.index,
+        [[
             240,
             pd.NA,
             pd.NA,
@@ -193,25 +270,23 @@ def test_rows():
             pd.NA,
             pd.NA,
             135,
-        ],
-        'Int64',
+        ]],
+        ['Int64'],
         None
     ),
 
     ])
-def test_vals(code, col, vals, dtype, message):
+def test_vals(code, cols, rows, vals, dtypes, message):
+
     result = df.dk.qr(code).result
-    expected = pd.DataFrame({col: vals}, dtype=dtype)
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = pd.Series(val, index=rows).astype(dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
+
     assert_frame_equal(result, expected)
     if message:
         check_message(message)
 
 
-
-def test_error():
-    log(clear=True)
-    code = r'name  %!+=1'
-    df.dk.qs(code)
-    check_message('ERROR: cannot negate addition of a non-string value')

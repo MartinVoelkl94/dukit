@@ -1,5 +1,6 @@
 
 import pytest
+import numpy as np
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
@@ -113,7 +114,6 @@ def test_cols(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #set
     (
         r'%%§0  %%=1  %%',
         df.columns,
@@ -148,13 +148,212 @@ def test_rows(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #set values
     (
         r'age =1',
         ['age'],
         df.index,
         [[1] * len(df)],
         ['object'],
+        None,
+    ),
+    (
+        r"""
+        age
+            %%>30
+                %%%:isnum()
+                    =X
+                %%%
+        %%
+        """,
+        ['age'],
+        df.index,
+        [[
+            -25,
+            '30',
+            np.nan,
+            pd.NaT,
+            'X',
+            'forty-five',
+            'nan',
+            'unk',
+            '',
+            'unknown',
+            'X',
+        ]],
+        ['object'],
+        None,
+    ),
+    (
+        r"""
+        age
+            %%%:isint()
+                %%%=X
+            %%%
+        %%
+        """,
+        ['age'],
+        df.index,
+        [[
+            'X',
+            'X',
+            np.nan,
+            pd.NaT,
+            'X',
+            'forty-five',
+            'nan',
+            'unk',
+            '',
+            'unknown',
+            'X',
+        ]],
+        ['object'],
+        None,
+    ),
+    (
+        r"""
+        name /age
+            %%!?(Grace, alice, +strict, +allcols, +all)
+                %%%?o
+                &&&?e
+                    =X
+                %%%
+        %%
+        """,
+        ['name', 'age'],
+        df.index,
+        [[
+            'X',
+            'Jane Smith',
+            'X',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'X',
+            ],
+            [
+            -25,
+            '30',
+            np.nan,
+            pd.NaT,
+            '40.0',
+            'X',
+            'nan',
+            'unk',
+            '',
+            'unknown',
+            35,
+        ]],
+        ['string', 'object'],
+        None,
+    ),
+    (
+        r"""
+        name
+            %%=="john doe"
+                =deleted
+        %%
+        """,
+        ['name', 'age'],
+        df.index,
+        [[
+            'deleted',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'deleted',
+        ]],
+        ['string', 'object'],
+        None,
+    ),
+    (
+        r"""
+        name
+            %%=="john doe"
+                =deleted
+        /age
+            %%%=deleted
+        %%
+        """,
+        ['name', 'age'],
+        df.index,
+        [[
+            'deleted',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'deleted',
+            ],
+            [
+            'deleted',
+            '30',
+            np.nan,
+            pd.NaT,
+            '40.0',
+            'forty-five',
+            'nan',
+            'unk',
+            '',
+            'unknown',
+            'deleted',
+        ]],
+        ['string', 'object'],
+        None,
+    ),
+    (
+        r"""
+        name
+            %%=="john doe"
+        /age
+            //30
+            %%%:all
+            =deleted
+        %%
+        """,
+        ['name', 'age'],
+        df.index,
+        [[
+            'deleted',
+            'deleted',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'deleted',
+            ],
+            [
+            'deleted',
+            'deleted',
+            np.nan,
+            pd.NaT,
+            '40.0',
+            'forty-five',
+            'nan',
+            'unk',
+            '',
+            'unknown',
+            'deleted',
+        ]],
+        ['string', 'object'],
         None,
     ),
 
@@ -207,147 +406,4 @@ def test_vals1():
     expected.loc[[2, 4, 7, 9], 'cholesterol'] = None
     expected.loc[[2, 7, 8], 'diabetes'] = None
     expected.loc[[1, 6, 7], 'dose'] = None
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals2():
-    code = r"""
-    %age
-        %%>30
-            %%%:isnum()
-                =X
-            %%%
-    """
-    result = df.dk.qr(code).result
-    expected = (
-        get_df()
-        .loc[[4, 10], ['age']]
-        .astype(object)
-        )
-    expected.loc[:, 'age'] = 'X'
-    expected['age'] = expected['age'].astype('object')
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals3():
-    code = r"""
-    %age
-        %%%:isint()
-            %%%=X
-        %%%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()[['age']]
-    expected.loc[[0, 1, 4, 10], 'age'] = 'X'
-    expected['age'] = expected['age'].astype('object')
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals4():
-    code = r"""
-    %name /age
-        %%!?(Grace, alice, +strict, +allcols, +all)
-            %%%?o
-            &&&?e
-                =X
-            %%%
-    """
-    result = df.dk.qr(code).result
-    rows = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10]
-    expected = get_df().loc[rows, ['name', 'age']]
-    expected.loc[[0, 2, 10], 'name'] = 'X'
-    expected.loc[5, 'age'] = 'X'
-    expected = expected.convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals5():
-    code = r"""
-    %name /age
-        %%!?(Grace, alice, +strict +allcols +all)
-            %%%?o
-            &&&?e
-                =X
-            %%%
-    """
-    result = df.dk.qr(code).result
-    rows = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10]
-    expected = get_df().loc[rows, ['name', 'age']]
-    expected.loc[[0, 2, 10], 'name'] = 'X'
-    expected.loc[5, 'age'] = 'X'
-    expected = expected.convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals6():
-    code = r"""
-    name
-        %%=="john doe"
-            =deleted
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected.loc[[0, 10], 'name'] = 'deleted'
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals7():
-    code = r"""
-    name
-        %%=="john doe"
-    /age
-        %%%=deleted
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected.loc[[0, 10], ['name', 'age']] = 'deleted'
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals8():
-    code = r"""
-    name
-        %%=="john doe"
-        %
-        =deleted
-    /age
-        //30
-        %
-        =deleted
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected['ID'] = expected['ID'].astype('object')
-    expected.loc[[0, 1, 10], :] = 'deleted'
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals9():
-    code = r"""
-    name
-        %%=="john doe"
-    /age
-        //30
-        %%%:all
-        =deleted
-    %
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected.loc[[0, 1, 10], ['name', 'age']] = 'deleted'
     assert_frame_equal(result, expected)

@@ -1,4 +1,5 @@
 
+import pytest
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
@@ -25,91 +26,169 @@ def check_message(expected_strings):
 
 
 
-def test_cols1():
-    code = r"""
-    name %.upper()
-    """
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'name  %.upper()  %',
+        [
+            'ID',
+            'NAME',
+            'date of birth',
+            'age',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose'
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_cols(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    vals = df['name']
-    expected = pd.DataFrame({'NAME': vals}, dtype='string')
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'name  %%.upper()  %',
+        df.columns,
+        [
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+        ],
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_rows(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = get_df()[cols]
+    expected.index = pd.Series(rows).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'name  ?doe .upper()  %%',
+        ['name'],
+        df.index,
+        [[
+            'JOHN DOE',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'JOHN DOE',
+        ]],
+        ['string'],
+        None
+    ),
+    (
+        r'name  %%?doe .upper()  %%',
+        ['name'],
+        df.index,
+        [[
+            'JOHN DOE',
+            'Jane Smith',
+            'Alice Johnson',
+            'Bob Brown',
+            'eva white',
+            'Frank miller',
+            'Grace TAYLOR',
+            'Harry Clark',
+            'IVY GREEN',
+            'JAck Williams',
+            'JOHN DOE',
+        ]],
+        ['string'],
+        None
+    ),
+    (
+        r'name  %%%.upper()',
+        ['name'],
+        df.index,
+        [[
+            'JOHN DOE',
+            'JANE SMITH',
+            'ALICE JOHNSON',
+            'BOB BROWN',
+            'EVA WHITE',
+            'FRANK MILLER',
+            'GRACE TAYLOR',
+            'HARRY CLARK',
+            'IVY GREEN',
+            'JACK WILLIAMS',
+            'JOHN DOE',
+        ]],
+        ['string'],
+        None
+    ),
+    (
+        r'name  .upper()',
+        ['name'],
+        df.index,
+        [[
+            'JOHN DOE',
+            'JANE SMITH',
+            'ALICE JOHNSON',
+            'BOB BROWN',
+            'EVA WHITE',
+            'FRANK MILLER',
+            'GRACE TAYLOR',
+            'HARRY CLARK',
+            'IVY GREEN',
+            'JACK WILLIAMS',
+            'JOHN DOE',
+        ]],
+        ['string'],
+        None
+    ),
+
+    ])
+def test_vals(code, cols, rows, vals, dtypes, message):
+
+    result = df.dk.qr(code).result
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = pd.Series(val, index=rows).astype(dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
+
     assert_frame_equal(result, expected)
-
-
-
-def test_rows1():
-    code = r"""
-    name  %%.upper()
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']]
-    expected.index = (
-        df
-        .index
-        .astype('string')
-        .str
-        .upper()
-        )
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals1():
-    code = r"""
-    name  ?doe .upper()
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']].copy()
-    expected.loc[[0, 10], 'name'] = expected['name'].str.upper()
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals2():
-    code = r"""
-    name  %%?doe .upper()
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']].copy()
-    expected.loc[[0, 10], 'name'] = expected['name'].str.upper()
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals3():
-    code = r"""
-    name  %%?doe .upper()  %%
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']].copy()
-    expected.loc[[0, 10], 'name'] = expected['name'].str.upper()
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals4():
-    code = r"""
-    name  %%%.upper()
-    """
-    result = df.dk.qr(code).result
-    vals = df['name'].str.upper()
-    expected = pd.DataFrame({'name': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-def test_vals5():
-    code = r"""
-    name  .upper()
-    """
-    result = df.dk.qr(code).result
-    vals = df['name'].str.upper()
-    expected = pd.DataFrame({'name': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)

@@ -1,11 +1,14 @@
 
 import pytest
+import pandas as pd
 
 from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
     )
+
+
 
 df = get_df()
 
@@ -24,12 +27,14 @@ def check_message(expected_strings):
 
 
 
+
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #invert selection
     (
-        r'id  %:invert',
+        r"""
+        """,
         [
+            'ID',
             'name',
             'date of birth',
             'age',
@@ -40,41 +45,20 @@ def check_message(expected_strings):
             'bp diastole',
             'cholesterol',
             'diabetes',
-            'dose',
+            'dose'
         ],
-        df.index,
         None,
         None,
-        None,
-    ),
-    (
-        r'name  /gender  %:invert',
-        [
-            'ID',
-            'date of birth',
-            'age',
-            'height',
-            'weight',
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-            'dose',
-        ],
-        df.index,
-        None,
-        None,
+        ['string'],
         None,
     ),
 
     ])
 def test_cols(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = df.loc[rows, cols]
-    if dtypes:
-        for col, dtype in zip(cols, dtypes):
-            expected[col] = expected[col].astype(dtype)
-    assert_frame_equal(result, expected)  #type: ignore
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
+    assert_frame_equal(result, expected)
     if message:
         check_message(message)
 
@@ -82,24 +66,34 @@ def test_cols(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #by evaluating python expressions
     (
-        r'name  ?john  %%:invert',
-        ['name'],
-        [1, 3, 4, 5, 6, 7, 8, 9],
+        r"""
+        """,
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
         None,
-        None,
+        ['Int64'],
         None,
     ),
 
     ])
 def test_rows(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = df.loc[rows, cols]
-    if dtypes:
-        for col, dtype in zip(cols, dtypes):
-            expected[col] = expected[col].astype(dtype)
-    assert_frame_equal(result, expected)  #type: ignore
+    expected = get_df()
+    expected.index = pd.Series(rows).astype(dtypes[0])
+    assert_frame_equal(result, expected)
     if message:
         check_message(message)
 
@@ -107,28 +101,29 @@ def test_rows(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #invert
     (
         r"""
-        name
-            %%%?j
-            %%%:invert
-            %%:trim
+        age
         """,
-        ['name'],
-        [3, 4, 5, 6, 7, 8],
-        None,
-        None,
+        ['age'],
+        df.index,
+        [df['age']],
+        ['object'],
         None,
     ),
 
     ])
 def test_vals(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = df.loc[rows, cols]
-    if dtypes:
-        for col, dtype in zip(cols, dtypes):
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
             expected[col] = expected[col].astype(dtype)
-    assert_frame_equal(result, expected)  #type: ignore
+    expected.columns = expected.columns.to_series().convert_dtypes()
+    expected.index = expected.index.to_series().convert_dtypes()
+
+    assert_frame_equal(result, expected)
     if message:
         check_message(message)

@@ -1,4 +1,5 @@
 
+import pytest
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
@@ -25,78 +26,116 @@ def check_message(expected_strings):
 
 
 
-def test_cols():
-    code = r"""
-    %.typeinfo
-    """
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r"""
+        %.typeinfo
+        """,
+        [
+            "'ID' [str] 'ID'",
+            "'name' [str] 'name'",
+            "'date of birth' [str] 'date of birth'",
+            "'age' [str] 'age'",
+            "'gender' [str] 'gender'",
+            "'height' [str] 'height'",
+            "'weight' [str] 'weight'",
+            "'bp systole' [str] 'bp systole'",
+            "'bp diastole' [str] 'bp diastole'",
+            "'cholesterol' [str] 'cholesterol'",
+            "'diabetes' [str] 'diabetes'",
+            "'dose' [str] 'dose'",
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_cols(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    cols = [
-        "'ID' [str] 'ID'",
-        "'name' [str] 'name'",
-        "'date of birth' [str] 'date of birth'",
-        "'age' [str] 'age'",
-        "'gender' [str] 'gender'",
-        "'height' [str] 'height'",
-        "'weight' [str] 'weight'",
-        "'bp systole' [str] 'bp systole'",
-        "'bp diastole' [str] 'bp diastole'",
-        "'cholesterol' [str] 'cholesterol'",
-        "'diabetes' [str] 'diabetes'",
-        "'dose' [str] 'dose'",
-        ]
-    expected = df.copy()
-    expected.columns = pd.Series(cols).convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
 
 
 
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-def test_rows():
-    code = r"""
-    %%.typeinfo
-    """
+    (
+        r"""
+        %%.typeinfo
+        """,
+        df.columns,
+        [
+            '0 [int] 0',
+            '1 [int] 1',
+            '2 [int] 2',
+            '3 [int] 3',
+            '4 [int] 4',
+            '5 [int] 5',
+            '6 [int] 6',
+            '7 [int] 7',
+            '8 [int] 8',
+            '9 [int] 9',
+            '10 [int] 10',
+        ],
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_rows(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    cols = [
-        '0 [int] 0',
-        '1 [int] 1',
-        '2 [int] 2',
-        '3 [int] 3',
-        '4 [int] 4',
-        '5 [int] 5',
-        '6 [int] 6',
-        '7 [int] 7',
-        '8 [int] 8',
-        '9 [int] 9',
-        '10 [int] 10',
-        ]
-    expected = df.copy()
+    expected = get_df()
+    expected.index = pd.Series(rows).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r"""
+        age  .typeinfo
+        """,
+        ['age'],
+        df.index,
+        [[
+            "-25 [int] -25",
+            "'30' [int] 30",
+            "nan [float] nan",
+            "NaT [na] None",
+            "'40.0' [float] 40.0",
+            "'forty-five' [str] 'forty-five'",
+            "'nan' [na] None",
+            "'unk' [str] 'unk'",
+            "'' [na] None",
+            "'unknown' [str] 'unknown'",
+            "35 [int] 35",
+        ]],
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_vals(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = pd.Series(cols).convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_vals():
-    code = r"""
-    age  .typeinfo
-    """
-    result = df.dk.qr(code).result
-    vals = [
-        "-25 [int] -25",
-        "'30' [int] 30",
-        "nan [float] nan",
-        "NaT [na] None",
-        "'40.0' [float] 40.0",
-        "'forty-five' [str] 'forty-five'",
-        "'nan' [na] None",
-        "'unk' [str] 'unk'",
-        "'' [na] None",
-        "'unknown' [str] 'unknown'",
-        "35 [int] 35",
-        ]
-    expected = pd.DataFrame({'age': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
+
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)

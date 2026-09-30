@@ -29,7 +29,77 @@ def check_message(expected_strings):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #subtract
+    (
+        r"""
+        name  /age  %-=e  %
+        """,
+        [
+            'ID',
+            'nam',
+            'date of birth',
+            'ag',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose'
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        %-=e  %
+        """,
+        [
+            'ID',
+            'nam',
+            'date of birth',
+            'ag',
+            'gender',
+            'height',
+            'weight',
+            'bp systol',
+            'bp diastol',
+            'cholesterol',
+            'diabetes',
+            'dos'
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r"""
+        name %-=e
+        'date of birth' %-=" of birth"
+        %
+        """,
+        [
+            'ID',
+            'nam',
+            'date',
+            'age',
+            'gender',
+            'height',
+            'weight',
+            'bp systole',
+            'bp diastole',
+            'cholesterol',
+            'diabetes',
+            'dose'
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
     (
         r'name  %!-=1  %',
         df.columns,
@@ -50,52 +120,37 @@ def test_cols(code, cols, rows, vals, dtypes, message):
 
 
 
-def test_cols1():
-    code = r'name  %-=me  %'
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'%%-=1',
+        df.columns,
+        [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
+
+    ])
+def test_rows(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = get_df().rename(columns={'name': 'na'})
-    expected.columns = expected.columns.astype('string')
+    expected = get_df()[cols]
+    expected.index = pd.Series(rows).astype(dtypes[0])
     assert_frame_equal(result, expected)
-
-
-
-def test_cols2():
-    code = r'name  /age  %-=e  %'
-    result = df.dk.qr(code).result
-    mapping = {
-        'name': 'nam',
-        'age': 'ag',
-        }
-    expected = get_df().rename(columns=mapping)
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
-
-
-
-def test_cols3():
-    code = r"""
-    name %-=e
-    'date of birth' %-=" of birth"
-    %
-    """
-    result = df.dk.qr(code).result
-    mapping = {
-        'name': 'nam',
-        'date of birth': 'date',
-        }
-    expected = get_df().rename(columns=mapping)
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
-
-
-
-def test_rows():
-    code = r'%%-=1'
-    result = df.dk.qr(code).result
-    expected = get_df()
-    expected.index = expected.index - 1
-    assert_frame_equal(result, expected)
-
+    if message:
+        check_message(message)
 
 
 

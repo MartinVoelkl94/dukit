@@ -1,4 +1,5 @@
 
+import pytest
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
@@ -25,79 +26,128 @@ def check_message(expected_strings):
 
 
 
-def test_cols1():
-    code = r"""
-    %.raw
-    """
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'%.raw',
+        [
+            "'ID'",
+            "'name'",
+            "'date of birth'",
+            "'age'",
+            "'gender'",
+            "'height'",
+            "'weight'",
+            "'bp systole'",
+            "'bp diastole'",
+            "'cholesterol'",
+            "'diabetes'",
+            "'dose'",
+        ],
+        None,
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_cols(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    cols = [
-        "'ID'",
-        "'name'",
-        "'date of birth'",
-        "'age'",
-        "'gender'",
-        "'height'",
-        "'weight'",
-        "'bp systole'",
-        "'bp diastole'",
-        "'cholesterol'",
-        "'diabetes'",
-        "'dose'",
-        ]
-    expected = df.copy()
-    expected.columns = pd.Series(cols).convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
+    expected = get_df()
+    expected.columns = pd.Series(cols).astype(dtypes[0])
     assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
 
 
 
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-def test_rows1():
-    code = r"""
-    %%.raw
-    """
+    (
+        r'%%.raw',
+        df.columns,
+        [
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+        ],
+        None,
+        ['string'],
+        None,
+    ),
+
+    ])
+def test_rows(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    cols = [
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        '10',
-        ]
-    expected = df.copy()
+    expected = get_df()[cols]
+    expected.index = pd.Series(rows).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    (
+        r'age  .raw',
+        ['age'],
+        df.index,
+        [[
+            "-25",
+            "'30'",
+            "nan",
+            "NaT",
+            "'40.0'",
+            "'forty-five'",
+            "'nan'",
+            "'unk'",
+            "''",
+            "'unknown'",
+            "35",
+        ]],
+        ['string'],
+        None
+    ),
+    (
+        r'age  %%%.raw',
+        ['age'],
+        df.index,
+        [[
+            "-25",
+            "'30'",
+            "nan",
+            "NaT",
+            "'40.0'",
+            "'forty-five'",
+            "'nan'",
+            "'unk'",
+            "''",
+            "'unknown'",
+            "35",
+        ]],
+        ['string'],
+        None
+    ),
+
+    ])
+def test_vals(code, cols, rows, vals, dtypes, message):
+
+    result = df.dk.qr(code).result
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = pd.Series(val, index=rows).astype(dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = pd.Series(cols).convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_vals1():
-    code = r"""
-    age  .raw
-    """
-    result = df.dk.qr(code).result
-    vals = [
-        "-25",
-        "'30'",
-        "nan",
-        "NaT",
-        "'40.0'",
-        "'forty-five'",
-        "'nan'",
-        "'unk'",
-        "''",
-        "'unknown'",
-        "35",
-        ]
-    expected = pd.DataFrame({'age': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
 
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)

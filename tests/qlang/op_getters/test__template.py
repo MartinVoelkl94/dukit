@@ -26,41 +26,9 @@ def check_message(expected_strings):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #invert selection
     (
-        r'id  %:invert',
-        [
-            'name',
-            'date of birth',
-            'age',
-            'gender',
-            'height',
-            'weight',
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-            'dose',
-        ],
-        df.index,
-        None,
-        None,
-        None,
-    ),
-    (
-        r'name  /gender  %:invert',
-        [
-            'ID',
-            'date of birth',
-            'age',
-            'height',
-            'weight',
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-            'dose',
-        ],
+        r'age',
+        ['age'],
         df.index,
         None,
         None,
@@ -82,11 +50,22 @@ def test_cols(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #by evaluating python expressions
     (
-        r'name  ?john  %%:invert',
-        ['name'],
-        [1, 3, 4, 5, 6, 7, 8, 9],
+        r'age  >0  %%',
+        ['age'],
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
         None,
         None,
         None,
@@ -107,16 +86,22 @@ def test_rows(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #invert
     (
-        r"""
-        name
-            %%%?j
-            %%%:invert
-            %%:trim
-        """,
-        ['name'],
-        [3, 4, 5, 6, 7, 8],
+        r'age  %%%>0  %%:trim  %%',
+        ['age'],
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
         None,
         None,
         None,
