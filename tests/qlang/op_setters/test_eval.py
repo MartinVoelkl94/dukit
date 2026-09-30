@@ -27,7 +27,7 @@ def check_message(expected_strings):
 
 
 
-def test_eval1():
+def test_cols1():
     code = r'%.eval("x.lower()")'
     result = df.dk.qr(code).result
     expected = get_df()
@@ -43,7 +43,7 @@ def test_eval1():
 
 
 
-def test_eval2():
+def test_rows1():
     code = r'name  %%.eval("str(1)")'
     result = df.dk.qr(code).result
     expected = get_df().loc[:, ['name']]
@@ -53,7 +53,7 @@ def test_eval2():
 
 
 
-def test_eval3():
+def test_rows2():
     code = r"""
     name  %%.eval("str(x).lower()")
     %
@@ -72,7 +72,7 @@ def test_eval3():
 
 
 
-def test_eval4():
+def test_vals1():
     code = r"""
     name  %%%.eval("x.lower()")
     %
@@ -90,7 +90,7 @@ def test_eval4():
 
 
 
-def test_eval5():
+def test_vals2():
     code = r"""
     name
         %%!:eval("x == x.lower()")
@@ -110,7 +110,7 @@ def test_eval5():
 
 
 
-def test_eval6():
+def test_vals3():
     code = r"""
     id
         %%10001
@@ -125,7 +125,7 @@ def test_eval6():
 
 
 
-def test_eval7():
+def test_vals4():
     code = r"""
     id  /age
         %%:isnum()
@@ -141,7 +141,7 @@ def test_eval7():
 
 
 
-def test_eval8():
+def test_vals5():
     code = r"""
     id  /age
         %%:isnum()
@@ -156,7 +156,7 @@ def test_eval8():
 
 
 
-def test_eval9():
+def test_vals6():
     code = r"""
     id  /age
         %%:isnum(+allcols)
@@ -173,7 +173,7 @@ def test_eval9():
 
 
 
-def test_eval_col1():
+def test_vals7():
     code = r"""
     id  .eval('df["name"]')
     %
@@ -184,7 +184,7 @@ def test_eval_col1():
     assert_frame_equal(result, expected)
 
 
-def test_eval_col2():
+def test_vals8():
     code = r"""
     id  .eval('df["name"]')
     %
@@ -197,7 +197,7 @@ def test_eval_col2():
 
 
 
-def test_eval_col3():
+def test_vals9():
     code = r"""
     id  /age  .eval('df["name"]')
     %
@@ -210,7 +210,7 @@ def test_eval_col3():
 
 
 
-def test_eval_col4():
+def test_vals10():
     code = r"""
     .eval('df["name"]')
     """
@@ -225,7 +225,7 @@ def test_eval_col4():
 
 
 
-def test_eval_col5():
+def test_vals11():
     code = r"""
     id  /age
         :isnum
@@ -240,7 +240,7 @@ def test_eval_col5():
 
 
 
-def test_eval_col6():
+def test_vals12():
     code = r"""
     id  /age
         :isnum +allcols
@@ -255,7 +255,7 @@ def test_eval_col6():
 
 
 
-def test_eval_col7():
+def test_vals13():
     code = r"""
     id  /age
         :isnum +allcols

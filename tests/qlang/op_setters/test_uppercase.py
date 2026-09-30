@@ -25,102 +25,7 @@ def check_message(expected_strings):
 
 
 
-
-def test_lower1():
-    code = r"""
-    ID %.lower()
-    """
-    result = df.dk.qr(code).result
-    vals = df['ID']
-    expected = pd.DataFrame({'id': vals}, dtype='Int64')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    expected.columns = expected.columns.astype('string')
-    assert_frame_equal(result, expected)
-
-
-
-def test_lower2():
-    code = r"""
-    name  %%.lower()
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']]
-    expected.index = (
-        df
-        .index
-        .astype(str)
-        .str
-        .lower()
-        .astype('string')
-        )
-    assert_frame_equal(result, expected)
-
-
-
-def test_lower3():
-    code = r"""
-    name  ?doe .lower()
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']].copy()
-    expected.loc[[0, 10], 'name'] = expected['name'].astype('string').str.lower()
-    assert_frame_equal(result, expected)
-
-
-
-def test_lower4():
-    code = r"""
-    name  %%?doe .lower()
-    %%
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']].copy()
-    expected.loc[[0, 10], 'name'] = expected['name'].astype('string').str.lower()
-    assert_frame_equal(result, expected)
-
-
-
-def test_lower5():
-    code = r"""
-    name  %%?doe .lower()  %%
-    """
-    result = df.dk.qr(code).result
-    expected = df[['name']].copy()
-    expected.loc[[0, 10], 'name'] = expected['name'].astype('string').str.lower()
-    assert_frame_equal(result, expected)
-
-
-
-def test_lower6():
-    code = r"""
-    name  %%%.lower()
-    """
-    result = df.dk.qr(code).result
-    vals = df['name'].astype('string').str.lower()
-    expected = pd.DataFrame({'name': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-def test_lower7():
-    code = r"""
-    name  .lower()
-    """
-    result = df.dk.qr(code).result
-    vals = df['name'].astype('string').str.lower()
-    expected = pd.DataFrame({'name': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_upper1():
+def test_cols1():
     code = r"""
     name %.upper()
     """
@@ -133,7 +38,7 @@ def test_upper1():
 
 
 
-def test_upper2():
+def test_rows1():
     code = r"""
     name  %%.upper()
     """
@@ -150,7 +55,7 @@ def test_upper2():
 
 
 
-def test_upper3():
+def test_vals1():
     code = r"""
     name  ?doe .upper()
     %%
@@ -162,7 +67,7 @@ def test_upper3():
 
 
 
-def test_upper4():
+def test_vals2():
     code = r"""
     name  %%?doe .upper()
     %%
@@ -174,7 +79,7 @@ def test_upper4():
 
 
 
-def test_upper5():
+def test_vals3():
     code = r"""
     name  %%?doe .upper()  %%
     """
@@ -185,7 +90,7 @@ def test_upper5():
 
 
 
-def test_upper6():
+def test_vals4():
     code = r"""
     name  %%%.upper()
     """
@@ -198,7 +103,7 @@ def test_upper6():
 
 
 
-def test_upper7():
+def test_vals5():
     code = r"""
     name  .upper()
     """

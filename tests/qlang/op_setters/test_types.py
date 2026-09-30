@@ -27,8 +27,244 @@ def check_message(expected_strings):
 
 
 
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-def test_all_vals_toint():
+    #type conversion
+    (
+        r'%%.toobj',
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['object'],
+        None,
+    ),
+    (
+        r'%%.tostr',
+        df.columns,
+        [
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+        ],
+        None,
+        ['string'],
+        None,
+    ),
+    (
+        r'%%.toint',
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r'%%.tofloat',
+        df.columns,
+        [
+            0,
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+        ],
+        None,
+        ['Float64'],
+        None,
+    ),
+    (
+        r'%%.tonum',
+        df.columns,
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+        ],
+        None,
+        ['Int64'],
+        None,
+    ),
+    (
+        r'%%.tobool',
+        df.columns,
+        [
+            False,
+            True,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+            pd.NA,
+        ],
+        None,
+        ['boolean'],
+        None,
+    ),
+    (
+        r'%%.todate',
+        df.columns,
+        [pd.NaT for ind in df.index],
+        None,
+        ['datetime64[s]'],
+        None,
+    ),
+    (
+        r'%%.todatetime',
+        df.columns,
+        [pd.NaT for ind in df.index],
+        None,
+        ['datetime64[us]'],
+        None,
+    ),
+
+    ])
+def test_rows(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = get_df()
+    expected.index = pd.Series(rows).astype(dtypes[0])
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #type conversion
+    (
+        r'age  .toobj  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .tostr  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .toint  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['Int64'],
+        None,
+    ),
+    (
+        r'age  .tofloat  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['Float64'],
+        None,
+    ),
+    (
+        r'age  .tonum  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['Int64'],
+        None,
+    ),
+    (
+        r'age  .tobool  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .todate  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+    (
+        r'age  .todatetime  =1',
+        ['age'],
+        df.index,
+        [[1] * len(df)],
+        ['object'],
+        None,
+    ),
+
+    ])
+def test_vals(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+
+    expected = pd.DataFrame(index=rows)
+    for col, val, dtype in zip(cols, vals, dtypes):
+        expected[col] = val
+        if dtype:
+            expected[col] = expected[col].astype(dtype)
+    expected.columns = expected.columns.to_series().convert_dtypes()
+    expected.index = expected.index.to_series().convert_dtypes()
+
+    assert_frame_equal(result, expected)
+    if message:
+        check_message(message)
+
+
+
+def test_vals1():
     code = r"""
     %%% .toint()
     """
@@ -136,86 +372,6 @@ def test_all_vals_toint():
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
-
-
-
-
-def test_raw_rep_cols():
-    code = r"""
-    %.raw
-    """
-    result = df.dk.qr(code).result
-    cols = [
-        "'ID'",
-        "'name'",
-        "'date of birth'",
-        "'age'",
-        "'gender'",
-        "'height'",
-        "'weight'",
-        "'bp systole'",
-        "'bp diastole'",
-        "'cholesterol'",
-        "'diabetes'",
-        "'dose'",
-        ]
-    expected = df.copy()
-    expected.columns = pd.Series(cols).convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_raw_rep_rows():
-    code = r"""
-    %%.raw
-    """
-    result = df.dk.qr(code).result
-    cols = [
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        '10',
-        ]
-    expected = df.copy()
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = pd.Series(cols).convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_raw_rep_vals():
-    code = r"""
-    age  .raw
-    """
-    result = df.dk.qr(code).result
-    vals = [
-        "-25",
-        "'30'",
-        "nan",
-        "NaT",
-        "'40.0'",
-        "'forty-five'",
-        "'nan'",
-        "'unk'",
-        "''",
-        "'unknown'",
-        "35",
-        ]
-    expected = pd.DataFrame({'age': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
 
 
 
@@ -844,13 +1000,12 @@ def test_raw_rep_vals():
     ),
 
     ])
-def test_set_vals(code, vals, col, dtype):
+def test_vals2(code, vals, col, dtype):
     result = df.dk.qr(code).result
     expected = pd.DataFrame({col: vals}, dtype=dtype)
     expected.columns = expected.columns.to_series().convert_dtypes()
     expected.index = expected.index.to_series().convert_dtypes()
     assert_frame_equal(result, expected)
-
 
 
 
@@ -872,204 +1027,6 @@ def test_set_vals(code, vals, col, dtype):
         TypeError,
     ),
     ])
-def test_strict_type_errors(code, error_type):
+def test_errors(code, error_type):
     with pytest.raises(error_type):
         _ = df.dk.qr(code).result
-
-
-
-def test_strict_type_colref1():
-    code = r"""
-    a = @b +colref +date +strict
-    """
-    df_test = pd.DataFrame({
-        'a': ['2020-01-01', '2020-01-02'],
-        'b': ['2021-02-01', '2021-02-02'],
-        })
-    result = df_test.dk.qr(code).result
-    vals = [
-        pd.to_datetime('2021-02-01').date(),
-        pd.to_datetime('2021-02-02').date(),
-        ]
-    expected = pd.DataFrame({'a': vals}, dtype='object')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-def test_strict_type_colref2():
-    code = r"""
-    a = @b +colref +datetime +strict
-    """
-    df_test = pd.DataFrame({
-        'a': ['2020-01-01 00:00:00', '2020-01-02 03:04:05'],
-        'b': ['2021-02-01 01:02:03', '2021-02-02 04:05:06'],
-        })
-    result = df_test.dk.qr(code).result
-    vals = [
-        pd.to_datetime('2021-02-01 01:02:03'),
-        pd.to_datetime('2021-02-02 04:05:06'),
-        ]
-    expected = pd.DataFrame({'a': vals}, dtype='datetime64[us]')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_typeinfo_cols():
-    code = r"""
-    %.typeinfo
-    """
-    result = df.dk.qr(code).result
-    cols = [
-        "'ID' [str] 'ID'",
-        "'name' [str] 'name'",
-        "'date of birth' [str] 'date of birth'",
-        "'age' [str] 'age'",
-        "'gender' [str] 'gender'",
-        "'height' [str] 'height'",
-        "'weight' [str] 'weight'",
-        "'bp systole' [str] 'bp systole'",
-        "'bp diastole' [str] 'bp diastole'",
-        "'cholesterol' [str] 'cholesterol'",
-        "'diabetes' [str] 'diabetes'",
-        "'dose' [str] 'dose'",
-        ]
-    expected = df.copy()
-    expected.columns = pd.Series(cols).convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_typeinfo_rows():
-    code = r"""
-    %%.typeinfo
-    """
-    result = df.dk.qr(code).result
-    cols = [
-        '0 [int] 0',
-        '1 [int] 1',
-        '2 [int] 2',
-        '3 [int] 3',
-        '4 [int] 4',
-        '5 [int] 5',
-        '6 [int] 6',
-        '7 [int] 7',
-        '8 [int] 8',
-        '9 [int] 9',
-        '10 [int] 10',
-        ]
-    expected = df.copy()
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = pd.Series(cols).convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_typeinfo_vals():
-    code = r"""
-    age  .typeinfo
-    """
-    result = df.dk.qr(code).result
-    vals = [
-        "-25 [int] -25",
-        "'30' [int] 30",
-        "nan [float] nan",
-        "NaT [na] None",
-        "'40.0' [float] 40.0",
-        "'forty-five' [str] 'forty-five'",
-        "'nan' [na] None",
-        "'unk' [str] 'unk'",
-        "'' [na] None",
-        "'unknown' [str] 'unknown'",
-        "35 [int] 35",
-        ]
-    expected = pd.DataFrame({'age': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_typeinfo_strict_cols():
-    code = r"""
-    %.typeinfo +strict
-    """
-    result = df.dk.qr(code).result
-    cols = [
-        "'ID' [str]",
-        "'name' [str]",
-        "'date of birth' [str]",
-        "'age' [str]",
-        "'gender' [str]",
-        "'height' [str]",
-        "'weight' [str]",
-        "'bp systole' [str]",
-        "'bp diastole' [str]",
-        "'cholesterol' [str]",
-        "'diabetes' [str]",
-        "'dose' [str]",
-        ]
-    expected = df.copy()
-    expected.columns = pd.Series(cols).convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_typeinfo_strict_rows():
-    code = r"""
-    %%.typeinfo +strict
-    """
-    result = df.dk.qr(code).result
-    cols = [
-        '0 [int]',
-        '1 [int]',
-        '2 [int]',
-        '3 [int]',
-        '4 [int]',
-        '5 [int]',
-        '6 [int]',
-        '7 [int]',
-        '8 [int]',
-        '9 [int]',
-        '10 [int]',
-        ]
-    expected = df.copy()
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = pd.Series(cols).convert_dtypes()
-    assert_frame_equal(result, expected)
-
-
-
-
-def test_typeinfo_strict_vals():
-    code = r"""
-    age  .typeinfo +strict
-    """
-    result = df.dk.qr(code).result
-    vals = [
-        "-25 [int]",
-        "'30' [str]",
-        "nan [float]",
-        "NaT [NaTType]",
-        "'40.0' [str]",
-        "'forty-five' [str]",
-        "'nan' [str]",
-        "'unk' [str]",
-        "'' [str]",
-        "'unknown' [str]",
-        "35 [int]",
-        ]
-    expected = pd.DataFrame({'age': vals}, dtype='string')
-    expected.columns = expected.columns.to_series().convert_dtypes()
-    expected.index = expected.index.to_series().convert_dtypes()
-    assert_frame_equal(result, expected)

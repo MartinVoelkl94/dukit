@@ -1,13 +1,11 @@
 
 import pytest
-import pandas as pd
 
 from pandas.testing import assert_frame_equal
 from dukit import (
     get_df,
     log,
     )
-
 
 df = get_df()
 
@@ -28,13 +26,11 @@ def check_message(expected_strings):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
+    #invert selection
     (
-        r"""
-        name  %=full_name  %
-        """,
+        r'id  %:invert',
         [
-            'ID',
-            'full_name',
+            'name',
             'date of birth',
             'age',
             'gender',
@@ -46,46 +42,17 @@ def check_message(expected_strings):
             'diabetes',
             'dose',
         ],
+        df.index,
         None,
         None,
-        ['string'],
         None,
     ),
     (
-        r"""
-        name  /age  %=renamed  %
-        """,
+        r'name  /gender  %:invert',
         [
             'ID',
-            'renamed',
             'date of birth',
-            'renamed',
-            'gender',
-            'height',
-            'weight',
-            'bp systole',
-            'bp diastole',
-            'cholesterol',
-            'diabetes',
-            'dose',
-        ],
-        None,
-        None,
-        ['string'],
-        None,
-    ),
-    (
-        r"""
-        name %=full_name
-        'date of birth' %=dob
-        %
-        """,
-        [
-            'ID',
-            'full_name',
-            'dob',
             'age',
-            'gender',
             'height',
             'weight',
             'bp systole',
@@ -94,41 +61,74 @@ def check_message(expected_strings):
             'diabetes',
             'dose',
         ],
+        df.index,
         None,
         None,
-        ['string'],
         None,
     ),
 
     ])
-def test_set(code, cols, rows, vals, dtypes, message):
+def test_cols(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = get_df()
-    expected.columns = pd.Series(cols).astype(dtypes[0])
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
 
 
 
-
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #subtract
+    #by evaluating python expressions
     (
-        r'name  %!-=1  %',
-        df.columns,
+        r'age  :eval("isinstance(x, int)")',
+        ['age'],
+        [0, 10],
         None,
         None,
-        ['object'],
-        'ERROR: cannot negate substraction of a non-string value',
+        None,
     ),
 
     ])
-def test_subtract(code, cols, rows, vals, dtypes, message):
+def test_rows(code, cols, rows, vals, dtypes, message):
     result = df.dk.qr(code).result
-    expected = get_df()
-    expected.columns = pd.Series(cols).astype(dtypes[0])
-    assert_frame_equal(result, expected)
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
+    #invert
+    (
+        r"""
+        name
+            %%%?j
+            %%%:invert
+            %%:trim
+        """,
+        ['name'],
+        [3, 4, 5, 6, 7, 8],
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_vals(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
     if message:
         check_message(message)
