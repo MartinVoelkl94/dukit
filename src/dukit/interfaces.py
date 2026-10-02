@@ -76,6 +76,8 @@ class DukitAccessor():
             uid: str = None,
             upper: int = None,
             lower: int = None,
+            start_at_day1: bool = True,
+            schedule: dict[int, str] = None,
             linebreak: str = '<br>',
             verbosity: int = 3,
             ):
@@ -85,6 +87,8 @@ class DukitAccessor():
             uid=uid,
             upper=upper,
             lower=lower,
+            start_at_day1=start_at_day1,
+            schedule=schedule,
             linebreak=linebreak,
             verbosity=verbosity,
             )
@@ -173,6 +177,14 @@ class DukitAccessor():
             sheet_name='df',
             index=False,
             format_excel=True,
+            freeze_panes='B2',
+            hide_sheets=None,
+            hide_cols=None,
+            col_width_max=70,
+            col_width_padding=2,
+            align_vertical='top',
+            align_horizontal='left',
+            wrap_text=True,
             **kwargs,
             ):
         save(
@@ -181,6 +193,14 @@ class DukitAccessor():
             sheet_name=sheet_name,
             index=index,
             format_excel=format_excel,
+            freeze_panes=freeze_panes,
+            hide_sheets=hide_sheets,
+            hide_cols=hide_cols,
+            col_width_max=col_width_max,
+            col_width_padding=col_width_padding,
+            align_vertical=align_vertical,
+            align_horizontal=align_horizontal,
+            wrap_text=wrap_text,
             **kwargs,
             )
         return None

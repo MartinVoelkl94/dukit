@@ -136,6 +136,14 @@ def save(
         sheet_name='df',
         index=False,
         format_excel=True,
+        freeze_panes='B2',
+        hide_sheets=None,
+        hide_cols=None,
+        col_width_max=70,
+        col_width_padding=2,
+        align_vertical='top',
+        align_horizontal='left',
+        wrap_text=True,
         **kwargs,
         ):
     """
@@ -184,4 +192,15 @@ def save(
             )
 
     if format_excel:
-        format(path, sheet=sheet_name)
+        format(
+            path,
+            sheet=sheet_name,
+            freeze_panes=freeze_panes,
+            hide_sheets=hide_sheets,
+            hide_cols=hide_cols,
+            col_width_max=col_width_max,
+            col_width_padding=col_width_padding,
+            align_vertical=align_vertical,
+            align_horizontal=align_horizontal,
+            wrap_text=wrap_text,
+            )
