@@ -84,6 +84,10 @@ VALUES_NA = (
     'blank',
     'empty',
     )
+VALUES_NA_STRICT = (
+    '<na>',
+    'none',
+    )
 VALUES_NK = (
     'unk',
     'unknown',
@@ -487,6 +491,10 @@ def type_(x) -> str:
         return 'int'
     elif isinstance(x, TYPES_FLOAT):
         return 'float'
+    elif pd.isna(x):
+        return 'na'
+    elif x == '':
+        return 'str'
     elif datetime_(x) is not pd.NaT:
         x = str(x).strip()
         if re.fullmatch(r'\d*', x):
@@ -504,7 +512,7 @@ def type_(x) -> str:
             return 'int'
         elif re.fullmatch(r'-?\d+[\.,]\d+', x):
             return 'float'
-        elif str(x).lower() in VALUES_NA:
+        elif str(x).lower() in VALUES_NA_STRICT:
             return 'na'
         else:
             try:
@@ -512,9 +520,6 @@ def type_(x) -> str:
                 return 'num'
             except Exception:
                 return 'str'
-
-    elif pd.isna(x):
-        return 'na'
 
     else:
         return type(x).__name__

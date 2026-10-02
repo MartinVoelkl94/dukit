@@ -377,7 +377,7 @@ def test_vals(code, cols, rows, vals, dtypes, message):
 
 def test_vals1():
     code = r"""
-    %%%:isna  = ""
+    %%%:isna  = none
     %%%
     """
     result = df.dk.qr(code).result
