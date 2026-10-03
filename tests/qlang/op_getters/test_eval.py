@@ -26,7 +26,54 @@ def check_message(expected_strings):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #by evaluating python expressions
+    (
+        r'%:eval("len(x)==2")',
+        ['ID'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:eval("x")',
+        df.columns,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        r'%:eval("True")',
+        df.columns,
+        df.index,
+        None,
+        None,
+        None,
+    ),
+    (
+        """%:eval(" 'ag' in x ")""",
+        ['age'],
+        df.index,
+        None,
+        None,
+        None,
+    ),
+
+    ])
+def test_cols(code, cols, rows, vals, dtypes, message):
+    result = df.dk.qr(code).result
+    expected = df.loc[rows, cols]
+    if dtypes:
+        for col, dtype in zip(cols, dtypes):
+            expected[col] = expected[col].astype(dtype)
+    assert_frame_equal(result, expected)  #type: ignore
+    if message:
+        check_message(message)
+
+
+
+@pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
+
     (
         r'age  :eval("isinstance(x, int)")',
         ['age'],
@@ -51,7 +98,6 @@ def test_rows(code, cols, rows, vals, dtypes, message):
 
 @pytest.mark.parametrize('code, cols, rows, vals, dtypes, message', [
 
-    #by evaluating python expressions
     (
         r'age  %%%:eval("isinstance(x, int)")  %%:trim',
         ['age'],
