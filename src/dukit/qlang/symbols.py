@@ -1413,8 +1413,8 @@ class GetNotEquals(Symbol):
 
 class GetContains(Symbol):
     """
-    get cols/rows/vals if
-    they contain an arg.
+    get cols/rows/vals if they
+    contain a given string.
 
     Examples
     --------
@@ -1489,6 +1489,184 @@ class GetContains(Symbol):
             series = series.str.lower()
             arg = arg.lower()
             mask = series.str.contains(arg, regex=False)
+
+        return mask
+
+
+
+
+class GetStartsWith(Symbol):
+    """
+    get cols/rows/vals if they
+    start with a given string.
+
+    Examples
+    --------
+    >>> df.dk.qs(r'name  :start(john)')
+    """
+
+    #symbol attributes
+    name = 'GetStartsWith'
+    category = 'getter'
+    regex = (
+        r':startswith',
+        r':starts',
+        r':start',
+        )
+
+    #used to validate the current op
+    connectors_allowed = {
+        'new': 'start a new op',
+        'and': 'combine getter selection with current selection using logical AND',
+        'or': 'combine getter selection with current selection using logical OR',
+        }
+    scopes_allowed = {
+        'cols': 'get or set cols/headers',
+        'rows': 'get or set rows/index',
+        'vals': 'get or set vals within current row and col selection',
+        }
+    flags_allowed = {
+        'negate': 'negate the condition',
+        'regex': 'parse arg as regex',
+
+        'index': 'condition is applied to index instead of vals',
+        'any': 'condition must apply to any args',
+        'all': 'condition must apply to all args',
+        'allcols': 'get rows where condition applies in all selected cols',
+
+        'strict': 'strict type comparison/conversion',
+        }
+    args_allowed = {}
+    args_min = 1
+    args_max = 1_000_000
+
+
+    def parse(self, q: Query) -> Query:
+        q = _preparse_for_getter(q)
+        q = _parse_op_symbol(self, q)
+        return q
+
+
+    def run(self, q: Query) -> Query:
+        if self.scope == 'cols':
+            q = _get_cols(self, q)
+        elif self.scope == 'rows':
+            q = _get_rows(self, q)
+        elif self.scope == 'vals':
+            q = _get_vals(self, q)
+        return q
+
+
+    def getter(
+            self,
+            series: pd.Series,
+            mask: pd.Series[bool],
+            arg: str,
+            q: Query,
+            ) -> pd.Series[bool]:
+
+        series = series.astype('string')
+
+        if 'regex' in self.flags:
+            mask = series.str.match(arg)
+
+        elif 'strict' in self.flags:
+            mask = series.str.startswith(arg)
+
+        else:
+            series = series.str.lower()
+            arg = arg.lower()
+            mask = series.str.startswith(arg)
+
+        return mask
+
+
+
+
+class GetEndsWith(Symbol):
+    """
+    get cols/rows/vals if they
+    end with a given string.
+
+    Examples
+    --------
+    >>> df.dk.qs(r'name  :end(doe)')
+    """
+
+    #symbol attributes
+    name = 'GetEndsWith'
+    category = 'getter'
+    regex = (
+        r':endswith',
+        r':ends',
+        r':end',
+        )
+
+    #used to validate the current op
+    connectors_allowed = {
+        'new': 'start a new op',
+        'and': 'combine getter selection with current selection using logical AND',
+        'or': 'combine getter selection with current selection using logical OR',
+        }
+    scopes_allowed = {
+        'cols': 'get or set cols/headers',
+        'rows': 'get or set rows/index',
+        'vals': 'get or set vals within current row and col selection',
+        }
+    flags_allowed = {
+        'negate': 'negate the condition',
+        'regex': 'parse arg as regex',
+
+        'index': 'condition is applied to index instead of vals',
+        'any': 'condition must apply to any args',
+        'all': 'condition must apply to all args',
+        'allcols': 'get rows where condition applies in all selected cols',
+
+        'strict': 'strict type comparison/conversion',
+        }
+    args_allowed = {}
+    args_min = 1
+    args_max = 1_000_000
+
+
+    def parse(self, q: Query) -> Query:
+        q = _preparse_for_getter(q)
+        q = _parse_op_symbol(self, q)
+        return q
+
+
+    def run(self, q: Query) -> Query:
+        if self.scope == 'cols':
+            q = _get_cols(self, q)
+        elif self.scope == 'rows':
+            q = _get_rows(self, q)
+        elif self.scope == 'vals':
+            q = _get_vals(self, q)
+        return q
+
+
+    def getter(
+            self,
+            series: pd.Series,
+            mask: pd.Series[bool],
+            arg: str,
+            q: Query,
+            ) -> pd.Series[bool]:
+
+        series = series.astype('string')
+
+        if 'regex' in self.flags:
+            if not arg.endswith('$'):
+                arg = arg + '$'
+            mask = series.str.contains(arg)
+
+        elif 'strict' in self.flags:
+            mask = series.str.endswith(arg)
+
+        else:
+            series = series.str.lower()
+            arg = arg.lower()
+            mask = series.str.endswith(arg)
 
         return mask
 
