@@ -78,6 +78,7 @@ class DukitAccessor():
             lower: int = None,
             start_at_day1: bool = True,
             schedule: dict[int, str] = None,
+            filler: str = '.',
             linebreak: str = '<br>',
             verbosity: int = 3,
             ):
@@ -89,6 +90,7 @@ class DukitAccessor():
             lower=lower,
             start_at_day1=start_at_day1,
             schedule=schedule,
+            filler=filler,
             linebreak=linebreak,
             verbosity=verbosity,
             )

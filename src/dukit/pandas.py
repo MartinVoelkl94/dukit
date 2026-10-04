@@ -342,6 +342,7 @@ def date_table(
         lower: int = None,
         start_at_day1: bool = True,
         schedule: dict[int, str] = None,
+        filler: str = '.',
         linebreak: str = '\n',
         verbosity: int = 3,
         ) -> pd.DataFrame | pd.io.formats.style.Styler:
@@ -427,7 +428,7 @@ def date_table(
         if start_at_day1:
             events = _shift_day0(events)
 
-        merged = days_df.copy().merge(events, on='days', how='left').fillna('')
+        merged = days_df.copy().merge(events, on='days', how='left').fillna(filler)
         collapsed = collapse(
             merged,
             on='days',
@@ -438,6 +439,23 @@ def date_table(
             on='days',
             how='left',
             )
+
+    cols_records = [
+        col for col
+        in df_timeline.columns
+        if col not in ('_meta', 'days', 'planned')
+        ]
+    df_timeline.insert(
+        loc=0,
+        column='_meta',
+        value=''
+        )
+    has_event = df_timeline[cols_records] != filler
+    records_per_row = has_event.sum(axis='columns')
+    rows_with_records = records_per_row > 0
+    summary = 'records: ' + records_per_row.astype(str)
+    df_timeline.loc[rows_with_records, '_meta'] = summary
+    df_timeline['_meta'] = df_timeline['_meta'].fillna('')
 
     if schedule is not None:
         df_timeline = _highlight_schedule(df_timeline, schedule)

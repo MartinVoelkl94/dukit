@@ -71,10 +71,11 @@ def test_col():
         )
 
     expected = pd.DataFrame()
+    expected['_meta'] = ['' for i in range(-21, 24) if i != 0]
     expected['days'] = [i for i in range(-21, 24) if i != 0]
-    expected['0'] = ''
-    expected['1'] = ''
-    expected['2'] = ''
+    expected['0'] = '.'
+    expected['1'] = '.'
+    expected['2'] = '.'
 
     expected.loc[expected['days'] == -21, '0'] = 'date0'
     expected.loc[expected['days'] == -13, '1'] = 'date0'
@@ -91,6 +92,15 @@ def test_col():
     expected.loc[expected['days'] == 23, '1'] = 'date5'
     expected.loc[expected['days'] == 20, '2'] = 'date5'
 
+    expected.loc[expected['days'] == -21, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == -13, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 1, '_meta'] = 'records: 3'
+    expected.loc[expected['days'] == 6, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 10, '_meta'] = 'records: 2'
+    expected.loc[expected['days'] == 19, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 20, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 23, '_meta'] = 'records: 1'
+
     assert_frame_equal(result, expected)  #type: ignore
 
 
@@ -104,10 +114,11 @@ def test_day0():
         )
 
     expected = pd.DataFrame()
+    expected['_meta'] = ['' for i in range(-21, 23)]
     expected['days'] = [i for i in range(-21, 23)]
-    expected['0'] = ''
-    expected['1'] = ''
-    expected['2'] = ''
+    expected['0'] = '.'
+    expected['1'] = '.'
+    expected['2'] = '.'
 
     expected.loc[expected['days'] == -21, '0'] = 'date0'
     expected.loc[expected['days'] == -13, '1'] = 'date0'
@@ -123,6 +134,15 @@ def test_day0():
     expected.loc[expected['days'] == 18, '0'] = 'date4\ndate5\n'
     expected.loc[expected['days'] == 22, '1'] = 'date5'
     expected.loc[expected['days'] == 19, '2'] = 'date5'
+
+    expected.loc[expected['days'] == -21, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == -13, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 0, '_meta'] = 'records: 3'
+    expected.loc[expected['days'] == 5, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 9, '_meta'] = 'records: 2'
+    expected.loc[expected['days'] == 18, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 19, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 22, '_meta'] = 'records: 1'
 
     assert_frame_equal(result, expected)  #type: ignore
 
@@ -147,11 +167,12 @@ def test_schedule():
         )
 
     expected = pd.DataFrame()
+    expected['_meta'] = ['' for i in range(-21, 24) if i != 0]
     expected['days'] = [i for i in range(-21, 24) if i != 0]
     expected['planned'] = ''
-    expected['0'] = ''
-    expected['1'] = ''
-    expected['2'] = ''
+    expected['0'] = '.'
+    expected['1'] = '.'
+    expected['2'] = '.'
 
     expected.loc[expected['days'] == -21, 'planned'] = 'screening start'
     expected.loc[expected['days'] == -1, 'planned'] = 'screening end'
@@ -176,6 +197,15 @@ def test_schedule():
     expected.loc[expected['days'] == 23, '1'] = 'date5'
     expected.loc[expected['days'] == 20, '2'] = 'date5'
 
+    expected.loc[expected['days'] == -21, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == -13, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 1, '_meta'] = 'records: 3'
+    expected.loc[expected['days'] == 6, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 10, '_meta'] = 'records: 2'
+    expected.loc[expected['days'] == 19, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 20, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 23, '_meta'] = 'records: 1'
+
     assert_frame_equal(result.data, expected)  #type: ignore
 
 
@@ -189,10 +219,11 @@ def test_uid():
         )
 
     expected = pd.DataFrame()
+    expected['_meta'] = ['' for i in range(-21, 24) if i != 0]
     expected['days'] = [i for i in range(-21, 24) if i != 0]
-    expected['a'] = ''
-    expected['b'] = ''
-    expected['c'] = ''
+    expected['a'] = '.'
+    expected['b'] = '.'
+    expected['c'] = '.'
 
     expected.loc[expected['days'] == -21, 'a'] = 'date0'
     expected.loc[expected['days'] == -13, 'b'] = 'date0'
@@ -209,6 +240,15 @@ def test_uid():
     expected.loc[expected['days'] == 23, 'b'] = 'date5'
     expected.loc[expected['days'] == 20, 'c'] = 'date5'
 
+    expected.loc[expected['days'] == -21, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == -13, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 1, '_meta'] = 'records: 3'
+    expected.loc[expected['days'] == 6, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 10, '_meta'] = 'records: 2'
+    expected.loc[expected['days'] == 19, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 20, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 23, '_meta'] = 'records: 1'
+
     assert_frame_equal(result, expected)  #type: ignore
 
 
@@ -223,10 +263,11 @@ def test_upper_lower():
         )
 
     expected = pd.DataFrame()
+    expected['_meta'] = ['' for i in range(-20, 21) if i != 0]
     expected['days'] = [i for i in range(-20, 21) if i != 0]
-    expected['0'] = ''
-    expected['1'] = ''
-    expected['2'] = ''
+    expected['0'] = '.'
+    expected['1'] = '.'
+    expected['2'] = '.'
 
     expected.loc[expected['days'] == -13, '1'] = 'date0'
 
@@ -240,5 +281,55 @@ def test_upper_lower():
 
     expected.loc[expected['days'] == 19, '0'] = 'date4\ndate5\n'
     expected.loc[expected['days'] == 20, '2'] = 'date5'
+
+    expected.loc[expected['days'] == -13, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 1, '_meta'] = 'records: 3'
+    expected.loc[expected['days'] == 6, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 10, '_meta'] = 'records: 2'
+    expected.loc[expected['days'] == 19, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 20, '_meta'] = 'records: 1'
+
+    assert_frame_equal(result, expected)  #type: ignore
+
+
+
+def test_filler():
+
+    result = date_table(
+        get_df(),
+        reference_col='date1',
+        filler='*',
+        )
+
+    expected = pd.DataFrame()
+    expected['_meta'] = ['' for i in range(-21, 24) if i != 0]
+    expected['days'] = [i for i in range(-21, 24) if i != 0]
+    expected['0'] = '*'
+    expected['1'] = '*'
+    expected['2'] = '*'
+
+    expected.loc[expected['days'] == -21, '0'] = 'date0'
+    expected.loc[expected['days'] == -13, '1'] = 'date0'
+
+    expected.loc[expected['days'] == 1, '0'] = 'date1'
+    expected.loc[expected['days'] == 1, '1'] = 'date1'
+    expected.loc[expected['days'] == 1, '2'] = 'date1'
+
+    expected.loc[expected['days'] == 6, '0'] = 'date2'
+    expected.loc[expected['days'] == 10, '1'] = 'date2'
+    expected.loc[expected['days'] == 10, '2'] = 'date2'
+
+    expected.loc[expected['days'] == 19, '0'] = 'date4\ndate5\n'
+    expected.loc[expected['days'] == 23, '1'] = 'date5'
+    expected.loc[expected['days'] == 20, '2'] = 'date5'
+
+    expected.loc[expected['days'] == -21, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == -13, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 1, '_meta'] = 'records: 3'
+    expected.loc[expected['days'] == 6, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 10, '_meta'] = 'records: 2'
+    expected.loc[expected['days'] == 19, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 20, '_meta'] = 'records: 1'
+    expected.loc[expected['days'] == 23, '_meta'] = 'records: 1'
 
     assert_frame_equal(result, expected)  #type: ignore
