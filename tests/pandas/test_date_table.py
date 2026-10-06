@@ -333,3 +333,88 @@ def test_filler():
     expected.loc[expected['days'] == 23, '_meta'] = 'records: 1'
 
     assert_frame_equal(result, expected)  #type: ignore
+
+
+
+def test_ref_na():
+
+    df = get_df()
+    df['date1'] = [pd.NA, pd.NA, pd.NA]
+
+    result = date_table(
+        df,
+        reference_col='date1',
+        )
+
+    expected = pd.DataFrame()
+    expected['_meta'] = ['']
+    expected['days'] = [1]
+    expected['0'] = ['.']
+    expected['1'] = ['.']
+    expected['2'] = ['.']
+
+    assert_frame_equal(result, expected)  #type: ignore
+
+
+
+def test_ref_nat():
+
+    df = get_df()
+    df['date1'] = [pd.NaT, pd.NaT, pd.NaT]
+
+    result = date_table(
+        df,
+        reference_col='date1',
+        )
+
+    expected = pd.DataFrame()
+    expected['_meta'] = ['']
+    expected['days'] = [1]
+    expected['0'] = ['.']
+    expected['1'] = ['.']
+    expected['2'] = ['.']
+
+    assert_frame_equal(result, expected)  #type: ignore
+
+
+
+def test_ref_invalid():
+
+    df = get_df()
+    df['date1'] = ['a', 0, None]
+
+    result = date_table(
+        df,
+        reference_col='date1',
+        )
+
+    expected = pd.DataFrame()
+    expected['_meta'] = ['']
+    expected['days'] = [1]
+    expected['0'] = ['.']
+    expected['1'] = ['.']
+    expected['2'] = ['.']
+
+    assert_frame_equal(result, expected)  #type: ignore
+
+
+
+def test_ref_invalid_day0():
+
+    df = get_df()
+    df['date1'] = ['a', 0, None]
+
+    result = date_table(
+        df,
+        reference_col='date1',
+        start_at_day1=False,
+        )
+
+    expected = pd.DataFrame()
+    expected['_meta'] = ['']
+    expected['days'] = [0]
+    expected['0'] = ['.']
+    expected['1'] = ['.']
+    expected['2'] = ['.']
+
+    assert_frame_equal(result, expected)  #type: ignore

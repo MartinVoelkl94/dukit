@@ -360,19 +360,17 @@ def date_table(
     df = df.copy()
     if uid:
         df.index = df[uid]
-    reference = df[reference_col].apply(date_)
-
-    df = (
-        df
-        .copy()
-        .map(date_)
-        .convert_dtypes()
-        )
+    df = df.map(date_).convert_dtypes()
 
     for col in df.columns:
         if df[col].isna().all():
-            df.drop(columns=col, inplace=True)
+            if col == reference_col:
+                msg = f'WARNING: no dates found in reference col "{reference_col}"'
+                log(msg, 'dk.date_delta', verbosity)
+            else:
+                df.drop(columns=col, inplace=True)
 
+    reference = df[reference_col].apply(date_).apply(_fix_nas)
 
     blanks = {col: pd.NaT for col in df.columns}
     deltas = pd.DataFrame(
@@ -394,11 +392,10 @@ def date_table(
 
     deltas = deltas.T
 
-
     if upper is None:
-        upper = int(deltas.max().max()) + 1
+        upper = int(deltas.fillna(0).max().max()) + 1
     if lower is None:
-        lower = int(deltas.min().min())
+        lower = int(deltas.fillna(0).min().min())
 
     days = list(range(lower, upper + 1))
     if start_at_day1:
