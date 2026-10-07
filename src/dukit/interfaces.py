@@ -16,6 +16,7 @@ from .pandas import (
     flatten,
     stagger,
     transpose,
+    split_col,
     )
 
 
@@ -169,6 +170,23 @@ class DukitAccessor():
         df_new = transpose(
             self.df,
             header=header,
+            )
+        return df_new
+
+
+    def split_col(
+            self,
+            col: str = 'uid',
+            sep: str = '::\n',
+            new1: str = None,
+            new2: str = 'label',
+            ):
+        df_new = split_col(
+            self.df,
+            col=col,
+            sep=sep,
+            new1=new1,
+            new2=new2,
             )
         return df_new
 

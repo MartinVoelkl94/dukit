@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from .utils import log, GREEN_LIGHT
+from .utils import log, ensure_unique_string, GREEN_LIGHT
 from .typing import date_
 
 
@@ -832,5 +832,41 @@ def transpose(
     df.insert(0, header, cols_old)
     df.drop(header, axis=0, inplace=True)
     df.reset_index(drop=True, inplace=True)
+
+    return df
+
+
+
+def split_col(
+        df: pd.DataFrame,
+        col: str = 'uid',
+        sep: str = '::\n',
+        new1: str = None,
+        new2: str = 'label',
+        ):
+
+    if col not in df.columns:
+        log(f'ERROR: no col named "{col}" found')
+        return df
+    elif df.columns.tolist().count(col) > 1:
+        log(f'ERROR: multiple cols named "{col}" found')
+        return df
+
+    df = df.copy()
+    pos = df.columns.get_loc(col)
+    splits = df[col].str.partition(sep)
+
+    df.drop(columns=[col], inplace=True)
+    if new1 is None:
+        new1 = col
+    elif new1 in df.columns:
+        log(f'WARNING: Col {new1} already exists, choosing new name.')
+        new1 = ensure_unique_string(new1, df.columns.tolist())
+    if new2 in df.columns:
+        log(f'WARNING: Col {new2} already exists, choosing new name.')
+        new2 = ensure_unique_string(new2, df.columns.tolist() + [new1])
+
+    df.insert(pos, new1, splits[0])  #type: ignore
+    df.insert(pos + 1, new2, splits[2])  #type: ignore
 
     return df

@@ -34,6 +34,7 @@ from .pandas import (
     get_dfs,
     stagger,
     transpose,
+    split_col,
     )
 from .os import (
     cd,
@@ -95,6 +96,7 @@ __all__ = (
     'get_dfs',
     'stagger',
     'transpose',
+    'split_col',
 
     'cd',
     'cp',
