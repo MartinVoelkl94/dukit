@@ -166,6 +166,23 @@ def test_wrong_sep():
 
 
 
+def test_non_existent_col():
+
+    df = get_df()
+    result = df.dk.split_col(
+        col='non_existent_col',
+        sep=' ',
+        new1=None,
+        new2='last name',
+        )
+
+    expected = get_df()
+
+    assert_frame_equal(result, expected)
+    check_message('ERROR: no col named "non_existent_col" found')
+
+
+
 def test_non_unique_col():
 
     df = get_df()

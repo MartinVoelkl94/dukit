@@ -15,6 +15,157 @@ from dukit._test_utils import (
 
 
 
+def test_mix_col_a():
+
+    df_old, df_new = _get_dfs()
+
+    expected = _get_expected_mix()
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'x2', 'a'] = pd.NA
+    expected.loc[expected['uid'] == 'y', 'a'] = 2
+    expected.loc[expected['uid'] == 'z', 'a'] = 3
+    expected.loc[expected['uid'] == 'x', 'a'] = 1
+    expected = expected[['uid', 'diff', 'a', 'd', 'b', 'c']]
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        retain_cols='a',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_a_csv(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'x2', 'a'] = pd.NA
+    expected.loc[expected['uid'] == 'y', 'a'] = 2
+    expected.loc[expected['uid'] == 'z', 'a'] = 3
+    expected.loc[expected['uid'] == 'x', 'a'] = 1
+    expected = expected[['uid', 'diff', 'a', 'd', 'b', 'c']]
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        retain_cols='a',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_a_xlsx(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.loc[expected['uid'] == 'y', 'diff'] = ''
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
+    expected.loc[expected['uid'] == 'x2', 'a'] = pd.NA
+    expected.loc[expected['uid'] == 'y', 'a'] = 2
+    expected.loc[expected['uid'] == 'z', 'a'] = 3
+    expected.loc[expected['uid'] == 'x', 'a'] = 1
+    expected = expected[['uid', 'diff', 'a', 'd', 'b', 'c']]
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        retain_cols='a',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_b():
+
+    df_old, df_new = _get_dfs()
+
+    expected = _get_expected_mix()
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'x2', 'b'] = pd.NA
+    expected.loc[expected['uid'] == 'y', 'b'] = 2
+    expected.loc[expected['uid'] == 'z', 'b'] = pd.NA
+    expected.loc[expected['uid'] == 'x', 'b'] = 1
+    expected = expected[['uid', 'diff', 'b', 'd', 'a', 'c']]
+
+    result = dk.diff(
+        df_old,
+        df_new,
+        mode='mix',
+        retain_cols='b',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_b_csv(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'x2', 'b'] = pd.NA
+    expected.loc[expected['uid'] == 'y', 'b'] = 2
+    expected.loc[expected['uid'] == 'z', 'b'] = pd.NA
+    expected.loc[expected['uid'] == 'x', 'b'] = 1
+    expected = expected[['uid', 'diff', 'b', 'd', 'a', 'c']]
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        retain_cols='b',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
+def test_mix_col_b_xlsx(tmpdir):
+
+    df_old, df_new = _get_dfs()
+    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
+
+    expected = _get_expected_mix()
+    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
+    expected.loc[expected['uid'] == 'x2', 'b'] = pd.NA
+    expected.loc[expected['uid'] == 'y', 'b'] = 2
+    expected.loc[expected['uid'] == 'z', 'b'] = pd.NA
+    expected.loc[expected['uid'] == 'x', 'b'] = 1
+    expected = expected[['uid', 'diff', 'b', 'd', 'a', 'c']]
+
+    result = dk.diff(
+        df_old_file,
+        df_new_file,
+        mode='mix',
+        retain_cols='b',
+        verbosity=0,
+        ).show().data  #type:ignore
+
+    assert_frame_equal(result, expected)
+
+
+
 def test_mix_cols():
 
     df_old, df_new = _get_dfs()
@@ -748,157 +899,6 @@ def test_old_cols_xlsx(tmpdir):
         df_new_file,
         mode='old',
         retain_cols=['a', 'b'],
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_mix_col_a():
-
-    df_old, df_new = _get_dfs()
-
-    expected = _get_expected_mix()
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
-    expected.loc[expected['uid'] == 'x2', 'a'] = pd.NA
-    expected.loc[expected['uid'] == 'y', 'a'] = 2
-    expected.loc[expected['uid'] == 'z', 'a'] = 3
-    expected.loc[expected['uid'] == 'x', 'a'] = 1
-    expected = expected[['uid', 'diff', 'a', 'd', 'b', 'c']]
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        retain_cols='a',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_mix_col_a_csv(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
-    expected.loc[expected['uid'] == 'x2', 'a'] = pd.NA
-    expected.loc[expected['uid'] == 'y', 'a'] = 2
-    expected.loc[expected['uid'] == 'z', 'a'] = 3
-    expected.loc[expected['uid'] == 'x', 'a'] = 1
-    expected = expected[['uid', 'diff', 'a', 'd', 'b', 'c']]
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        retain_cols='a',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_mix_col_a_xlsx(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.loc[expected['uid'] == 'y', 'diff'] = ''
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals added: 1'
-    expected.loc[expected['uid'] == 'x2', 'a'] = pd.NA
-    expected.loc[expected['uid'] == 'y', 'a'] = 2
-    expected.loc[expected['uid'] == 'z', 'a'] = 3
-    expected.loc[expected['uid'] == 'x', 'a'] = 1
-    expected = expected[['uid', 'diff', 'a', 'd', 'b', 'c']]
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        retain_cols='a',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_mix_col_b():
-
-    df_old, df_new = _get_dfs()
-
-    expected = _get_expected_mix()
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
-    expected.loc[expected['uid'] == 'x2', 'b'] = pd.NA
-    expected.loc[expected['uid'] == 'y', 'b'] = 2
-    expected.loc[expected['uid'] == 'z', 'b'] = pd.NA
-    expected.loc[expected['uid'] == 'x', 'b'] = 1
-    expected = expected[['uid', 'diff', 'b', 'd', 'a', 'c']]
-
-    result = dk.diff(
-        df_old,
-        df_new,
-        mode='mix',
-        retain_cols='b',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_mix_col_b_csv(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
-    expected.loc[expected['uid'] == 'x2', 'b'] = pd.NA
-    expected.loc[expected['uid'] == 'y', 'b'] = 2
-    expected.loc[expected['uid'] == 'z', 'b'] = pd.NA
-    expected.loc[expected['uid'] == 'x', 'b'] = 1
-    expected = expected[['uid', 'diff', 'b', 'd', 'a', 'c']]
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        retain_cols='b',
-        verbosity=0,
-        ).show().data  #type:ignore
-
-    assert_frame_equal(result, expected)
-
-
-
-def test_mix_col_b_xlsx(tmpdir):
-
-    df_old, df_new = _get_dfs()
-    df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-
-    expected = _get_expected_mix()
-    expected.loc[expected['uid'] == 'z', 'diff'] = 'vals removed: 1'
-    expected.loc[expected['uid'] == 'x2', 'b'] = pd.NA
-    expected.loc[expected['uid'] == 'y', 'b'] = 2
-    expected.loc[expected['uid'] == 'z', 'b'] = pd.NA
-    expected.loc[expected['uid'] == 'x', 'b'] = 1
-    expected = expected[['uid', 'diff', 'b', 'd', 'a', 'c']]
-
-    result = dk.diff(
-        df_old_file,
-        df_new_file,
-        mode='mix',
-        retain_cols='b',
         verbosity=0,
         ).show().data  #type:ignore
 
