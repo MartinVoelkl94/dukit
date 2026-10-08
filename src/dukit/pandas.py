@@ -183,8 +183,8 @@ def get_df() -> pd.DataFrame:
 
 
 
-def get_dfs():
-    df1 = pd.DataFrame({
+def get_df_patients() -> pd.DataFrame:
+    patients = pd.DataFrame({
         'id': [
             10001,
             10002,
@@ -204,7 +204,12 @@ def get_dfs():
             40,
             ],
         })
-    df2 = pd.DataFrame({
+    return patients
+
+
+
+def get_df_medications() -> pd.DataFrame:
+    medications = pd.DataFrame({
         'id': [
             10002,
             20001,
@@ -238,7 +243,55 @@ def get_dfs():
             'mg',
             ]
         })
-    return df1, df2
+    return medications
+
+
+def get_df_old() -> pd.DataFrame:
+
+    old = pd.DataFrame(
+        columns=['a', 'b', 'c'],
+        index=['x', 'y', 'z', ],
+        )
+
+    old.insert(0, 'uid', old.index)
+
+    old.loc['x', 'a'] = 1
+    old.loc['x', 'b'] = 1
+    old.loc['x', 'c'] = 1
+
+    old.loc['y', 'a'] = 2
+    old.loc['y', 'b'] = 2
+    old.loc['y', 'c'] = 2
+
+    old.loc['z', 'a'] = 3
+    old.loc['z', 'b'] = None
+    old.loc['z', 'c'] = 3
+
+    return old
+
+
+def get_df_new() -> pd.DataFrame:
+
+    new = pd.DataFrame(
+        columns=['d', 'b', 'a'],
+        index=['y', 'x2', 'z', ],
+        )
+
+    new.insert(0, 'uid', new.index)
+
+    new.loc['y', 'd'] = 2
+    new.loc['y', 'b'] = 2
+    new.loc['y', 'a'] = 0
+
+    new.loc['x2', 'd'] = 1
+    new.loc['x2', 'b'] = 1
+    new.loc['x2', 'a'] = 1
+
+    new.loc['z', 'd'] = 3
+    new.loc['z', 'b'] = 3
+    new.loc['z', 'a'] = pd.NA
+
+    return new
 
 
 

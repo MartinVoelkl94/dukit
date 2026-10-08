@@ -4,15 +4,16 @@ import dukit as dk
 
 from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
-    _get_dfs,
     _get_expected_new,
     )
+from dukit.pandas import get_df_old, get_df_new
 
 
 
 def test_diffs_accessors():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     diffs = dk.diff(df_old, df_new, verbosity=0)
 
     assert diffs[0] is diffs['data']
@@ -39,7 +40,8 @@ def test_diffs_accessors():
 
 def test_index_as_uid():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     expected = _get_expected_new()
     expected.rename(columns={'uid': '<index>'}, inplace=True)
 
@@ -57,7 +59,8 @@ def test_index_as_uid():
 
 def test_invalid_mode():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     with pytest.raises(ValueError, match='Unknown mode'):
         dk.diff(
@@ -71,7 +74,8 @@ def test_invalid_mode():
 
 def test_invalid_uid():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     with pytest.raises(ValueError, match='UID column'):
         dk.diff(

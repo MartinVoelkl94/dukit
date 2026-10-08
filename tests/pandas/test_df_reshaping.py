@@ -2,7 +2,7 @@
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
-from dukit import get_dfs
+from dukit import get_df_medications
 
 
 
@@ -111,8 +111,8 @@ def test_collapse():
 
     expected = expected.convert_dtypes()
 
-    df1, df2 = get_dfs()
-    result = df2.dk.collapse(
+    medications = get_df_medications()
+    result = medications.dk.collapse(
         on='id',
         template_col='{colname}',
         template_item='#{counter}: {item}\n',
@@ -167,8 +167,8 @@ def test_collapse_formatted():
 
     expected = expected.convert_dtypes()
 
-    df1, df2 = get_dfs()
-    result = df2.dk.collapse(
+    medications = get_df_medications()
+    result = medications.dk.collapse(
         on='id',
         template_col='{colname}_collapsed',
         template_item='(item{counter}: {item})',
@@ -226,8 +226,8 @@ def test_embed():
         )
     expected = expected.convert_dtypes()
 
-    df1, df2 = get_dfs()
-    result = df2.dk.embed(
+    medications = get_df_medications()
+    result = medications.dk.embed(
         on='id',
         colname='medication',
         template='{colname} #{counter}',
@@ -293,8 +293,8 @@ def test_embed_formatted():
         )
     expected = expected.convert_dtypes()
 
-    df1, df2 = get_dfs()
-    result = df2.dk.embed(
+    medications = get_df_medications()
+    result = medications.dk.embed(
         on='id',
         colname='medication',
         template='{colname} #{counter}',
@@ -310,10 +310,10 @@ def test_embed_formatted():
 
 def test_flatten():
 
-    df1, df2 = get_dfs()
+    medications = get_df_medications()
     expected = _get_expected_flatten()
 
-    result = df2.dk.flatten(
+    result = medications.dk.flatten(
         on='id',
         template='{colname}#{counter}',
         ).convert_dtypes()
@@ -324,7 +324,7 @@ def test_flatten():
 
 def test_flatten_template():
 
-    df1, df2 = get_dfs()
+    medications = get_df_medications()
     temp = _get_expected_flatten()
     expected = temp[['id']]
 
@@ -335,7 +335,7 @@ def test_flatten_template():
         colname = col.split('#')[0]
         expected[f'#{counter}_{colname}'] = temp[col]
 
-    result = df2.dk.flatten(
+    result = medications.dk.flatten(
         on='id',
         template='#{counter}_{colname}',
         ).convert_dtypes()
@@ -346,7 +346,7 @@ def test_flatten_template():
 
 def test_stagger():
 
-    df1, df2 = get_dfs()
+    medications = get_df_medications()
     expected = _get_expected_flatten()
     expected['#1'] = ''
     expected['#2'] = ''
@@ -368,7 +368,7 @@ def test_stagger():
         ]
     expected = expected[cols_reordered].convert_dtypes()
 
-    result = df2.dk.stagger(
+    result = medications.dk.stagger(
         on='id',
         template='{colname}#{counter}',
         separator_col='#{counter}',
@@ -380,7 +380,7 @@ def test_stagger():
 
 def test_stagger_no_separator_col():
 
-    df1, df2 = get_dfs()
+    medications = get_df_medications()
     expected = _get_expected_flatten()
     cols_reordered = [
         'id',
@@ -396,7 +396,7 @@ def test_stagger_no_separator_col():
         ]
     expected = expected[cols_reordered].convert_dtypes()
 
-    result = df2.dk.stagger(
+    result = medications.dk.stagger(
         on='id',
         template='{colname}#{counter}',
         separator_col=None,
@@ -408,7 +408,7 @@ def test_stagger_no_separator_col():
 
 def test_stagger_separator_col():
 
-    df1, df2 = get_dfs()
+    medications = get_df_medications()
     expected = _get_expected_flatten()
     expected['staggered_col1:'] = ''
     expected['staggered_col2:'] = ''
@@ -430,7 +430,7 @@ def test_stagger_separator_col():
         ]
     expected = expected[cols_reordered].convert_dtypes()
 
-    result = df2.dk.stagger(
+    result = medications.dk.stagger(
         on='id',
         template='{colname}#{counter}',
         separator_col='staggered_col{counter}:',
@@ -442,7 +442,7 @@ def test_stagger_separator_col():
 
 def test_stagger_template():
 
-    df1, df2 = get_dfs()
+    medications = get_df_medications()
     temp = _get_expected_flatten()
     expected = temp[['id']]
 
@@ -473,7 +473,7 @@ def test_stagger_template():
         ]
     expected = expected[cols_reordered].convert_dtypes()
 
-    result = df2.dk.stagger(
+    result = medications.dk.stagger(
         on='id',
         template='#{counter}_{colname}',
         separator_col='#{counter}',

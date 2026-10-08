@@ -33,51 +33,6 @@ def _setup_xlsx(df_old, df_new, tmpdir):
 
 
 
-def _get_dfs():
-
-    df_old = pd.DataFrame(
-        columns=['a', 'b', 'c'],
-        index=['x', 'y', 'z', ],
-        )
-
-    df_old.insert(0, 'uid', df_old.index)
-
-    df_old.loc['x', 'a'] = 1
-    df_old.loc['x', 'b'] = 1
-    df_old.loc['x', 'c'] = 1
-
-    df_old.loc['y', 'a'] = 2
-    df_old.loc['y', 'b'] = 2
-    df_old.loc['y', 'c'] = 2
-
-    df_old.loc['z', 'a'] = 3
-    df_old.loc['z', 'b'] = None
-    df_old.loc['z', 'c'] = 3
-
-
-    df_new = pd.DataFrame(
-        columns=['d', 'b', 'a'],
-        index=['y', 'x2', 'z', ],
-        )
-
-    df_new.insert(0, 'uid', df_new.index)
-
-    df_new.loc['y', 'd'] = 2
-    df_new.loc['y', 'b'] = 2
-    df_new.loc['y', 'a'] = 0
-
-    df_new.loc['x2', 'd'] = 1
-    df_new.loc['x2', 'b'] = 1
-    df_new.loc['x2', 'a'] = 1
-
-    df_new.loc['z', 'd'] = 3
-    df_new.loc['z', 'b'] = 3
-    df_new.loc['z', 'a'] = pd.NA
-
-    return df_old, df_new
-
-
-
 def _get_expected_new():
 
     uid = pd.Series(

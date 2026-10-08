@@ -5,18 +5,19 @@ from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
     _setup_csv,
     _setup_xlsx,
-    _get_dfs,
     _get_expected_style_new,
     _get_expected_style_newplus,
     _get_expected_style_old,
     _get_expected_style_mix,
     )
+from dukit import get_df_old, get_df_new
 
 
 
 def test_style_mode_mix():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     expected = _get_expected_style_mix()
 
     #in memory dfs
@@ -33,7 +34,8 @@ def test_style_mode_mix():
 
 def test_style_mode_mix_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
     expected = _get_expected_style_mix()
 
@@ -50,7 +52,8 @@ def test_style_mode_mix_csv(tmpdir):
 
 def test_style_mode_mix_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
     expected = _get_expected_style_mix()
 
@@ -66,7 +69,8 @@ def test_style_mode_mix_xlsx(tmpdir):
 
 def test_style_mode_new():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     expected = _get_expected_style_new()
 
     result = dk.diff(
@@ -82,7 +86,8 @@ def test_style_mode_new():
 
 def test_style_mode_new_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
     expected = _get_expected_style_new()
 
@@ -99,7 +104,8 @@ def test_style_mode_new_csv(tmpdir):
 
 def test_style_mode_new_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
     expected = _get_expected_style_new()
 
@@ -116,7 +122,8 @@ def test_style_mode_new_xlsx(tmpdir):
 
 def test_style_mode_newplus():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     expected = _get_expected_style_newplus()
 
     result = dk.diff(
@@ -132,7 +139,8 @@ def test_style_mode_newplus():
 
 def test_style_mode_newplus_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
     expected = _get_expected_style_newplus()
 
@@ -149,7 +157,8 @@ def test_style_mode_newplus_csv(tmpdir):
 
 def test_style_mode_newplus_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
     expected = _get_expected_style_newplus()
 
@@ -166,7 +175,8 @@ def test_style_mode_newplus_xlsx(tmpdir):
 
 def test_style_mode_old():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     expected = _get_expected_style_old()
 
     result = dk.diff(
@@ -182,7 +192,8 @@ def test_style_mode_old():
 
 def test_style_mode_old_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
     expected = _get_expected_style_old()
 
@@ -199,7 +210,8 @@ def test_style_mode_old_csv(tmpdir):
 
 def test_style_mode_old_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
     expected = _get_expected_style_old()
 

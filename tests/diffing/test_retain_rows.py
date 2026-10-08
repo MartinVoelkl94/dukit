@@ -6,18 +6,19 @@ from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
     _setup_csv,
     _setup_xlsx,
-    _get_dfs,
     _get_expected_new,
     _get_expected_newplus,
     _get_expected_old,
     _get_expected_mix,
     )
+from dukit import get_df_old, get_df_new
 
 
 
 def test_mix_row_x():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_mix()
     expected.loc[expected['uid'] == 'x', 'diff'] = ''
@@ -42,7 +43,8 @@ def test_mix_row_x():
 
 def test_mix_row_x_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_mix()
@@ -68,7 +70,8 @@ def test_mix_row_x_csv(tmpdir):
 
 def test_mix_row_x_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_mix()
@@ -94,7 +97,8 @@ def test_mix_row_x_xlsx(tmpdir):
 
 def test_mix_row_y():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_mix()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
@@ -118,7 +122,8 @@ def test_mix_row_y():
 
 def test_mix_row_y_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_mix()
@@ -143,7 +148,8 @@ def test_mix_row_y_csv(tmpdir):
 
 def test_mix_row_y_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_mix()
@@ -168,7 +174,8 @@ def test_mix_row_y_xlsx(tmpdir):
 
 def test_mix_rows():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_mix()
     expected.loc[expected['uid'] == 'x', 'diff'] = ''
@@ -198,7 +205,8 @@ def test_mix_rows():
 
 def test_mix_rows_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_mix()
@@ -229,7 +237,8 @@ def test_mix_rows_csv(tmpdir):
 
 def test_mix_rows_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_mix()
@@ -260,7 +269,8 @@ def test_mix_rows_xlsx(tmpdir):
 
 def test_new_row_x():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_new()
     row_new = {
@@ -291,7 +301,8 @@ def test_new_row_x():
 
 def test_new_row_x_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_new()
@@ -323,7 +334,8 @@ def test_new_row_x_csv(tmpdir):
 
 def test_new_row_x_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_new()
@@ -355,7 +367,8 @@ def test_new_row_x_xlsx(tmpdir):
 
 def test_new_row_y():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_new()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
@@ -377,7 +390,8 @@ def test_new_row_y():
 
 def test_new_row_y_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_new()
@@ -400,7 +414,8 @@ def test_new_row_y_csv(tmpdir):
 
 def test_new_row_y_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_new()
@@ -423,7 +438,8 @@ def test_new_row_y_xlsx(tmpdir):
 
 def test_new_rows():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_new()
     row_new = {
@@ -458,7 +474,8 @@ def test_new_rows():
 
 def test_new_rows_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_new()
@@ -494,7 +511,8 @@ def test_new_rows_csv(tmpdir):
 
 def test_new_rows_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_new()
@@ -530,7 +548,8 @@ def test_new_rows_xlsx(tmpdir):
 
 def test_newplus_row_x():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_newplus()
     row_new = {
@@ -564,7 +583,8 @@ def test_newplus_row_x():
 
 def test_newplus_row_x_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_newplus()
@@ -599,7 +619,8 @@ def test_newplus_row_x_csv(tmpdir):
 
 def test_newplus_row_x_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_newplus()
@@ -634,7 +655,8 @@ def test_newplus_row_x_xlsx(tmpdir):
 
 def test_newplus_row_y():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_newplus()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
@@ -658,7 +680,8 @@ def test_newplus_row_y():
 
 def test_newplus_row_y_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_newplus()
@@ -683,7 +706,8 @@ def test_newplus_row_y_csv(tmpdir):
 
 def test_newplus_row_y_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_newplus()
@@ -708,7 +732,8 @@ def test_newplus_row_y_xlsx(tmpdir):
 
 def test_newplus_rows():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_newplus()
     row_new = {
@@ -748,7 +773,8 @@ def test_newplus_rows():
 
 def test_newplus_rows_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_newplus()
@@ -789,7 +815,8 @@ def test_newplus_rows_csv(tmpdir):
 
 def test_newplus_rows_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_newplus()
@@ -830,7 +857,8 @@ def test_newplus_rows_xlsx(tmpdir):
 
 def test_old_row_x():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_old()
     expected.loc[expected['uid'] == 'x', 'diff'] = ''
@@ -849,7 +877,8 @@ def test_old_row_x():
 
 def test_old_row_x_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_old()
@@ -869,7 +898,8 @@ def test_old_row_x_csv(tmpdir):
 
 def test_old_row_x_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_old()
@@ -889,7 +919,8 @@ def test_old_row_x_xlsx(tmpdir):
 
 def test_old_row_y():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_old()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
@@ -910,7 +941,8 @@ def test_old_row_y():
 
 def test_old_row_y_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_old()
@@ -932,7 +964,8 @@ def test_old_row_y_csv(tmpdir):
 
 def test_old_row_y_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_old()
@@ -954,7 +987,8 @@ def test_old_row_y_xlsx(tmpdir):
 
 def test_old_rows():
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
 
     expected = _get_expected_old()
     expected.loc[expected['uid'] == 'x', 'diff'] = ''
@@ -974,7 +1008,8 @@ def test_old_rows():
 
 def test_old_rows_csv(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
 
     expected = _get_expected_old()
@@ -995,7 +1030,8 @@ def test_old_rows_csv(tmpdir):
 
 def test_old_rows_xlsx(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
 
     expected = _get_expected_old()

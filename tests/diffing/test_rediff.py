@@ -3,13 +3,14 @@ import openpyxl
 import pandas as pd
 import dukit as dk
 
-from dukit._test_utils import _get_dfs
+from dukit.pandas import get_df_old, get_df_new
 
 
 
 def test_rediff(tmpdir):
 
-    df_old, df_new = _get_dfs()
+    df_old = get_df_old()
+    df_new = get_df_new()
     df_old.insert(1, 'notes', ['note1', 'note2', 'note3'])
     df_new.insert(1, 'notes', ['note3', 'note4', 'note5'])
     df_new1 = df_new.copy()
