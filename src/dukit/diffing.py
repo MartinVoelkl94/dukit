@@ -27,6 +27,7 @@ def diff(
         remove_cols: list | str = None,
         remove_cols_by_suffix='',
         retain_cols: list | str = None,
+        retain_rows: list | str = None,
         ignore_cols: list | str = None,
         remove_sheets: list | str = None,
         name='data',
@@ -62,7 +63,9 @@ def diff(
     remove_cols_by_suffix : str, default ''
         remove cols whose names end with this suffix.
     retain_cols : list or str, optional
-        keep only the cols from the old df.
+        keep these cols from the old df.
+    retain_rows : list or str, optional
+        keep these rows from the old df.
     ignore_cols : list or str, optional
         cols excluded from comparison.
     remove_sheets : list or str, optional
@@ -111,6 +114,7 @@ def diff(
         remove_cols=remove_cols,
         remove_cols_by_suffix=remove_cols_by_suffix,
         retain_cols=retain_cols,
+        retain_rows=retain_rows,
         ignore_cols=ignore_cols,
         remove_sheets=remove_sheets,
         name=name,
@@ -132,6 +136,7 @@ def rediff(
         remove_cols: list | str = 'diff',
         remove_cols_by_suffix=' *old',
         retain_cols: list | str = 'notes',
+        retain_rows: list | str = 'notes',
         ignore_cols: list | str = None,
         remove_sheets=['info', 'summary', 'details'],
         name='data',
@@ -154,6 +159,7 @@ def rediff(
         remove_cols=remove_cols,
         remove_cols_by_suffix=remove_cols_by_suffix,
         retain_cols=retain_cols,
+        retain_rows=retain_rows,
         ignore_cols=ignore_cols,
         remove_sheets=remove_sheets,
         name=name,
@@ -182,6 +188,7 @@ class Diffs:
             remove_cols: list | str = None,
             remove_cols_by_suffix='',
             retain_cols: list | str = None,
+            retain_rows: list | str = None,
             ignore_cols: list | str = None,
             remove_sheets: list | str = None,
             name='data',
@@ -232,6 +239,7 @@ class Diffs:
             remove_cols=remove_cols,
             remove_cols_by_suffix=remove_cols_by_suffix,
             retain_cols=retain_cols,
+            retain_rows=retain_rows,
             ignore_cols=ignore_cols,
             linebreak=linebreak,
             suffix_old=suffix_old,
@@ -641,6 +649,7 @@ def _get_diffs(
         remove_cols: list | str = None,
         remove_cols_by_suffix='',
         retain_cols: list | str = None,
+        retain_rows: list | str = None,
         ignore_cols: list | str = None,
         linebreak='<br>',
         suffix_old=' *old',
@@ -660,6 +669,7 @@ def _get_diffs(
                 mode=mode,
                 rename_cols=rename_cols,
                 retain_cols=retain_cols,
+                retain_rows=retain_rows,
                 remove_cols=remove_cols,
                 remove_cols_by_suffix=remove_cols_by_suffix,
                 ignore_cols=ignore_cols,
@@ -677,6 +687,7 @@ def _get_diffs(
                 mode=mode,
                 rename_cols=rename_cols,
                 retain_cols=retain_cols,
+                retain_rows=retain_rows,
                 remove_cols=remove_cols,
                 remove_cols_by_suffix=remove_cols_by_suffix,
                 ignore_cols=ignore_cols,
@@ -694,6 +705,7 @@ def _get_diffs(
                 mode=mode,
                 rename_cols=rename_cols,
                 retain_cols=retain_cols,
+                retain_rows=retain_rows,
                 remove_cols=remove_cols,
                 remove_cols_by_suffix=remove_cols_by_suffix,
                 ignore_cols=ignore_cols,
@@ -719,6 +731,7 @@ def _get_single_diff(
         remove_cols: list | str = None,
         remove_cols_by_suffix='',
         retain_cols: list | str = None,
+        retain_rows: list | str = None,
         ignore_cols: list | str = None,
         name='data',
         linebreak='<br>',
@@ -752,6 +765,7 @@ def _get_single_diff(
 
     d = _set_uid(d, uid)
     d = _retain_cols(d, list_(retain_cols))  #depends on _set_uid()
+    d = _retain_rows(d, list_(retain_rows))  #depends on _set_uid()
     d = _ignore_cols(d, list_(ignore_cols))
 
     d = _create_working_values(d)
@@ -769,6 +783,7 @@ def _get_single_diff(
     d = _populate_diff_col(d)  #depends on _get_row_col_diffs() and _get_val_diffs()
 
     d = _add_retained_cols(d)
+    d = _add_retained_rows(d)
     d = _add_diff_col(d)
     d = _add_uid_col(d)
     d = _apply_style(d)
@@ -822,7 +837,8 @@ class Diff:
         self.vals_changed: pd.Series = pd.Series(dtype='int')
 
         #helper attributes for internal use
-        self._df_retained: pd.DataFrame
+        self._cols_retained: pd.DataFrame
+        self._rows_retained: pd.DataFrame
         self._cols_ignore: list[str]
         self._metadata_col_mapping: dict[str, str]
         self._mask_added: pd.DataFrame
@@ -919,7 +935,8 @@ def _handle_edgecases(d: Diff) -> Diff:
     d._values = values
     d._style = style
 
-    d._df_retained = pd.DataFrame()
+    d._cols_retained = pd.DataFrame()
+    d._rows_retained = pd.DataFrame()
     d._cols_ignore = []
     d._metadata_col_mapping = {}
     d._mask_added = pd.DataFrame(dtype='bool')
@@ -1117,17 +1134,41 @@ def _retain_cols(d: Diff, cols: list) -> Diff:
     """
 
     if not cols:
-        d._df_retained = pd.DataFrame()
+        d._cols_retained = pd.DataFrame()
         return d
 
     cols_retain_old = d.old.columns.intersection(cols)
     cols_retain_new = d.new.columns.intersection(cols)
 
-    df_retained = d.old[cols_retain_old].copy()
+    cols_retained = d.old[cols_retain_old].copy()
 
     d.old = d.old.drop(columns=cols_retain_old)
     d.new = d.new.drop(columns=cols_retain_new)
-    d._df_retained = df_retained
+    d._cols_retained = cols_retained
+
+    return d
+
+
+
+def _retain_rows(d: Diff, rows: list) -> Diff:
+    """
+    remove rows from both dfs before diffing,
+    then readd the ones from the old df to
+    the diff result later.
+    """
+
+    if not rows:
+        d._rows_retained = pd.DataFrame()
+        return d
+
+    rows_retain_old = d.old.index.intersection(rows)
+    rows_retain_new = d.new.index.intersection(rows)
+
+    rows_retained = d.old.loc[rows_retain_old].copy()
+
+    d.old = d.old.drop(index=rows_retain_old)
+    d.new = d.new.drop(index=rows_retain_new)
+    d._rows_retained = rows_retained
 
     return d
 
@@ -1158,7 +1199,7 @@ def _create_working_values(d: Diff) -> Diff:
     if d.mode == 'mix':
         rows_old_only = d.old.index.difference(d.new.index)
         cols_old_only = d.old.columns.difference(d.new.columns)
-        d._values = pd.concat([d.new, d.old.loc[:, cols_old_only]], axis=1)
+        d._values = pd.concat([d.new, d.old.loc[:, cols_old_only]], axis='columns')
         d._values.loc[rows_old_only, :] = d.old.loc[rows_old_only, :]
 
     elif d.mode == 'old':
@@ -1266,11 +1307,11 @@ def _create_meta_cols(d: Diff) -> Diff:
 
     values = pd.concat(
         [values, df_meta],
-        axis=1,
+        axis='columns',
         )
     style = pd.concat(
         [style, df_meta_style],
-        axis=1,
+        axis='columns',
         )
 
     d._metadata_col_mapping = col_mapping
@@ -1396,9 +1437,9 @@ def _populate_val_styles(d: Diff) -> Diff:
 
 def _populate_diff_col(d: Diff) -> Diff:
 
-    sum_added = d._mask_added.sum(axis=1)
-    sum_removed = d._mask_removed.sum(axis=1)
-    sum_changed = d._mask_changed.sum(axis=1)
+    sum_added = d._mask_added.sum(axis='columns')
+    sum_removed = d._mask_removed.sum(axis='columns')
+    sum_changed = d._mask_changed.sum(axis='columns')
 
     rows_added = sum_added[sum_added > 0].index
     rows_removed = sum_removed[sum_removed > 0].index
@@ -1450,12 +1491,48 @@ def _populate_meta_cols(d: Diff) -> Diff:
 
 def _add_retained_cols(d: Diff) -> Diff:
 
-    if d._df_retained.empty:
+    if d._cols_retained.empty:
         return d
 
-    idx_shared = d._values.index.intersection(d._df_retained.index)
-    df_retained = d._df_retained.loc[idx_shared, :]
-    d._values = pd.concat([df_retained, d._values], axis=1)
+    idx_shared = d._values.index.intersection(d._cols_retained.index)
+    df_retained = d._cols_retained.loc[idx_shared, :]
+    d._values = pd.concat([df_retained, d._values], axis='columns')
+
+    df_style = pd.DataFrame(
+        data='',
+        index=df_retained.index,
+        columns=df_retained.columns,
+        )
+    d._style = pd.concat([df_style, d._style], axis='columns')
+
+    return d
+
+
+
+def _add_retained_rows(d: Diff) -> Diff:
+
+    if d._rows_retained.empty:
+        return d
+
+    cols_shared = d._values.columns.intersection(d._rows_retained.columns)
+    df_retained = d._rows_retained.loc[:, cols_shared]
+    cols_ordered = d._values.columns
+    d._values = pd.concat([df_retained, d._values], axis='index')
+    d._values = d._values[cols_ordered]
+
+    df_style = pd.DataFrame(
+        data='',
+        index=df_retained.index,
+        columns=cols_shared,
+        )
+    d._style = pd.concat([df_style, d._style], axis='index')
+
+    blank_retained = pd.Series(
+        '',
+        index=df_retained.index,
+        name=d._diff_col.name,
+        )
+    d._diff_col = pd.concat([blank_retained, d._diff_col], axis='index')
 
     return d
 
@@ -1464,7 +1541,7 @@ def _add_retained_cols(d: Diff) -> Diff:
 def _add_diff_col(d: Diff) -> Diff:
     colname = ensure_unique_string('diff', d._values.columns)
     d._diff_col.name = colname
-    d._values = pd.concat([d._diff_col, d._values], axis=1)
+    d._values = pd.concat([d._diff_col, d._values], axis='columns')
     return d
 
 
@@ -1477,7 +1554,7 @@ def _add_uid_col(d: Diff) -> Diff:
         index=d._values.index,
         name=colname_uid,
         )
-    d._values = pd.concat([uid_col, d._values], axis=1)
+    d._values = pd.concat([uid_col, d._values], axis='columns')
 
     index_diff = d._values.index.difference(d._style.index)
     if index_diff.empty:
@@ -1506,6 +1583,7 @@ def _apply_style(d: Diff) -> Diff:
             )
         log(msg, context, d.verbosity)
 
+    d._style.fillna('', inplace=True)
     d.result = (
         d._values
         .style
