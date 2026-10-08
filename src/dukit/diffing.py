@@ -51,11 +51,11 @@ def diff(
         controls the values included in each result.
         - 'mix': show rows and cols from old and new df.
         additions and deletions are highlighted.
-        - 'old': show only rows and cols from the old df.
-        deletions are highlighted.
         - 'new': show only rows and cols from the new df.
         additions are highlighted.
         - 'new+': also preserve changed old values in parallel metadata cols.
+        - 'old': show only rows and cols from the old df.
+        deletions are highlighted.
     rename_cols : dict, optional
         mapping of original col names to names used during comparison.
     remove_cols : list or str, optional
@@ -784,8 +784,9 @@ def _get_single_diff(
 
     d = _add_retained_cols(d)
     d = _add_retained_rows(d)
-    d = _add_diff_col(d)
     d = _add_uid_col(d)
+    d = _add_diff_col(d)
+    d = _reset_index(d)
     d = _apply_style(d)
 
     return d
@@ -879,9 +880,10 @@ class Diff:
                 f'vals changed: {sum(self.vals_changed)}\n'
                 )
         txt += (
-            '>>>d.result\n'
-            '>>>d.summary\n'
-            '>>>d.details\n'
+            '>>>d.show()\n'
+            '>>>d.info()\n'
+            '>>>d.summary()\n'
+            '>>>d.details()\n'
             )
         txt += '----------------Diff object end----------------\n'
 
@@ -1538,14 +1540,6 @@ def _add_retained_rows(d: Diff) -> Diff:
 
 
 
-def _add_diff_col(d: Diff) -> Diff:
-    colname = ensure_unique_string('diff', d._values.columns)
-    d._diff_col.name = colname
-    d._values = pd.concat([d._diff_col, d._values], axis='columns')
-    return d
-
-
-
 def _add_uid_col(d: Diff) -> Diff:
 
     colname_uid = ensure_unique_string(str(d.uid), d._values.columns)
@@ -1555,6 +1549,20 @@ def _add_uid_col(d: Diff) -> Diff:
         name=colname_uid,
         )
     d._values = pd.concat([uid_col, d._values], axis='columns')
+
+    return d
+
+
+
+def _add_diff_col(d: Diff) -> Diff:
+    colname = ensure_unique_string('diff', d._values.columns)
+    d._diff_col.name = colname
+    d._values = pd.concat([d._diff_col, d._values], axis='columns')
+    return d
+
+
+
+def _reset_index(d: Diff) -> Diff:
 
     index_diff = d._values.index.difference(d._style.index)
     if index_diff.empty:
@@ -1566,7 +1574,7 @@ def _add_uid_col(d: Diff) -> Diff:
             'This should never happen. Please report this issue.'
             f'Index difference: {index_diff}'
             )
-        log(msg, 'dk.diffing._add_uid_col', d.verbosity)
+        log(msg, 'dk.diffing._reset_index', d.verbosity)
 
     return d
 

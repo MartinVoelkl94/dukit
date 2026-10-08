@@ -274,8 +274,8 @@ def test_new_row_x():
 
     expected = _get_expected_new()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'a': 1,
@@ -307,8 +307,8 @@ def test_new_row_x_csv(tmpdir):
 
     expected = _get_expected_new()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'a': 1,
@@ -340,8 +340,8 @@ def test_new_row_x_xlsx(tmpdir):
 
     expected = _get_expected_new()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'a': 1,
@@ -443,8 +443,8 @@ def test_new_rows():
 
     expected = _get_expected_new()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'a': 1,
@@ -480,8 +480,8 @@ def test_new_rows_csv(tmpdir):
 
     expected = _get_expected_new()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'a': 1,
@@ -517,8 +517,8 @@ def test_new_rows_xlsx(tmpdir):
 
     expected = _get_expected_new()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'a': 1,
@@ -553,8 +553,8 @@ def test_newplus_row_x():
 
     expected = _get_expected_newplus()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'b *old': pd.NA,
@@ -589,8 +589,8 @@ def test_newplus_row_x_csv(tmpdir):
 
     expected = _get_expected_newplus()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'b *old': pd.NA,
@@ -625,8 +625,8 @@ def test_newplus_row_x_xlsx(tmpdir):
 
     expected = _get_expected_newplus()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'b *old': pd.NA,
@@ -737,8 +737,8 @@ def test_newplus_rows():
 
     expected = _get_expected_newplus()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'b *old': pd.NA,
@@ -779,8 +779,8 @@ def test_newplus_rows_csv(tmpdir):
 
     expected = _get_expected_newplus()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'b *old': pd.NA,
@@ -821,8 +821,8 @@ def test_newplus_rows_xlsx(tmpdir):
 
     expected = _get_expected_newplus()
     row_new = {
-        'uid': 'x',
         'diff': '',
+        'uid': 'x',
         'd': pd.NA,
         'b': 1,
         'b *old': pd.NA,

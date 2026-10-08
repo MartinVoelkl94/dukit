@@ -41,7 +41,7 @@ def _get_expected_new():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['uid', 'diff', 'd', 'b', 'a'],
+        columns=['diff', 'uid', 'd', 'b', 'a'],
         index=uid,
         )
 
@@ -76,7 +76,7 @@ def _get_expected_newplus():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['uid', 'diff', 'd', 'b', 'b *old', 'a', 'a *old'],
+        columns=['diff', 'uid', 'd', 'b', 'b *old', 'a', 'a *old'],
         index=uid,
         )
 
@@ -120,7 +120,7 @@ def _get_expected_old():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['uid', 'diff', 'a', 'b', 'c'],
+        columns=['diff', 'uid', 'a', 'b', 'c'],
         index=uid,
         )
 
@@ -155,7 +155,7 @@ def _get_expected_mix():
         name='uid',
         )
     expected = pd.DataFrame(
-        columns=['uid', 'diff', 'd', 'b', 'a', 'c'],
+        columns=['diff', 'uid', 'd', 'b', 'a', 'c'],
         index=uid,
         )
 
