@@ -28,7 +28,7 @@ def check_message(expected_strings):
 
 def test_append():
     df1 = df.copy()
-    df1['_meta'] = 'a'
+    df1['meta'] = 'a'
 
     code = r"""
     .tag('b')
@@ -36,8 +36,8 @@ def test_append():
     """
     result = df1.dk.qr(code).result
     expected = get_df()
-    expected['_meta'] = 'ab'
-    expected['_meta'] = expected['_meta'].astype('string')
+    expected['meta'] = 'ab'
+    expected['meta'] = expected['meta'].astype('string')
     assert_frame_equal(result, expected)
 
 
@@ -49,8 +49,8 @@ def test_basic1():
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['_meta'] = ''
-    expected['_meta'] = expected['_meta'].astype('string')
+    expected['meta'] = ''
+    expected['meta'] = expected['meta'].astype('string')
     assert_frame_equal(result, expected)
 
 
@@ -102,7 +102,7 @@ def test_basic4():
         '',
         '',
         ]
-    expected['_meta'] = pd.Series(vals, dtype='string')
+    expected['meta'] = pd.Series(vals, dtype='string')
     assert_frame_equal(result, expected)
 
 
@@ -128,7 +128,7 @@ def test_basic5():
         'INVALID',
         '',
         ]
-    expected['_meta'] = pd.Series(vals, dtype='string')
+    expected['meta'] = pd.Series(vals, dtype='string')
     assert_frame_equal(result, expected)
 
 
@@ -155,7 +155,7 @@ def test_basic6():
         'INVALID age;  ',
         '',
         ]
-    expected['_meta'] = pd.Series(vals, dtype='string')
+    expected['meta'] = pd.Series(vals, dtype='string')
     assert_frame_equal(result, expected)
 
 
@@ -174,19 +174,19 @@ def test_complex():
     name
         %%?doe
         //:load 1
-    _meta
+    meta
     """
     result = df.dk.qr(code).result
     expected = get_df()
-    expected['_meta'] = 'a'
-    expected = expected.convert_dtypes().loc[[0, 2, 10], ['_meta']]
+    expected['meta'] = 'a'
+    expected = expected.convert_dtypes().loc[[0, 2, 10], ['meta']]
     assert_frame_equal(result, expected)
 
 
 
 def test_coerce_type():
     df1 = df.copy()
-    df1['_meta'] = 1
+    df1['meta'] = 1
 
     code = r"""
     .tag('b')
@@ -194,8 +194,8 @@ def test_coerce_type():
     """
     result = df1.dk.qr(code).result
     expected = get_df()
-    expected['_meta'] = '1b'
-    expected['_meta'] = expected['_meta'].astype('string')
+    expected['meta'] = '1b'
+    expected['meta'] = expected['meta'].astype('string')
     assert_frame_equal(result, expected)
 
 

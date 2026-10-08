@@ -821,7 +821,7 @@ class TagMetadata(Symbol):
     add a tag about the currently
     selected rows into the metadata col.
 
-    assumes the metadata col is named "_meta"
+    assumes the metadata col is named "meta"
     and creates it if it doesn't exist.
 
     Examples
@@ -860,7 +860,7 @@ class TagMetadata(Symbol):
         if len(self.args) == 2:
             col_meta = str(self.args[1])
         else:
-            col_meta = '_meta'
+            col_meta = 'meta'
 
         if col_meta not in q.df.columns:
             q = _insert_col_meta(col_meta, q)

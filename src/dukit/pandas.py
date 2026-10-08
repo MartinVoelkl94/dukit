@@ -493,19 +493,19 @@ def date_table(
     cols_records = [
         col for col
         in df_timeline.columns
-        if col not in ('_meta', 'days', 'planned')
+        if col not in ('meta', 'days', 'planned')
         ]
     df_timeline.insert(
         loc=0,
-        column='_meta',
+        column='meta',
         value=''
         )
     has_event = df_timeline[cols_records] != filler
     records_per_row = has_event.sum(axis='columns')
     rows_with_records = records_per_row > 0
     summary = 'records: ' + records_per_row.astype(str)
-    df_timeline.loc[rows_with_records, '_meta'] = summary
-    df_timeline['_meta'] = df_timeline['_meta'].fillna('')
+    df_timeline.loc[rows_with_records, 'meta'] = summary
+    df_timeline['meta'] = df_timeline['meta'].fillna('')
 
     if schedule is not None:
         df_timeline = _highlight_schedule(df_timeline, schedule)
