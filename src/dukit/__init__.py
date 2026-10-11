@@ -38,6 +38,8 @@ from .pandas import (
     stagger,
     transpose,
     split_col,
+    stack,
+    unstack,
     )
 from .os import (
     cd,
@@ -103,6 +105,8 @@ __all__ = (
     'stagger',
     'transpose',
     'split_col',
+    'stack',
+    'unstack',
 
     'cd',
     'cp',

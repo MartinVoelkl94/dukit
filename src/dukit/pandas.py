@@ -1,11 +1,19 @@
 
+import re
 import copy
 import datetime
 import numpy as np
 import pandas as pd
 
-from .utils import log, ensure_unique_string, GREEN_LIGHT
-from .typing import date_
+from .utils import (
+    log,
+    ensure_unique_string,
+    GREEN_LIGHT,
+    )
+from .typing import (
+    date_,
+    list_,
+    )
 
 
 def get_df() -> pd.DataFrame:
@@ -923,3 +931,111 @@ def split_col(
     df.insert(pos + 1, new2, splits[2])  #type: ignore
 
     return df
+
+
+
+def unstack(
+        df,
+        uid,
+        pattern=r'(?P<uid>.+)#(?P<subid>.+)',
+        template='{col}#{subid}',
+        cols_keep=None,
+        stagger=True,
+        verbosity=3,
+        ):
+
+    df = df.copy()
+
+    if not df[uid].is_unique:
+        non_unique = df[uid][df[uid].duplicated()].unique()
+        log(f'WARNING: Source uid col "{uid}" contains non-unique values: {non_unique}')
+
+    ids = df[uid].str.extract(pattern)
+    ids.set_index('uid', inplace=True)
+    df[uid] = ids.index
+    df.set_index(uid, inplace=True)
+    subid_col = ids.iloc[:, 0]
+    subid_vals = subid_col.unique()
+
+    cols_keep = list_(cols_keep)
+    df_new = df.loc[~df.index.duplicated(keep='first'), cols_keep]
+
+    for col in df.columns:
+        if col in cols_keep:
+            continue
+        for subid_val in subid_vals:
+            colname = template.format(col=col, subid=subid_val)
+            mask = subid_col == subid_val
+            df_new[colname] = df.loc[mask, col]
+
+    df_new.sort_values(by=uid, inplace=True)
+    df_new.reset_index(inplace=True)
+
+    return df_new
+
+
+
+def stack(
+        df,
+        uid,
+        pattern=r'(?P<col>.+)#(?P<subid>.+)',
+        template='{uid}#{subid}',
+        cols_keep=None,
+        verbosity=3,
+        ):
+
+    df = df.copy()
+
+    if not df[uid].is_unique:
+        non_unique = df[uid][df[uid].duplicated()].unique()
+        log(f'WARNING: Source uid col "{uid}" contains non-unique values: {non_unique}')
+
+
+    uid_old = ensure_unique_string(uid, df.columns)
+    df.set_index(uid, inplace=True)
+    df.index.name = uid_old
+    cols_keep = list_(cols_keep)
+
+    subdfs = {}
+    not_matched = []
+    for col_old in df.columns:
+        if col_old in cols_keep:
+            continue
+        match = re.match(pattern, col_old)
+        if match:
+            subid_val = match.group('subid')
+            col_new = match.group('col')
+            if subid_val not in subdfs:
+                subdfs[subid_val] = pd.DataFrame()
+            subdfs[subid_val][col_new] = df[col_old]
+        else:
+            not_matched.append(col_old)
+
+    if len(not_matched) > 0:
+        msg = f'WARNING: Some cols did not match pattern {pattern!r}: {not_matched}'
+        log(msg, 'dk.pandas.stack', verbosity)
+
+    for subid_val in subdfs.keys():
+        subdf = subdfs[subid_val]
+        subdf.dropna(
+            inplace=True,
+            how='all',
+            )
+        uid_vals = [
+            template.format(uid=uid_old, subid=subid_val)
+            for uid_old in subdf.index
+            ]
+        subdf.insert(0, uid, uid_vals)
+
+    df_new = pd.concat(list(subdfs.values()), axis='index')
+    df_new = pd.merge(
+        df[cols_keep].reset_index(),
+        df_new.reset_index(),
+        on=uid_old,
+        how='right',
+        )
+    df_new.drop(columns=[uid_old], inplace=True)
+    df_new.sort_values(by=uid, inplace=True)
+    df_new.reset_index(drop=True, inplace=True)
+
+    return df_new
