@@ -557,7 +557,13 @@ def _highlight_schedule(
 
 
 
-def deduplicate(obj, name='object', verbosity=3):
+def deduplicate(
+        obj,
+        name='object',
+        rename_all=True,
+        start_at_1=True,
+        verbosity=3,
+        ):
     """
     make values unique by appending consecutive numeric suffixes.
 
@@ -567,6 +573,10 @@ def deduplicate(obj, name='object', verbosity=3):
         object convertible to a pandas Series.
     name : str, default 'object'
         name used in diagnostic messages.
+    rename_all : bool, default True
+        whether to rename all values, not just duplicates.
+    start_at_1 : bool, default True
+        whether to start numbering at 0 or 1.
     verbosity : int, default 3
         logging verbosity level.
 
@@ -588,7 +598,11 @@ def deduplicate(obj, name='object', verbosity=3):
             ' deduplicating by appending consecutive numbers.'
             )
         log(msg, 'dk.pandas.deduplicate', verbosity)
-        obj.index = _deduplicate(_to_series(obj.index))
+        obj.index = _deduplicate(
+            _to_series(obj.index),
+            rename_all,
+            start_at_1,
+            )
 
     rounds = 0
     while not obj.is_unique:
@@ -604,7 +618,11 @@ def deduplicate(obj, name='object', verbosity=3):
                 ' deduplicating again by appending consecutive numbers.'
                 )
         log(msg, 'dk.pandas.deduplicate', verbosity)
-        obj = _deduplicate(obj)
+        obj = _deduplicate(
+            obj,
+            rename_all,
+            start_at_1,
+            )
         rounds += 1
 
     if not isinstance(obj, class_orig):
@@ -632,16 +650,25 @@ def _to_series(obj, verbosity=3):
     return obj
 
 
-def _deduplicate(series):
+def _deduplicate(series, rename_all=True, start_at_1=True):
     cumulative_count = series.groupby(series).cumcount()
-    duplicates_mask = series.index[cumulative_count > 0]
-    duplicates = series[duplicates_mask]
-    duplicates_new = (
-        duplicates.astype(str)
-        + '_'
-        + cumulative_count[duplicates_mask].astype(str)
-        )
-    series[duplicates_mask] = duplicates_new
+    if rename_all:
+        if start_at_1:
+            cumulative_count += 1
+        series = (
+            series.astype(str)
+            + '_'
+            + cumulative_count.astype(str)
+            )
+    else:
+        duplicates_mask = series.index[cumulative_count > 0]
+        duplicates = series[duplicates_mask]
+        duplicates_new = (
+            duplicates.astype(str)
+            + '_'
+            + cumulative_count[duplicates_mask].astype(str)
+            )
+        series[duplicates_mask] = duplicates_new
     return series
 
 
