@@ -985,16 +985,33 @@ def unstack(
     df[uid] = df[uid].astype('string')
 
     if check and not df[uid].is_unique:
-        non_unique = df[uid][df[uid].duplicated()].unique()
+        non_unique = (
+            df[uid]
+            [df[uid].duplicated()]
+            .unique()
+            .tolist()
+            )
         msg = (
-            f'WARNING: Source uid col "{uid}" '
-            f'contains non-unique values: {non_unique}'
+            f'INFO: deduplicating non-unique values '
+            f'in source uid col "{uid}": {non_unique}'
+            )
+        log(msg, 'dk.pandas.unstack', verbosity)
+        df[uid] = deduplicate(df[uid])
+
+
+    ids = df[uid].str.extract(uid_pattern)
+
+    expected_cols = ['uid', 'subid']
+    if check and list(ids.columns) != expected_cols:
+        msg = (
+            'WARNING: uid pattern must contain exactly 2 named '
+            'match groups, one called uid and one called subid. '
+            'use the subid group in col_template.'
             )
         log(msg, 'dk.pandas.unstack', verbosity)
 
-    ids = df[uid].str.extract(uid_pattern)
     if check:
-        uid_isna = ids['uid'].isna()
+        uid_isna = ids.iloc[:, 0].isna()
         uids_unmatched = df.loc[uid_isna, uid].tolist()
         if uid_isna.any():
             msg = (
@@ -1003,10 +1020,11 @@ def unstack(
                 )
             log(msg, 'dk.pandas.unstack', verbosity)
 
+
     ids.set_index('uid', inplace=True)
     df[uid] = ids.index
     df.set_index(uid, inplace=True)
-    subid_col = ids.iloc[:, 0]
+    subid_col = ids['subid']
     subid_vals = subid_col.unique()
     cols_keep = list_(cols_keep)
     cols_unstack = [col for col in df.columns if col not in cols_keep]
