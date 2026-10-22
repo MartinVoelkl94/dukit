@@ -1091,6 +1091,7 @@ def stack(
         col_pattern=r'(?P<col>.+)_(?P<subid>.+)',
         uid_template='{uid}_{subid}',
         cols_keep=None,
+        dropna=True,
         sort=True,
         check=True,
         verbosity=3,
@@ -1143,10 +1144,11 @@ def stack(
 
     for subid_val in subdfs.keys():
         subdf = subdfs[subid_val]
-        subdf.dropna(
-            inplace=True,
-            how='all',
-            )
+        if dropna:
+            subdf.dropna(
+                inplace=True,
+                how='all',
+                )
         uid_vals = [
             uid_template.format(uid=uid_old, subid=subid_val)
             for uid_old in subdf.index
