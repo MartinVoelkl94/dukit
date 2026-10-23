@@ -971,15 +971,15 @@ def split_col(
 
 
 def unstack(
-        df,
-        uid,
-        uid_pattern=r'(?P<uid>.+)_(?P<subid>.+)',
-        col_template='{col}_{subid}',
-        cols_keep=None,
-        sort=True,
-        check=True,
-        verbosity=3,
-        ):
+        df: pd.DataFrame,
+        uid: str,
+        uid_pattern: str = r'(?P<uid>.+)_(?P<subid>.+)',
+        col_template: str = '{col}_{subid}',
+        cols_keep: list[str] | None = None,
+        stagger: bool = True,
+        check: bool = True,
+        verbosity: int = 3,
+        ) -> pd.DataFrame:
 
     df = df.copy()
     df[uid] = df[uid].astype('string')
@@ -1037,26 +1037,33 @@ def unstack(
             .sum()
             )
 
-    subdfs = {}
-    for subid_val in subid_vals:
-        mask = subid_col == subid_val
-        col_mapping = {}
+    cols_unstacked = []
+    if stagger:
+        for subid_val in subid_vals:
+            mask = subid_col == subid_val
+            for col_old in cols_unstack:
+                col_unstacked = df.loc[mask, col_old]
+                col_unstacked.name = col_template.format(col=col_old, subid=subid_val)
+                cols_unstacked.append(col_unstacked)
+    else:
         for col_old in cols_unstack:
-            col_new = col_template.format(col=col_old, subid=subid_val)
-            col_mapping[col_old] = col_new
-        subdf = df.loc[mask, list(col_mapping.keys())]
-        subdf.rename(columns=col_mapping, inplace=True)
-        subdfs[subid_val] = subdf
+            for subid_val in subid_vals:
+                mask = subid_col == subid_val
+                col_unstacked = df.loc[mask, col_old]
+                col_unstacked.name = col_template.format(col=col_old, subid=subid_val)
+                cols_unstacked.append(col_unstacked)
+
 
     df_new = df.loc[~df.index.duplicated(keep='first'), cols_keep]
-    for subid_val, subdf in subdfs.items():
+    for col_unstacked in cols_unstacked:
         df_new = pd.merge(
             df_new,
-            subdf,
+            col_unstacked,
             left_index=True,
             right_index=True,
             how='left'
             )
+
 
     if check:
         cols_stacked = [
@@ -1077,8 +1084,6 @@ def unstack(
                 )
             log(msg, 'dk.pandas.unstack', verbosity)
 
-    if sort:
-        df_new.sort_values(by=uid, inplace=True)
     df_new.reset_index(inplace=True)
 
     return df_new
@@ -1086,16 +1091,16 @@ def unstack(
 
 
 def stack(
-        df,
-        uid,
-        col_pattern=r'(?P<col>.+)_(?P<subid>.+)',
-        uid_template='{uid}_{subid}',
-        cols_keep=None,
-        dropna=True,
-        sort=True,
-        check=True,
-        verbosity=3,
-        ):
+        df: pd.DataFrame,
+        uid: str,
+        col_pattern: str = r'(?P<col>.+)_(?P<subid>.+)',
+        uid_template: str = '{uid}_{subid}',
+        cols_keep: list[str] | None = None,
+        dropna: bool = True,
+        sort: bool = True,
+        check: bool = True,
+        verbosity: int = 3,
+        ) -> pd.DataFrame:
 
     df = df.copy()
     df[uid] = df[uid].astype('string')

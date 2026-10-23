@@ -72,8 +72,8 @@ these functions offer various ways to deal with non-unique keys/ids.
 primarily used when merging 2 dfs with a one-to-many relationship.
 
 available functions:
-- df.dk.flatten()
-- df.dk.stagger()
+- df.dk.stack()
+- df.dk.unstack()
 - df.dk.embed()
 - df.dk.collapse()
 <br>

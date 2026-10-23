@@ -13,8 +13,8 @@ from .pandas import (
     date_table,
     collapse,
     embed,
-    flatten,
-    stagger,
+    stack,
+    unstack,
     transpose,
     split_col,
     )
@@ -135,30 +135,50 @@ class DukitAccessor():
         return df_new
 
 
-    def flatten(
+    def stack(
             self,
-            on: str,
-            template='{colname}_#{counter}',
-            ):
-        df_new = flatten(
+            uid: str,
+            col_pattern: str = r'(?P<col>.+)_(?P<subid>.+)',
+            uid_template: str = '{uid}_{subid}',
+            cols_keep: list[str] | None = None,
+            dropna: bool = True,
+            sort: bool = True,
+            check: bool = True,
+            verbosity: int = 3,
+            ) -> pd.DataFrame:
+        df_new = stack(
             self.df,
-            on=on,
-            template=template,
+            uid=uid,
+            col_pattern=col_pattern,
+            uid_template=uid_template,
+            cols_keep=cols_keep,
+            dropna=dropna,
+            sort=sort,
+            check=check,
+            verbosity=verbosity,
             )
         return df_new
 
 
-    def stagger(
+    def unstack(
             self,
-            on: str,
-            template='#{counter}_{colname}',
-            separator_col='#{counter}',
-            ):
-        df_new = stagger(
+            uid: str,
+            uid_pattern: str = r'(?P<uid>.+)_(?P<subid>.+)',
+            col_template: str = '{col}_{subid}',
+            cols_keep: list[str] | None = None,
+            stagger: bool = True,
+            check: bool = True,
+            verbosity: int = 3,
+            ) -> pd.DataFrame:
+        df_new = unstack(
             self.df,
-            on=on,
-            template=template,
-            separator_col=separator_col,
+            uid=uid,
+            uid_pattern=uid_pattern,
+            col_template=col_template,
+            cols_keep=cols_keep,
+            stagger=stagger,
+            check=check,
+            verbosity=verbosity
             )
         return df_new
 
