@@ -1498,15 +1498,26 @@ def _add_retained_cols(d: Diff) -> Diff:
 
     idx_shared = d._values.index.intersection(d._cols_retained.index)
     df_retained = d._cols_retained.loc[idx_shared, :]
-    d._values = pd.concat([df_retained, d._values], axis='columns')
+    d._values = pd.merge(
+        df_retained,
+        d._values,
+        left_index=True,
+        right_index=True,
+        how='right',
+        )
 
     df_style = pd.DataFrame(
         data='',
         index=df_retained.index,
         columns=df_retained.columns,
         )
-    d._style = pd.concat([df_style, d._style], axis='columns')
-
+    d._style = pd.merge(
+        df_style,
+        d._style,
+        left_index=True,
+        right_index=True,
+        how='right',
+        )
     return d
 
 

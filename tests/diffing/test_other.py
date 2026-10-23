@@ -1,5 +1,6 @@
 
 import pytest
+import pandas as pd
 import dukit as dk
 
 from pandas.testing import assert_frame_equal
@@ -84,3 +85,43 @@ def test_invalid_uid():
             uid='missing',
             verbosity=0,
             )
+
+
+
+def test_retain_cols_edgecase():
+
+    df1 = pd.DataFrame({
+        'uid': [2, 1],
+        'notes': ['note2', 'note1'],
+        'val': ['b', 'a']
+        })
+    df2 = pd.DataFrame({
+        'uid': [3, 2, 1],
+        'notes': ['note3', 'note2', 'note1'],
+        'val': ['c', 'b', 'a']
+        })
+
+    result = dk.rediff(
+        df1,
+        df2,
+        )[0]._style
+
+    expected = pd.DataFrame({
+        'notes': [
+            '',
+            '',
+            '',
+            ],
+        'val': [
+            'background-color: #6dae51;',
+            '',
+            '',
+            ],
+        'val *old': [
+            'font-style: italic;background-color: #6dae51;',
+            'font-style: italic;',
+            'font-style: italic;',
+            ],
+        })
+
+    assert_frame_equal(result, expected, check_dtype=False)
