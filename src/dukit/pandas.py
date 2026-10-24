@@ -303,6 +303,519 @@ def get_df_new() -> pd.DataFrame:
 
 
 
+def deduplicate(
+        obj,
+        name='object',
+        rename_all=True,
+        start_at_1=True,
+        verbosity=3,
+        ):
+    """
+    make values unique by appending consecutive numeric suffixes.
+
+    Parameters
+    ----------
+    obj : object
+        object convertible to a pandas Series.
+    name : str, default 'object'
+        name used in diagnostic messages.
+    rename_all : bool, default True
+        whether to rename all values, not just duplicates.
+    start_at_1 : bool, default True
+        whether to start numbering at 0 or 1.
+    verbosity : int, default 3
+        logging verbosity level.
+
+    Returns
+    -------
+    object
+        deduplicated object, converted back to its original type when
+        possible. Values are converted to strings during processing.
+    """
+
+    obj = copy.deepcopy(obj)
+    class_orig = obj.__class__
+    obj = _to_series(obj)
+
+    #Values can only be deduplicated if index is unique
+    if not obj.index.is_unique:
+        msg = (
+            f'info: duplicates found in index of {name}.'
+            ' deduplicating by appending consecutive numbers.'
+            )
+        log(msg, 'dk.pandas.deduplicate', verbosity)
+        obj.index = _deduplicate(
+            _to_series(obj.index),
+            rename_all,
+            start_at_1,
+            )
+
+    if rename_all:
+        obj = _deduplicate(
+            obj,
+            rename_all,
+            start_at_1,
+            )
+        rounds = 1
+    else:
+        rounds = 0
+
+    while not obj.is_unique:
+        if rounds == 0:
+            msg = (
+                f'debug: duplicates found in {name}.'
+                ' deduplicating by appending consecutive numbers.'
+                )
+        else:
+            msg = (
+                f'debug: duplicates still found in {name} after'
+                f' {rounds} deduplication rounds.'
+                ' deduplicating again by appending consecutive numbers.'
+                )
+        log(msg, 'dk.pandas.deduplicate', verbosity)
+        obj = _deduplicate(
+            obj,
+            rename_all,
+            start_at_1,
+            )
+        rounds += 1
+
+    if not isinstance(obj, class_orig):
+        try:
+            obj = class_orig(obj)
+        except Exception as e:
+            msg = (
+                'Error: could not convert deduplicated object'
+                f' back to original type {class_orig}: {e}'
+                )
+            log(msg, 'dk.pandas.deduplicate', verbosity)
+
+    return obj
+
+
+def _to_series(obj, verbosity=3):
+    try:
+        obj = pd.Series(obj, dtype=str)
+    except Exception as e:
+        msg = (
+            'Error: could not convert input of type'
+            f' {type(obj)} to Series: {e}'
+            )
+        log(msg, 'dk.pandas._to_series', verbosity)
+    return obj
+
+
+def _deduplicate(series, rename_all=True, start_at_1=True):
+    cumulative_count = series.groupby(series).cumcount()
+    if rename_all:
+        if start_at_1:
+            cumulative_count += 1
+        series = (
+            series.astype(str)
+            + '_'
+            + cumulative_count.astype(str)
+            )
+    else:
+        duplicates_mask = series.index[cumulative_count > 0]
+        duplicates = series[duplicates_mask]
+        duplicates_new = (
+            duplicates.astype(str)
+            + '_'
+            + cumulative_count[duplicates_mask].astype(str)
+            )
+        series[duplicates_mask] = duplicates_new
+    return series
+
+
+
+def compose(
+        df: pd.DataFrame,
+        col: str,
+        cols: list[str],
+        template='{0}_{1}',
+        verbosity=3,
+        ):
+
+    _compose_check_if_col_alread_exists(df, col, verbosity)
+    _compose_check_cols_matches_template(cols, template, verbosity)
+    pos = _compose_get_first_col_pos(df, cols, verbosity)
+
+    col_new = df[cols].apply(lambda row: template.format(*row), axis='columns')
+    df.insert(pos, col, col_new)
+    df.drop(columns=cols, inplace=True)
+
+    return df
+
+
+def _compose_check_cols_matches_template(cols, template, verbosity):
+    num_placeholders = template.count('{')
+    if num_placeholders != len(cols):
+        msg = (
+            'WARNING: Number of placeholders in template'
+            f' ({num_placeholders}) does not match number'
+            f' of cols ({len(cols)}) provided.'
+            )
+        log(msg, 'dk.pandas.compose', verbosity)
+
+
+def _compose_check_if_col_alread_exists(df, col, verbosity):
+    if col in df.columns:
+        msg = f'WARNING: col "{col}" already exists and will be overwritten.'
+        log(msg, 'dk.pandas.compose', verbosity)
+
+
+def _compose_get_first_col_pos(df, cols, verbosity=3):
+    pos = len(df.columns)
+    for col_temp in cols:
+        if col_temp not in df.columns:
+            msg = f'ERROR: col "{col_temp}" does not exist.'
+            log(msg, 'dk.pandas.compose', verbosity)
+            raise ValueError(f'Col "{col_temp}" does not exist.')
+        pos_temp = df.columns.get_loc(col_temp)
+        if pos_temp < pos:
+            pos = pos_temp
+    return pos
+
+
+
+def decompose(
+        df: pd.DataFrame,
+        col: str,
+        cols: list[str] | None = None,
+        pattern='(.+)_(.+)',
+        verbosity=3,
+        ):
+
+    _decomposes_check_if_col_exists(df, col, verbosity)
+
+    pos = df.columns.get_loc(col)
+    df_unmerged = df[col].str.extract(pattern)
+
+    if cols is None:
+        cols = [
+            f'{col}_{group}'for group
+            in range(1, len(df_unmerged.columns) + 1)
+            ]
+    else:
+        _decomposes_check_cols_matches_extraction(cols, df_unmerged, verbosity)
+    _decomposes_check_cols_already_exists(df, cols, verbosity)
+    df_unmerged.columns = cols
+
+    df1 = df.iloc[:, :pos]
+    df2 = df.iloc[:, pos+1:]
+    df_new = pd.concat([df1, df_unmerged, df2], axis='columns')
+
+    return df_new
+
+
+def _decomposes_check_if_col_exists(df, col, verbosity):
+    if col not in df.columns:
+        msg = f'ERROR: col "{col}" does not exist.'
+        log(msg, 'dk.pandas.decompose', verbosity)
+        raise ValueError(msg)
+
+
+def _decomposes_check_cols_matches_extraction(cols, df_unmerged, verbosity):
+    if len(cols) != len(df_unmerged.columns):
+        msg = (
+            f'ERROR: Number of columns provided ({len(cols)}) '
+            'does not match number of groups extracted '
+            f'({len(df_unmerged.columns)}).'
+            )
+        log(msg, 'dk.pandas.decompose', verbosity)
+        raise ValueError(msg)
+
+
+def _decomposes_check_cols_already_exists(df, cols, verbosity):
+    for col_temp in cols:
+        if col_temp in df.columns:
+            msg = f'WARNING: col "{col_temp}" already exists and will be overwritten.'
+            log(msg, 'dk.pandas.decompose', verbosity)
+
+
+
+def stack(
+        df: pd.DataFrame,
+        uid: str,
+        col_pattern: str = r'(?P<col>.+)_(?P<subid>.+)',
+        uid_template: str = '{uid}_{subid}',
+        cols_keep: list[str] | None = None,
+        dropna: bool = True,
+        sort: bool = True,
+        verbosity: int = 3,
+        ) -> pd.DataFrame:
+
+    df = df.copy()
+    df[uid] = df[uid].astype('string')
+    _stack_check_uid_unique1(df, uid, verbosity)
+
+    uid_old = ensure_unique_string(uid, df.columns)
+    df.set_index(uid, inplace=True)
+    df.index.name = uid_old
+    cols_keep = list_(cols_keep)
+    cols_stack = [col for col in df.columns if col not in cols_keep]
+
+    non_na_vals = int(
+        df[cols_stack]
+        .notna()
+        .sum()
+        .sum()
+        )
+
+    subdfs = {}
+    not_matched = []
+    for col_old in cols_stack:
+        match = re.match(col_pattern, col_old)
+        if match:
+            subid_val = match.group('subid')
+            col_new = match.group('col')
+            if subid_val not in subdfs:
+                subdfs[subid_val] = pd.DataFrame()
+            subdfs[subid_val][col_new] = df[col_old]
+        else:
+            not_matched.append(col_old)
+    _stack_check_successfull_match(not_matched, verbosity)
+
+    for subid_val in subdfs.keys():
+        subdf = subdfs[subid_val]
+        if dropna:
+            subdf.dropna(
+                inplace=True,
+                how='all',
+                )
+        uid_vals = [
+            uid_template.format(uid=uid_old, subid=subid_val)
+            for uid_old in subdf.index
+            ]
+        subdf.insert(0, uid, uid_vals)
+
+    df_new = pd.concat(list(subdfs.values()), axis='index')
+    df_new = pd.merge(
+        df[cols_keep].reset_index(),
+        df_new.reset_index(),
+        on=uid_old,
+        how='right',
+        )
+    df_new.drop(columns=[uid_old], inplace=True)
+
+    _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals, verbosity)
+
+    if sort:
+        df_new.sort_values(by=uid, inplace=True)
+    df_new.reset_index(drop=True, inplace=True)
+ 
+    _stack_check_uid_unique2(uid, verbosity, df_new)
+
+    return df_new
+
+
+def _stack_check_uid_unique1(df, uid, verbosity):
+    if not df[uid].is_unique:
+        non_unique = df[uid][df[uid].duplicated()].unique()
+        msg = (
+            f'WARNING: Source uid col "{uid}" '
+            f'contains non-unique values: {non_unique}'
+            )
+        log(msg, 'dk.pandas.stack', verbosity)
+
+
+def _stack_check_successfull_match(not_matched, verbosity):
+    if len(not_matched) > 0:
+        msg = (
+            'WARNING: Some cols did not '
+            f'match col_pattern: {not_matched}'
+            )
+        log(msg, 'dk.pandas.stack', verbosity)
+
+
+def _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals1, verbosity):
+    cols_stacked = [
+            col for col
+            in df_new.columns
+            if col not in cols_keep + [uid]
+            ]
+    non_na_vals2 = int(
+            df_new[cols_stacked]
+            .notna()
+            .sum()
+            .sum()
+            )
+    if non_na_vals1 != non_na_vals2:
+        msg = (
+                f'WARNING: Non-NA value mismatch: '
+                f'before={non_na_vals1}, after={non_na_vals2}'
+                )
+        log(msg, 'dk.pandas.stack', verbosity)
+
+
+def _stack_check_uid_unique2(uid, verbosity, df_new):
+    if not df_new[uid].is_unique:
+        non_unique = df_new[uid][df_new[uid].duplicated()].unique()
+        msg = (
+            f'WARNING: Result uid col "{uid}" '
+            f'contains non-unique values: {non_unique}'
+            )
+        log(msg, 'dk.pandas.stack', verbosity)
+
+
+
+def unstack(
+        df: pd.DataFrame,
+        uid: str,
+        uid_pattern: str = r'(?P<uid>.+)_(?P<subid>.+)',
+        col_template: str = '{col}_{subid}',
+        cols_keep: list[str] | None = None,
+        stagger: bool = True,
+        verbosity: int = 3,
+        ) -> pd.DataFrame:
+
+    df = df.copy()
+    df[uid] = df[uid].astype('string')
+    _unstack_check_uid_unique(df, uid, verbosity)
+
+    ids = df[uid].str.extract(uid_pattern)
+    expected_cols = ['uid', 'subid']
+    _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity)
+
+
+    ids.set_index('uid', inplace=True)
+    df[uid] = ids.index
+    df.set_index(uid, inplace=True)
+    subid_col = ids['subid']
+    subid_vals = subid_col.unique()
+    cols_keep = list_(cols_keep)
+    cols_unstack = [col for col in df.columns if col not in cols_keep]
+
+    non_na_vals = int(
+        df[cols_unstack]
+        .notna()
+        .sum()
+        .sum()
+        )
+
+    cols_unstacked = []
+    if stagger:
+        for subid_val in subid_vals:
+            mask = subid_col == subid_val
+            for col_old in cols_unstack:
+                col_unstacked = df.loc[mask, col_old]
+                col_unstacked.name = col_template.format(col=col_old, subid=subid_val)
+                cols_unstacked.append(col_unstacked)
+    else:
+        for col_old in cols_unstack:
+            for subid_val in subid_vals:
+                mask = subid_col == subid_val
+                col_unstacked = df.loc[mask, col_old]
+                col_unstacked.name = col_template.format(col=col_old, subid=subid_val)
+                cols_unstacked.append(col_unstacked)
+
+
+    df_new = df.loc[~df.index.duplicated(keep='first'), cols_keep]
+    for col_unstacked in cols_unstacked:
+        df_new = pd.merge(
+            df_new,
+            col_unstacked,
+            left_index=True,
+            right_index=True,
+            how='left'
+            )
+
+    _unstack_check_missed_values(uid, cols_keep, verbosity, non_na_vals, df_new)
+
+    df_new.reset_index(inplace=True)
+
+    return df_new
+
+
+def _unstack_check_uid_unique(df, uid, verbosity):
+    if not df[uid].is_unique:
+        non_unique = (
+            df[uid]
+            [df[uid].duplicated()]
+            .unique()
+            .tolist()
+            )
+        msg = (
+            f'INFO: deduplicating non-unique values '
+            f'in source uid col "{uid}": {non_unique}'
+            )
+        log(msg, 'dk.pandas.unstack', verbosity)
+        df[uid] = deduplicate(df[uid])
+
+
+def _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity):
+    if list(ids.columns) != expected_cols:
+        msg = (
+            'WARNING: uid pattern must contain exactly 2 named '
+            'match groups, one called uid and one called subid. '
+            'use the subid group in col_template.'
+            )
+        log(msg, 'dk.pandas.unstack', verbosity)
+    else:
+        uid_isna = ids.iloc[:, 0].isna()
+        uids_unmatched = df.loc[uid_isna, uid].tolist()
+        if uid_isna.any():
+            msg = (
+                'WARNING: Some uids did not match '
+                f'uid_pattern: {uids_unmatched}'
+                )
+            log(msg, 'dk.pandas.unstack', verbosity)
+
+
+def _unstack_check_missed_values(uid, cols_keep, verbosity, non_na_vals1, df_new):
+    cols_stacked = [
+        col for col
+        in df_new.columns
+        if col not in cols_keep + [uid]
+        ]
+    non_na_vals2 = int(
+        df_new[cols_stacked]
+        .notna()
+        .sum()
+        .sum()
+        )
+    if non_na_vals1 != non_na_vals2:
+        msg = (
+            'WARNING: Non-NA value mismatch: '
+            f'before={non_na_vals1}, after={non_na_vals2}'
+            )
+        log(msg, 'dk.pandas.unstack', verbosity)
+
+
+
+def transpose(
+        df: pd.DataFrame,
+        header='uid',
+        ) -> pd.DataFrame:
+    """
+    transpose a df while preserving a designated header col.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        df to transpose.
+    header : str, default 'uid'
+        col used as the new header identifier.
+
+    Returns
+    -------
+    pandas.DataFrame
+        transposed df.
+    """
+
+    cols_old = df.columns
+    cols_new = df[header].values
+
+    df = df.T
+    df.columns = cols_new
+    df.insert(0, header, cols_old)
+    df.drop(header, axis=0, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
+    return df
+
+
+
 def date_delta(
         df: pd.DataFrame,
         reference_date: str | datetime.date | pd.Timestamp = None,
@@ -556,129 +1069,39 @@ def _highlight_schedule(
 
 
 
-
-def deduplicate(
-        obj,
-        name='object',
-        rename_all=True,
-        start_at_1=True,
-        verbosity=3,
+def split_col(
+        df: pd.DataFrame,
+        col: str = 'uid',
+        sep: str = '::\n',
+        new1: str = None,
+        new2: str = 'label',
         ):
-    """
-    make values unique by appending consecutive numeric suffixes.
 
-    Parameters
-    ----------
-    obj : object
-        object convertible to a pandas Series.
-    name : str, default 'object'
-        name used in diagnostic messages.
-    rename_all : bool, default True
-        whether to rename all values, not just duplicates.
-    start_at_1 : bool, default True
-        whether to start numbering at 0 or 1.
-    verbosity : int, default 3
-        logging verbosity level.
+    if col not in df.columns:
+        log(f'ERROR: no col named "{col}" found')
+        return df
+    elif df.columns.tolist().count(col) > 1:
+        log(f'ERROR: multiple cols named "{col}" found')
+        return df
 
-    Returns
-    -------
-    object
-        deduplicated object, converted back to its original type when
-        possible. Values are converted to strings during processing.
-    """
+    df = df.copy()
+    pos = df.columns.get_loc(col)
+    splits = df[col].str.partition(sep)
 
-    obj = copy.deepcopy(obj)
-    class_orig = obj.__class__
-    obj = _to_series(obj)
+    df.drop(columns=[col], inplace=True)
+    if new1 is None:
+        new1 = col
+    elif new1 in df.columns:
+        log(f'WARNING: Col {new1} already exists, choosing new name.')
+        new1 = ensure_unique_string(new1, df.columns.tolist())
+    if new2 in df.columns:
+        log(f'WARNING: Col {new2} already exists, choosing new name.')
+        new2 = ensure_unique_string(new2, df.columns.tolist() + [new1])
 
-    #Values can only be deduplicated if index is unique
-    if not obj.index.is_unique:
-        msg = (
-            f'info: duplicates found in index of {name}.'
-            ' deduplicating by appending consecutive numbers.'
-            )
-        log(msg, 'dk.pandas.deduplicate', verbosity)
-        obj.index = _deduplicate(
-            _to_series(obj.index),
-            rename_all,
-            start_at_1,
-            )
+    df.insert(pos, new1, splits[0])  #type: ignore
+    df.insert(pos + 1, new2, splits[2])  #type: ignore
 
-    if rename_all:
-        obj = _deduplicate(
-            obj,
-            rename_all,
-            start_at_1,
-            )
-        rounds = 1
-    else:
-        rounds = 0
-
-    while not obj.is_unique:
-        if rounds == 0:
-            msg = (
-                f'debug: duplicates found in {name}.'
-                ' deduplicating by appending consecutive numbers.'
-                )
-        else:
-            msg = (
-                f'debug: duplicates still found in {name} after'
-                f' {rounds} deduplication rounds.'
-                ' deduplicating again by appending consecutive numbers.'
-                )
-        log(msg, 'dk.pandas.deduplicate', verbosity)
-        obj = _deduplicate(
-            obj,
-            rename_all,
-            start_at_1,
-            )
-        rounds += 1
-
-    if not isinstance(obj, class_orig):
-        try:
-            obj = class_orig(obj)
-        except Exception as e:
-            msg = (
-                'Error: could not convert deduplicated object'
-                f' back to original type {class_orig}: {e}'
-                )
-            log(msg, 'dk.pandas.deduplicate', verbosity)
-
-    return obj
-
-
-def _to_series(obj, verbosity=3):
-    try:
-        obj = pd.Series(obj, dtype=str)
-    except Exception as e:
-        msg = (
-            'Error: could not convert input of type'
-            f' {type(obj)} to Series: {e}'
-            )
-        log(msg, 'dk.pandas._to_series', verbosity)
-    return obj
-
-
-def _deduplicate(series, rename_all=True, start_at_1=True):
-    cumulative_count = series.groupby(series).cumcount()
-    if rename_all:
-        if start_at_1:
-            cumulative_count += 1
-        series = (
-            series.astype(str)
-            + '_'
-            + cumulative_count.astype(str)
-            )
-    else:
-        duplicates_mask = series.index[cumulative_count > 0]
-        duplicates = series[duplicates_mask]
-        duplicates_new = (
-            duplicates.astype(str)
-            + '_'
-            + cumulative_count[duplicates_mask].astype(str)
-            )
-        series[duplicates_mask] = duplicates_new
-    return series
+    return df
 
 
 
@@ -898,321 +1321,3 @@ def _get_from_list(x, i):
         return x[i]
     else:
         return None
-
-
-
-def transpose(
-        df: pd.DataFrame,
-        header='uid',
-        ) -> pd.DataFrame:
-    """
-    transpose a df while preserving a designated header col.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        df to transpose.
-    header : str, default 'uid'
-        col used as the new header identifier.
-
-    Returns
-    -------
-    pandas.DataFrame
-        transposed df.
-    """
-
-    cols_old = df.columns
-    cols_new = df[header].values
-
-    df = df.T
-    df.columns = cols_new
-    df.insert(0, header, cols_old)
-    df.drop(header, axis=0, inplace=True)
-    df.reset_index(drop=True, inplace=True)
-
-    return df
-
-
-
-def split_col(
-        df: pd.DataFrame,
-        col: str = 'uid',
-        sep: str = '::\n',
-        new1: str = None,
-        new2: str = 'label',
-        ):
-
-    if col not in df.columns:
-        log(f'ERROR: no col named "{col}" found')
-        return df
-    elif df.columns.tolist().count(col) > 1:
-        log(f'ERROR: multiple cols named "{col}" found')
-        return df
-
-    df = df.copy()
-    pos = df.columns.get_loc(col)
-    splits = df[col].str.partition(sep)
-
-    df.drop(columns=[col], inplace=True)
-    if new1 is None:
-        new1 = col
-    elif new1 in df.columns:
-        log(f'WARNING: Col {new1} already exists, choosing new name.')
-        new1 = ensure_unique_string(new1, df.columns.tolist())
-    if new2 in df.columns:
-        log(f'WARNING: Col {new2} already exists, choosing new name.')
-        new2 = ensure_unique_string(new2, df.columns.tolist() + [new1])
-
-    df.insert(pos, new1, splits[0])  #type: ignore
-    df.insert(pos + 1, new2, splits[2])  #type: ignore
-
-    return df
-
-
-
-def stack(
-        df: pd.DataFrame,
-        uid: str,
-        col_pattern: str = r'(?P<col>.+)_(?P<subid>.+)',
-        uid_template: str = '{uid}_{subid}',
-        cols_keep: list[str] | None = None,
-        dropna: bool = True,
-        sort: bool = True,
-        verbosity: int = 3,
-        ) -> pd.DataFrame:
-
-    df = df.copy()
-    df[uid] = df[uid].astype('string')
-    _stack_check_uid_unique1(df, uid, verbosity)
-
-    uid_old = ensure_unique_string(uid, df.columns)
-    df.set_index(uid, inplace=True)
-    df.index.name = uid_old
-    cols_keep = list_(cols_keep)
-    cols_stack = [col for col in df.columns if col not in cols_keep]
-
-    non_na_vals = int(
-        df[cols_stack]
-        .notna()
-        .sum()
-        .sum()
-        )
-
-    subdfs = {}
-    not_matched = []
-    for col_old in cols_stack:
-        match = re.match(col_pattern, col_old)
-        if match:
-            subid_val = match.group('subid')
-            col_new = match.group('col')
-            if subid_val not in subdfs:
-                subdfs[subid_val] = pd.DataFrame()
-            subdfs[subid_val][col_new] = df[col_old]
-        else:
-            not_matched.append(col_old)
-    _stack_check_successfull_match(not_matched, verbosity)
-
-    for subid_val in subdfs.keys():
-        subdf = subdfs[subid_val]
-        if dropna:
-            subdf.dropna(
-                inplace=True,
-                how='all',
-                )
-        uid_vals = [
-            uid_template.format(uid=uid_old, subid=subid_val)
-            for uid_old in subdf.index
-            ]
-        subdf.insert(0, uid, uid_vals)
-
-    df_new = pd.concat(list(subdfs.values()), axis='index')
-    df_new = pd.merge(
-        df[cols_keep].reset_index(),
-        df_new.reset_index(),
-        on=uid_old,
-        how='right',
-        )
-    df_new.drop(columns=[uid_old], inplace=True)
-
-    _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals, verbosity)
-
-    if sort:
-        df_new.sort_values(by=uid, inplace=True)
-    df_new.reset_index(drop=True, inplace=True)
- 
-    _stack_check_uid_unique2(uid, verbosity, df_new)
-
-    return df_new
-
-
-def _stack_check_uid_unique1(df, uid, verbosity):
-    if not df[uid].is_unique:
-        non_unique = df[uid][df[uid].duplicated()].unique()
-        msg = (
-            f'WARNING: Source uid col "{uid}" '
-            f'contains non-unique values: {non_unique}'
-            )
-        log(msg, 'dk.pandas.stack', verbosity)
-
-
-def _stack_check_successfull_match(not_matched, verbosity):
-    if len(not_matched) > 0:
-        msg = (
-            'WARNING: Some cols did not '
-            f'match col_pattern: {not_matched}'
-            )
-        log(msg, 'dk.pandas.stack', verbosity)
-
-
-def _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals1, verbosity):
-    cols_stacked = [
-            col for col
-            in df_new.columns
-            if col not in cols_keep + [uid]
-            ]
-    non_na_vals2 = int(
-            df_new[cols_stacked]
-            .notna()
-            .sum()
-            .sum()
-            )
-    if non_na_vals1 != non_na_vals2:
-        msg = (
-                f'WARNING: Non-NA value mismatch: '
-                f'before={non_na_vals1}, after={non_na_vals2}'
-                )
-        log(msg, 'dk.pandas.stack', verbosity)
-
-
-def _stack_check_uid_unique2(uid, verbosity, df_new):
-    if not df_new[uid].is_unique:
-        non_unique = df_new[uid][df_new[uid].duplicated()].unique()
-        msg = (
-            f'WARNING: Result uid col "{uid}" '
-            f'contains non-unique values: {non_unique}'
-            )
-        log(msg, 'dk.pandas.stack', verbosity)
-
-
-
-def unstack(
-        df: pd.DataFrame,
-        uid: str,
-        uid_pattern: str = r'(?P<uid>.+)_(?P<subid>.+)',
-        col_template: str = '{col}_{subid}',
-        cols_keep: list[str] | None = None,
-        stagger: bool = True,
-        verbosity: int = 3,
-        ) -> pd.DataFrame:
-
-    df = df.copy()
-    df[uid] = df[uid].astype('string')
-    _unstack_check_uid_unique(df, uid, verbosity)
-
-    ids = df[uid].str.extract(uid_pattern)
-    expected_cols = ['uid', 'subid']
-    _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity)
-
-
-    ids.set_index('uid', inplace=True)
-    df[uid] = ids.index
-    df.set_index(uid, inplace=True)
-    subid_col = ids['subid']
-    subid_vals = subid_col.unique()
-    cols_keep = list_(cols_keep)
-    cols_unstack = [col for col in df.columns if col not in cols_keep]
-
-    non_na_vals = int(
-        df[cols_unstack]
-        .notna()
-        .sum()
-        .sum()
-        )
-
-    cols_unstacked = []
-    if stagger:
-        for subid_val in subid_vals:
-            mask = subid_col == subid_val
-            for col_old in cols_unstack:
-                col_unstacked = df.loc[mask, col_old]
-                col_unstacked.name = col_template.format(col=col_old, subid=subid_val)
-                cols_unstacked.append(col_unstacked)
-    else:
-        for col_old in cols_unstack:
-            for subid_val in subid_vals:
-                mask = subid_col == subid_val
-                col_unstacked = df.loc[mask, col_old]
-                col_unstacked.name = col_template.format(col=col_old, subid=subid_val)
-                cols_unstacked.append(col_unstacked)
-
-
-    df_new = df.loc[~df.index.duplicated(keep='first'), cols_keep]
-    for col_unstacked in cols_unstacked:
-        df_new = pd.merge(
-            df_new,
-            col_unstacked,
-            left_index=True,
-            right_index=True,
-            how='left'
-            )
-
-    _unstack_check_missed_values(uid, cols_keep, verbosity, non_na_vals, df_new)
-
-    df_new.reset_index(inplace=True)
-
-    return df_new
-
-
-def _unstack_check_uid_unique(df, uid, verbosity):
-    if not df[uid].is_unique:
-        non_unique = (
-            df[uid]
-            [df[uid].duplicated()]
-            .unique()
-            .tolist()
-            )
-        msg = (
-            f'INFO: deduplicating non-unique values '
-            f'in source uid col "{uid}": {non_unique}'
-            )
-        log(msg, 'dk.pandas.unstack', verbosity)
-        df[uid] = deduplicate(df[uid])
-
-
-def _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity):
-    if list(ids.columns) != expected_cols:
-        msg = (
-            'WARNING: uid pattern must contain exactly 2 named '
-            'match groups, one called uid and one called subid. '
-            'use the subid group in col_template.'
-            )
-        log(msg, 'dk.pandas.unstack', verbosity)
-    else:
-        uid_isna = ids.iloc[:, 0].isna()
-        uids_unmatched = df.loc[uid_isna, uid].tolist()
-        if uid_isna.any():
-            msg = (
-                'WARNING: Some uids did not match '
-                f'uid_pattern: {uids_unmatched}'
-                )
-            log(msg, 'dk.pandas.unstack', verbosity)
-
-
-def _unstack_check_missed_values(uid, cols_keep, verbosity, non_na_vals1, df_new):
-    cols_stacked = [
-        col for col
-        in df_new.columns
-        if col not in cols_keep + [uid]
-        ]
-    non_na_vals2 = int(
-        df_new[cols_stacked]
-        .notna()
-        .sum()
-        .sum()
-        )
-    if non_na_vals1 != non_na_vals2:
-        msg = (
-            'WARNING: Non-NA value mismatch: '
-            f'before={non_na_vals1}, after={non_na_vals2}'
-            )
-        log(msg, 'dk.pandas.unstack', verbosity)

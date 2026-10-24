@@ -9,13 +9,15 @@ from .qlang import (
     qs,
     )
 from .pandas import (
+    compose,
+    decompose,
+    stack,
+    unstack,
+    transpose,
     date_delta,
     date_table,
     collapse,
     embed,
-    stack,
-    unstack,
-    transpose,
     split_col,
     )
 
@@ -53,6 +55,124 @@ class DukitAccessor():
             verbosity=3,
             ):
         return qr(self.df, code, verbosity)
+
+
+    def compose(
+            self,
+            col: str,
+            cols: list[str],
+            template='{0}_{1}',
+            verbosity=3,
+            ):
+        return compose(
+            self.df,
+            col=col,
+            cols=cols,
+            template=template,
+            verbosity=verbosity,
+            )
+
+
+    def stack(
+            self,
+            uid: str,
+            col_pattern: str = r'(?P<col>.+)_(?P<subid>.+)',
+            uid_template: str = '{uid}_{subid}',
+            cols_keep: list[str] | None = None,
+            dropna: bool = True,
+            sort: bool = True,
+            verbosity: int = 3,
+            ) -> pd.DataFrame:
+        df_new = stack(
+            self.df,
+            uid=uid,
+            col_pattern=col_pattern,
+            uid_template=uid_template,
+            cols_keep=cols_keep,
+            dropna=dropna,
+            sort=sort,
+            verbosity=verbosity,
+            )
+        return df_new
+
+
+    def unstack(
+            self,
+            uid: str,
+            uid_pattern: str = r'(?P<uid>.+)_(?P<subid>.+)',
+            col_template: str = '{col}_{subid}',
+            cols_keep: list[str] | None = None,
+            stagger: bool = True,
+            verbosity: int = 3,
+            ) -> pd.DataFrame:
+        df_new = unstack(
+            self.df,
+            uid=uid,
+            uid_pattern=uid_pattern,
+            col_template=col_template,
+            cols_keep=cols_keep,
+            stagger=stagger,
+            verbosity=verbosity
+            )
+        return df_new
+
+
+    def transpose(
+            self,
+            header='uid',
+            ) -> pd.DataFrame:
+        df_new = transpose(
+            self.df,
+            header=header,
+            )
+        return df_new
+
+
+    def save(
+            self,
+            path: str,
+            sheet_name='df',
+            index=False,
+            format_excel=True,
+            freeze_panes='B2',
+            hide_sheets=None,
+            hide_cols=None,
+            col_width_max=70,
+            col_width_padding=2,
+            align_vertical='top',
+            align_horizontal='left',
+            wrap_text=True,
+            **kwargs,
+            ):
+        save(
+            df=self.df,
+            path=path,
+            sheet_name=sheet_name,
+            index=index,
+            format_excel=format_excel,
+            freeze_panes=freeze_panes,
+            hide_sheets=hide_sheets,
+            hide_cols=hide_cols,
+            col_width_max=col_width_max,
+            col_width_padding=col_width_padding,
+            align_vertical=align_vertical,
+            align_horizontal=align_horizontal,
+            wrap_text=wrap_text,
+            **kwargs,
+            )
+        return None
+
+
+    def style(self):
+        code = r"""
+        .replace("\n", "<br>")
+        .wrap(normal)
+        .mono()
+        .align(left)
+        %.align(center)
+        """
+        df_styled = qs(self.df, code)
+        return df_styled
 
 
     def date_delta(
@@ -135,61 +255,6 @@ class DukitAccessor():
         return df_new
 
 
-    def stack(
-            self,
-            uid: str,
-            col_pattern: str = r'(?P<col>.+)_(?P<subid>.+)',
-            uid_template: str = '{uid}_{subid}',
-            cols_keep: list[str] | None = None,
-            dropna: bool = True,
-            sort: bool = True,
-            verbosity: int = 3,
-            ) -> pd.DataFrame:
-        df_new = stack(
-            self.df,
-            uid=uid,
-            col_pattern=col_pattern,
-            uid_template=uid_template,
-            cols_keep=cols_keep,
-            dropna=dropna,
-            sort=sort,
-            verbosity=verbosity,
-            )
-        return df_new
-
-
-    def unstack(
-            self,
-            uid: str,
-            uid_pattern: str = r'(?P<uid>.+)_(?P<subid>.+)',
-            col_template: str = '{col}_{subid}',
-            cols_keep: list[str] | None = None,
-            stagger: bool = True,
-            verbosity: int = 3,
-            ) -> pd.DataFrame:
-        df_new = unstack(
-            self.df,
-            uid=uid,
-            uid_pattern=uid_pattern,
-            col_template=col_template,
-            cols_keep=cols_keep,
-            stagger=stagger,
-            verbosity=verbosity
-            )
-        return df_new
-
-
-    def transpose(
-            self,
-            header='uid',
-            ) -> pd.DataFrame:
-        df_new = transpose(
-            self.df,
-            header=header,
-            )
-        return df_new
-
-
     def split_col(
             self,
             col: str = 'uid',
@@ -205,50 +270,3 @@ class DukitAccessor():
             new2=new2,
             )
         return df_new
-
-
-    def save(
-            self,
-            path: str,
-            sheet_name='df',
-            index=False,
-            format_excel=True,
-            freeze_panes='B2',
-            hide_sheets=None,
-            hide_cols=None,
-            col_width_max=70,
-            col_width_padding=2,
-            align_vertical='top',
-            align_horizontal='left',
-            wrap_text=True,
-            **kwargs,
-            ):
-        save(
-            df=self.df,
-            path=path,
-            sheet_name=sheet_name,
-            index=index,
-            format_excel=format_excel,
-            freeze_panes=freeze_panes,
-            hide_sheets=hide_sheets,
-            hide_cols=hide_cols,
-            col_width_max=col_width_max,
-            col_width_padding=col_width_padding,
-            align_vertical=align_vertical,
-            align_horizontal=align_horizontal,
-            wrap_text=wrap_text,
-            **kwargs,
-            )
-        return None
-
-
-    def style(self):
-        code = r"""
-        .replace("\n", "<br>")
-        .wrap(normal)
-        .mono()
-        .align(left)
-        %.align(center)
-        """
-        df_styled = qs(self.df, code)
-        return df_styled
