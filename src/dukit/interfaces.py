@@ -143,7 +143,6 @@ class DukitAccessor():
             cols_keep: list[str] | None = None,
             dropna: bool = True,
             sort: bool = True,
-            check: bool = True,
             verbosity: int = 3,
             ) -> pd.DataFrame:
         df_new = stack(
@@ -154,7 +153,6 @@ class DukitAccessor():
             cols_keep=cols_keep,
             dropna=dropna,
             sort=sort,
-            check=check,
             verbosity=verbosity,
             )
         return df_new
@@ -167,7 +165,6 @@ class DukitAccessor():
             col_template: str = '{col}_{subid}',
             cols_keep: list[str] | None = None,
             stagger: bool = True,
-            check: bool = True,
             verbosity: int = 3,
             ) -> pd.DataFrame:
         df_new = unstack(
@@ -177,7 +174,6 @@ class DukitAccessor():
             col_template=col_template,
             cols_keep=cols_keep,
             stagger=stagger,
-            check=check,
             verbosity=verbosity
             )
         return df_new

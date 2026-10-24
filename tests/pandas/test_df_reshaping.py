@@ -321,7 +321,6 @@ def test_unstack():
         col_template = '{col}_{subid}',
         cols_keep = None,
         stagger = True,
-        check = True,
         verbosity = 3
         ).convert_dtypes()
 
@@ -366,7 +365,6 @@ def test_unstack_unstaggered():
         col_template = '{col}_{subid}',
         cols_keep = None,
         stagger = False,
-        check = True,
         verbosity = 3
         ).convert_dtypes()
 
@@ -393,7 +391,6 @@ def test_unstack_template():
         col_template = '#{subid}_{col}',
         cols_keep = None,
         stagger = True,
-        check = True,
         verbosity = 3
         ).convert_dtypes()
 
