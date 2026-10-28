@@ -141,7 +141,7 @@ def check_message(expected_strings):
             30,
             pd.NA,
             pd.NA,
-            40,
+            40.0,
             pd.NA,
             pd.NA,
             pd.NA,
@@ -149,7 +149,7 @@ def check_message(expected_strings):
             pd.NA,
             35,
         ]],
-        ['Int64'],
+        ['Float64'],
         None,
     ),
     (

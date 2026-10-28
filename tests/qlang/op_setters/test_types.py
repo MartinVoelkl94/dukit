@@ -76,7 +76,7 @@ def check_message(expected_strings):
         [pd.NA for col in df.columns],
         None,
         None,
-        ['Int64'],
+        ['Float64'],
         None,
     ),
     (
@@ -136,7 +136,7 @@ def check_message(expected_strings):
         [None for col in df.columns],
         None,
         None,
-        ['object'],
+        ['string'],
         None,
     ),
 
@@ -699,7 +699,7 @@ def test_vals1():
             pd.NA,
         ],
         'name',
-        'Int64',
+        'Float64',
     ),
     (
         r'weight .tonum()',

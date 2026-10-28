@@ -442,7 +442,7 @@ def compose(
 
     col_new = df[cols].apply(lambda row: template.format(*row), axis='columns')
     df.insert(pos, col, col_new)
-    df.drop(columns=cols, inplace=True)
+    df = df.drop(columns=cols)
 
     return df
 
@@ -550,7 +550,7 @@ def stack(
     _stack_check_uid_unique1(df, uid, verbosity)
 
     uid_old = ensure_unique_string(uid, df.columns)
-    df.set_index(uid, inplace=True)
+    df = df.set_index(uid)
     df.index.name = uid_old
     cols_keep = list_(cols_keep)
     cols_stack = [col for col in df.columns if col not in cols_keep]
@@ -579,10 +579,7 @@ def stack(
     for subid_val in subdfs.keys():
         subdf = subdfs[subid_val]
         if dropna:
-            subdf.dropna(
-                inplace=True,
-                how='all',
-                )
+            subdf = subdf.dropna(how='all')
         uid_vals = [
             uid_template.format(uid=uid_old, subid=subid_val)
             for uid_old in subdf.index
@@ -596,13 +593,13 @@ def stack(
         on=uid_old,
         how='right',
         )
-    df_new.drop(columns=[uid_old], inplace=True)
+    df_new = df_new.drop(columns=[uid_old])
 
     _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals, verbosity)
 
     if sort:
-        df_new.sort_values(by=uid, inplace=True)
-    df_new.reset_index(drop=True, inplace=True)
+        df_new = df_new.sort_values(by=uid)
+    df_new = df_new.reset_index(drop=True)
  
     _stack_check_uid_unique2(uid, verbosity, df_new)
 
@@ -678,9 +675,9 @@ def unstack(
     _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity)
 
 
-    ids.set_index('uid', inplace=True)
+    ids = ids.set_index('uid')
     df[uid] = ids.index
-    df.set_index(uid, inplace=True)
+    df = df.set_index(uid)
     subid_col = ids['subid']
     subid_vals = subid_col.unique()
     cols_keep = list_(cols_keep)
@@ -720,9 +717,9 @@ def unstack(
             how='left'
             )
 
-    _unstack_check_missed_values(uid, cols_keep, verbosity, non_na_vals, df_new)
+    _unstack_check_missed_values(df_new, uid, cols_keep, non_na_vals, verbosity)
 
-    df_new.reset_index(inplace=True)
+    df_new = df_new.reset_index()
 
     return df_new
 
@@ -762,22 +759,22 @@ def _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity
             log(msg, 'dk.pandas.unstack', verbosity)
 
 
-def _unstack_check_missed_values(uid, cols_keep, verbosity, non_na_vals1, df_new):
+def _unstack_check_missed_values(df_new, uid, cols_keep, non_na_vals, verbosity):
     cols_stacked = [
         col for col
         in df_new.columns
         if col not in cols_keep + [uid]
         ]
-    non_na_vals2 = int(
+    non_na_vals_new = int(
         df_new[cols_stacked]
         .notna()
         .sum()
         .sum()
         )
-    if non_na_vals1 != non_na_vals2:
+    if non_na_vals != non_na_vals_new:
         msg = (
             'WARNING: Non-NA value mismatch: '
-            f'before={non_na_vals1}, after={non_na_vals2}'
+            f'before={non_na_vals}, after={non_na_vals_new}'
             )
         log(msg, 'dk.pandas.unstack', verbosity)
 
@@ -809,8 +806,8 @@ def transpose(
     df = df.T
     df.columns = cols_new
     df.insert(0, header, cols_old)
-    df.drop(header, axis=0, inplace=True)
-    df.reset_index(drop=True, inplace=True)
+    df = df.drop(header, axis=0)
+    df = df.reset_index(drop=True)
 
     return df
 
@@ -857,10 +854,10 @@ def date_delta(
 
     for col in df_dates.columns:
         if df_dates[col].isna().all():
-            df_dates.drop(columns=col, inplace=True)
+            df_dates = df_dates.drop(columns=col)
         else:
             cols_dates.append(col)
-            df.drop(columns=col, inplace=True)
+            df = df.drop(columns=col)
 
     df = pd.concat([df, df_dates], axis=1)[cols_all]
 
@@ -942,7 +939,7 @@ def date_table(
                 msg = f'WARNING: no dates found in reference col "{reference_col}"'
                 log(msg, 'dk.date_delta', verbosity)
             else:
-                df.drop(columns=col, inplace=True)
+                df = df.drop(columns=col)
 
     reference = df[reference_col].apply(date_).apply(_fix_nas)
 
@@ -1088,7 +1085,7 @@ def split_col(
     pos = df.columns.get_loc(col)
     splits = df[col].str.partition(sep)
 
-    df.drop(columns=[col], inplace=True)
+    df = df.drop(columns=[col])
     if new1 is None:
         new1 = col
     elif new1 in df.columns:
@@ -1123,7 +1120,7 @@ def collapse(
     df = df.map(lambda x: _to_lines(x, template_item))
     df.columns = [template_col.format(colname=col) for col in df.columns]
     df.insert(0, on, df.index)
-    df.reset_index(drop=True, inplace=True)
+    df = df.reset_index(drop=True)
     return df
 
 
@@ -1253,7 +1250,7 @@ def flatten(
 
     df = df[cols_new]
     df.insert(0, on, df.index)
-    df.reset_index(drop=True, inplace=True)
+    df = df.reset_index(drop=True)
 
     return df
 
@@ -1311,7 +1308,7 @@ def stagger(
             col_new.name = template.format(counter=i + 1, colname=col)
             df_new = pd.concat([df_new, col_new], axis=1)
 
-    df_new.reset_index(drop=True, inplace=True)
+    df_new = df_new.reset_index(drop=True)
 
     return df_new
 

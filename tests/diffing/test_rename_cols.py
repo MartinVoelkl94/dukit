@@ -20,7 +20,7 @@ def test_change_names():
         ).show().data  #type:ignore
 
     expected = _get_expected_new()
-    expected.rename(columns={'a': 'alpha', 'b': 'beta'}, inplace=True)
+    expected = expected.rename(columns={'a': 'alpha', 'b': 'beta'})
 
     assert_frame_equal(result, expected)
 
@@ -39,6 +39,6 @@ def test_swap_names():
         ).show().data  #type:ignore
 
     expected = _get_expected_new()
-    expected.rename(columns={'a': 'b', 'b': 'a'}, inplace=True)
+    expected = expected.rename(columns={'a': 'b', 'b': 'a'})
 
     assert_frame_equal(result, expected)

@@ -44,7 +44,7 @@ def test_rediff(tmpdir):
 
     sheets = openpyxl.load_workbook(path_diff2, read_only=True).sheetnames
     info = pd.read_excel(path_diff2, sheet_name='info')
-    details = pd.read_excel(path_diff2, sheet_name='details').fillna('')
+    details = pd.read_excel(path_diff2, sheet_name='details').astype('string').fillna('')
 
     assert sheets == ['info', 'summary', 'details', 'Sheet1']
     assert str(info.loc[0, 'data']).split('/')[-1] == 'diff1.xlsx'
@@ -52,15 +52,15 @@ def test_rediff(tmpdir):
 
     col_val_mapping_details = {
         'in both dfs': 'yes',
-        'cols shared': 3,
+        'cols shared': '3',
         'cols added': '',
         'cols removed': '',
-        'rows shared': 3,
+        'rows shared': '3',
         'rows added': '',
         'rows removed': '',
-        'vals added': 1,
-        'vals removed': 1,
-        'vals changed': 1,
+        'vals added': '1',
+        'vals removed': '1',
+        'vals changed': '1',
         'all cols added': '',
         'all cols removed': '',
         'all rows added': '',

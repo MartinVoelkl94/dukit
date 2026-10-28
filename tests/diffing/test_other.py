@@ -44,7 +44,7 @@ def test_index_as_uid():
     df_old = get_df_old()
     df_new = get_df_new()
     expected = _get_expected_new()
-    expected.rename(columns={'uid': '<index>'}, inplace=True)
+    expected = expected.rename(columns={'uid': '<index>'})
 
     result = dk.diff(
         df_old.set_index('uid'),

@@ -27,7 +27,7 @@ def test_mix_row_x():
     expected.loc[expected['uid'] == 'x', 'c'] = 1
     expected.loc[expected['uid'] == 'x', 'd'] = pd.NA
     expected = expected.loc[[3, 0, 1, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old,
@@ -54,7 +54,7 @@ def test_mix_row_x_csv(tmpdir):
     expected.loc[expected['uid'] == 'x', 'c'] = 1
     expected.loc[expected['uid'] == 'x', 'd'] = pd.NA
     expected = expected.loc[[3, 0, 1, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -81,7 +81,7 @@ def test_mix_row_x_xlsx(tmpdir):
     expected.loc[expected['uid'] == 'x', 'c'] = 1
     expected.loc[expected['uid'] == 'x', 'd'] = pd.NA
     expected = expected.loc[[3, 0, 1, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -106,7 +106,7 @@ def test_mix_row_y():
     expected.loc[expected['uid'] == 'y', 'b'] = 2
     expected.loc[expected['uid'] == 'y', 'c'] = 2
     expected.loc[expected['uid'] == 'y', 'd'] = pd.NA
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old,
@@ -132,7 +132,7 @@ def test_mix_row_y_csv(tmpdir):
     expected.loc[expected['uid'] == 'y', 'b'] = 2
     expected.loc[expected['uid'] == 'y', 'c'] = 2
     expected.loc[expected['uid'] == 'y', 'd'] = pd.NA
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -158,7 +158,7 @@ def test_mix_row_y_xlsx(tmpdir):
     expected.loc[expected['uid'] == 'y', 'b'] = 2
     expected.loc[expected['uid'] == 'y', 'c'] = 2
     expected.loc[expected['uid'] == 'y', 'd'] = pd.NA
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -189,7 +189,7 @@ def test_mix_rows():
     expected.loc[expected['uid'] == 'x', 'd'] = pd.NA
     expected.loc[expected['uid'] == 'y', 'd'] = pd.NA
     expected = expected.loc[[3, 0, 1, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old,
@@ -221,7 +221,7 @@ def test_mix_rows_csv(tmpdir):
     expected.loc[expected['uid'] == 'x', 'd'] = pd.NA
     expected.loc[expected['uid'] == 'y', 'd'] = pd.NA
     expected = expected.loc[[3, 0, 1, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -253,7 +253,7 @@ def test_mix_rows_xlsx(tmpdir):
     expected.loc[expected['uid'] == 'x', 'd'] = pd.NA
     expected.loc[expected['uid'] == 'y', 'd'] = pd.NA
     expected = expected.loc[[3, 0, 1, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -925,7 +925,7 @@ def test_old_row_y():
     expected = _get_expected_old()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
     expected = expected.loc[[1, 0, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old,
@@ -948,7 +948,7 @@ def test_old_row_y_csv(tmpdir):
     expected = _get_expected_old()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
     expected = expected.loc[[1, 0, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,
@@ -971,7 +971,7 @@ def test_old_row_y_xlsx(tmpdir):
     expected = _get_expected_old()
     expected.loc[expected['uid'] == 'y', 'diff'] = ''
     expected = expected.loc[[1, 0, 2]]
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     result = dk.diff(
         df_old_file,

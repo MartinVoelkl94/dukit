@@ -2879,7 +2879,7 @@ class GetIsNA(Symbol):
         if 'strict' in self.flags:
             mask = series.isna()
         else:
-            mask = series.apply(lambda x: na_(x, errors='X')) != 'X'
+            mask = series.apply(lambda x: na_(x, errors='X')).isna()
         return mask
 
 
@@ -5111,7 +5111,7 @@ class SetToYN(Symbol):
             args: list,
             q: Query,
             ) -> pd.Series:
-        series_new = series[mask].apply(yn_).convert_dtypes()
+        series_new = series[mask].apply(yn_).astype('string')
         if mask.all():
             series = series_new
         else:

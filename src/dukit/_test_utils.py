@@ -63,7 +63,7 @@ def _get_expected_new():
     expected.loc['x2', 'a'] = 1
     expected.loc['z', 'a'] = pd.NA
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -107,7 +107,7 @@ def _get_expected_newplus():
     expected.loc['z', 'a *old'] = 3
 
     expected['b *old'] = expected['b *old'].astype('Int64')
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -142,7 +142,7 @@ def _get_expected_old():
     expected.loc['y', 'c'] = 2
     expected.loc['z', 'c'] = 3
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -187,7 +187,7 @@ def _get_expected_mix():
     expected.loc['z', 'c'] = 3
     expected.loc['x', 'c'] = 1
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -218,7 +218,7 @@ def _get_expected_style_new():
     expected.loc['x2', 'a'] = f'background-color: {GREEN};'
     expected.loc['z', 'a'] = f'background-color: {RED_LIGHT};'
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -256,7 +256,7 @@ def _get_expected_style_newplus():
     expected.loc['x2', 'a *old'] = f'font-style: italic;background-color: {GREEN};'
     expected.loc['z', 'a *old'] = 'font-style: italic;'
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -286,7 +286,7 @@ def _get_expected_style_old():
     expected.loc['y', 'c'] = f'background-color: {RED};'
     expected.loc['z', 'c'] = f'background-color: {RED};'
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
 
@@ -325,6 +325,6 @@ def _get_expected_style_mix():
     expected.loc['z', 'c'] = f'background-color: {RED};'
 
 
-    expected.reset_index(drop=True, inplace=True)
+    expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()

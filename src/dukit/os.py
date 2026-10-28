@@ -101,7 +101,7 @@ def ls(path='', recursive=False) -> pd.DataFrame:
             )
         )
 
-    files.drop(columns='_path', inplace=True)
+    files = files.drop(columns='_path')
 
     return files
 

@@ -21,7 +21,7 @@ df_types = pd.DataFrame({
     None: [None],
     'b': ['a'],
     }).convert_dtypes()
-df_types.rename(columns={'b': 'a'}, inplace=True)
+df_types = df_types.rename(columns={'b': 'a'})
 df_types.columns = df_types.columns.to_series().convert_dtypes()
 df_types.index = df_types.index.to_series().convert_dtypes()
 

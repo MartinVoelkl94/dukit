@@ -46,7 +46,7 @@ def check_message(expected_strings):
         ],
         None,
         None,
-        ['object'],
+        ['string'],
         None,
     ),
 
@@ -140,7 +140,7 @@ def test_rows(code, cols, rows, vals, dtypes, message):
             'jack williams',
             'john doe',
         ]],
-        ['object'],
+        ['string'],
         None
     ),
     (
@@ -162,7 +162,7 @@ def test_rows(code, cols, rows, vals, dtypes, message):
             'jack williams',
             'john doe',
         ]],
-        ['object'],
+        ['string'],
         None
     ),
     (
@@ -185,7 +185,7 @@ def test_rows(code, cols, rows, vals, dtypes, message):
             'jack williams',
             'john doe',
         ]],
-        ['object'],
+        ['string'],
         None
     ),
     (
@@ -210,7 +210,7 @@ def test_rows(code, cols, rows, vals, dtypes, message):
             'jack williams',
             'john doe',
         ]],
-        ['object'],
+        ['string'],
         None
     ),
     (

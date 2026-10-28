@@ -61,7 +61,7 @@ def test_basic():
         ],
         dtype='string',
         )
-    expected.drop(columns=['name'], inplace=True)
+    expected = expected = expected.drop(columns=['name'])
     expected.insert(loc=1, column='name', value=col_new1)
     expected.insert(loc=2, column='last name', value=col_new2)
 
@@ -110,7 +110,7 @@ def test_rename():
         ],
         dtype='string',
         )
-    expected.drop(columns=['name'], inplace=True)
+    expected = expected.drop(columns=['name'])
     expected.insert(loc=1, column='first name', value=col_new1)
     expected.insert(loc=2, column='last name', value=col_new2)
 
@@ -186,7 +186,7 @@ def test_non_existent_col():
 def test_non_unique_col():
 
     df = get_df()
-    df.rename(columns={'ID': 'name'}, inplace=True)
+    df = df.rename(columns={'ID': 'name'})
     result = df.dk.split_col(
         col='name',
         sep=' ',
@@ -195,7 +195,7 @@ def test_non_unique_col():
         )
 
     expected = get_df()
-    expected.rename(columns={'ID': 'name'}, inplace=True)
+    expected = expected.rename(columns={'ID': 'name'})
 
     assert_frame_equal(result, expected)
     check_message('ERROR: multiple cols named "name" found')
@@ -243,7 +243,7 @@ def test_new1_already_exists():
         ],
         dtype='string',
         )
-    expected.drop(columns=['name'], inplace=True)
+    expected = expected.drop(columns=['name'])
     expected.insert(loc=1, column='ID1', value=col_new1)
     expected.insert(loc=2, column='last name', value=col_new2)
 
@@ -292,7 +292,7 @@ def test_new2_already_exists():
         ],
         dtype='string',
         )
-    expected.drop(columns=['name'], inplace=True)
+    expected = expected.drop(columns=['name'])
     expected.insert(loc=1, column='name', value=col_new1)
     expected.insert(loc=2, column='ID1', value=col_new2)
 
@@ -341,7 +341,7 @@ def test_both_already_exist():
         ],
         dtype='string',
         )
-    expected.drop(columns=['name'], inplace=True)
+    expected = expected.drop(columns=['name'])
     expected.insert(loc=1, column='ID1', value=col_new1)
     expected.insert(loc=2, column='ID2', value=col_new2)
 

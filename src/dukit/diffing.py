@@ -1058,15 +1058,15 @@ def _set_uid(d: Diff, uid: typing.Any) -> Diff:
             )
         d.old.index = d.old[uid]
         d.new.index = d.new[uid]
-        d.old.drop(columns=uid, inplace=True)
-        d.new.drop(columns=uid, inplace=True)
+        d.old = d.old.drop(columns=uid)
+        d.new = d.new.drop(columns=uid)
         d.uid = uid
 
     elif uid in d.old.columns and uid in d.new.columns:
         d.old.index = d.old[uid]
         d.new.index = d.new[uid]
-        d.old.drop(columns=uid, inplace=True)
-        d.new.drop(columns=uid, inplace=True)
+        d.old = d.old.drop(columns=uid)
+        d.new = d.new.drop(columns=uid)
         d.uid = uid
 
     else:
@@ -1295,7 +1295,7 @@ def _create_meta_cols(d: Diff) -> Diff:
 
     df_meta = values.loc[:, col_mapping.keys()].copy()
     df_meta.loc[:, :] = pd.NA
-    df_meta.rename(columns=col_mapping, inplace=True)
+    df_meta = df_meta.rename(columns=col_mapping)
 
     data = {
         colname: ['font-style: italic;'] * len(values.index)
@@ -1577,8 +1577,8 @@ def _reset_index(d: Diff) -> Diff:
 
     index_diff = d._values.index.difference(d._style.index)
     if index_diff.empty:
-        d._values.reset_index(drop=True, inplace=True)
-        d._style.reset_index(drop=True, inplace=True)
+        d._values = d._values.reset_index(drop=True)
+        d._style = d._style.reset_index(drop=True)
     else:
         msg = (
             'ERROR: index of values and style dfs do not match.'
@@ -1602,7 +1602,7 @@ def _apply_style(d: Diff) -> Diff:
             )
         log(msg, context, d.verbosity)
 
-    d._style.fillna('', inplace=True)
+    d._style = d._style.fillna('')
     d.result = (
         d._values
         .style
