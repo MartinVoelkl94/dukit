@@ -207,7 +207,7 @@ wheels = [
 
 [[package]]
 name = "dukit"
-version = "0.2.7"
+version = "0.3.1"
 source = { editable = "." }
 dependencies = [
     { name = "ipython" },
