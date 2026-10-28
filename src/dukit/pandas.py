@@ -577,19 +577,20 @@ def stack(
     _stack_check_successfull_match(not_matched, verbosity)
 
     for subid_val in subdfs.keys():
-        subdf = subdfs[subid_val]
         if dropna:
-            subdf = subdf.dropna(how='all')
+            subdfs[subid_val] = subdfs[subid_val].dropna(how='all')
         uid_vals = [
             uid_template.format(uid=uid_old, subid=subid_val)
-            for uid_old in subdf.index
+            for uid_old in subdfs[subid_val].index
             ]
-        subdf.insert(0, uid, uid_vals)
+        subdfs[subid_val].insert(0, uid, uid_vals)
 
+    df_keep = df[cols_keep].reset_index()
     df_new = pd.concat(list(subdfs.values()), axis='index')
+    df_new = df_new.reset_index()
     df_new = pd.merge(
-        df[cols_keep].reset_index(),
-        df_new.reset_index(),
+        df_keep,
+        df_new,
         on=uid_old,
         how='right',
         )
