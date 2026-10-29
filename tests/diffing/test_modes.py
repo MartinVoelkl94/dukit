@@ -5,10 +5,10 @@ from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
     _setup_csv,
     _setup_xlsx,
-    _get_expected_new,
-    _get_expected_newplus,
-    _get_expected_old,
-    _get_expected_mix,
+    _get_diff_new,
+    _get_diff_newplus,
+    _get_diff_old,
+    _get_diff_mix,
     )
 from dukit.pandas import get_df_old, get_df_new
 
@@ -18,7 +18,7 @@ def test_mix():
 
     df_old = get_df_old()
     df_new = get_df_new()
-    expected = _get_expected_mix()
+    expected = _get_diff_mix()
 
     #in memory dfs
     result = dk.diff(
@@ -37,7 +37,7 @@ def test_mix_csv(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-    expected = _get_expected_mix()
+    expected = _get_diff_mix()
 
     result = dk.diff(
         df_old_file,
@@ -55,7 +55,7 @@ def test_mix_xlsx(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-    expected = _get_expected_mix()
+    expected = _get_diff_mix()
 
     result = dk.diff(
         df_old_file,
@@ -72,7 +72,7 @@ def test_new():
 
     df_old = get_df_old()
     df_new = get_df_new()
-    expected = _get_expected_new()
+    expected = _get_diff_new()
 
     result = dk.diff(
         df_old,
@@ -90,7 +90,7 @@ def test_new_csv(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-    expected = _get_expected_new()
+    expected = _get_diff_new()
 
     result = dk.diff(
         df_old_file,
@@ -108,7 +108,7 @@ def test_new_xlsx(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-    expected = _get_expected_new()
+    expected = _get_diff_new()
 
     result = dk.diff(
         df_old_file,
@@ -125,7 +125,7 @@ def test_newplus():
 
     df_old = get_df_old()
     df_new = get_df_new()
-    expected = _get_expected_newplus()
+    expected = _get_diff_newplus()
 
     result = dk.diff(
         df_old,
@@ -143,7 +143,7 @@ def test_newplus_csv(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-    expected = _get_expected_newplus()
+    expected = _get_diff_newplus()
 
     result = dk.diff(
         df_old_file,
@@ -161,7 +161,7 @@ def test_newplus_xlsx(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-    expected = _get_expected_newplus()
+    expected = _get_diff_newplus()
 
     result = dk.diff(
         df_old_file,
@@ -178,7 +178,7 @@ def test_old():
 
     df_old = get_df_old()
     df_new = get_df_new()
-    expected = _get_expected_old()
+    expected = _get_diff_old()
 
     result = dk.diff(
         df_old,
@@ -196,7 +196,7 @@ def test_old_csv(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_csv(df_old, df_new, tmpdir)
-    expected = _get_expected_old()
+    expected = _get_diff_old()
 
     result = dk.diff(
         df_old_file,
@@ -214,7 +214,7 @@ def test_old_xlsx(tmpdir):
     df_old = get_df_old()
     df_new = get_df_new()
     df_old_file, df_new_file = _setup_xlsx(df_old, df_new, tmpdir)
-    expected = _get_expected_old()
+    expected = _get_diff_old()
 
     result = dk.diff(
         df_old_file,

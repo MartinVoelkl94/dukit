@@ -216,7 +216,7 @@ def get_df_patients() -> pd.DataFrame:
 
 
 
-def get_df_medications() -> pd.DataFrame:
+def get_df_medications1() -> pd.DataFrame:
     medications = pd.DataFrame({
         'id': [
             10002,
@@ -252,6 +252,68 @@ def get_df_medications() -> pd.DataFrame:
             ]
         })
     return medications
+
+
+
+def get_df_medications2():
+
+    expected = pd.DataFrame()
+
+    expected['id'] = [
+        10002,
+        20001,
+        30001,
+        ]
+    expected['medication_1'] = [
+        'Aspirin',
+        'Ibuprofen',
+        'Amoxicillin',
+        ]
+    expected['dose_1'] = [
+        100,
+        200,
+        250,
+        ]
+    expected['unit_1'] = [
+        'mg',
+        'mg',
+        'mg',
+        ]
+    expected['medication_2'] = [
+        pd.NA,
+        'Paracetamol',
+        'Ciprofloxacin',
+        ]
+    expected['dose_2'] = [
+        pd.NA,
+        pd.NA,
+        500,
+        ]
+    expected['unit_2'] = [
+        pd.NA,
+        '',
+        'ml',
+        ]
+    expected['medication_3'] = [
+        pd.NA,
+        pd.NA,
+        'Metformin',
+        ]
+    expected['dose_3'] = [
+        pd.NA,
+        pd.NA,
+        1000,
+        ]
+    expected['unit_3'] = [
+        pd.NA,
+        pd.NA,
+        'mg',
+        ]
+    expected = expected.convert_dtypes()
+    expected['id'] = expected['id'].astype('string')
+
+    return expected
+
 
 
 def get_df_old() -> pd.DataFrame:
@@ -436,18 +498,33 @@ def compose(
         verbosity=3,
         ):
 
-    _compose_check_if_col_alread_exists(df, col, verbosity)
-    _compose_check_cols_matches_template(cols, template, verbosity)
-    pos = _compose_get_first_col_pos(df, cols, verbosity)
+    _error_missing_cols(df, cols, verbosity)
+    _warning_col_already_exists(df, col, verbosity)
+    _warning_cols_template_mismatch(cols, template, verbosity)
+    pos = _get_first_col_pos(df, cols, verbosity)
 
     col_new = df[cols].apply(lambda row: template.format(*row), axis='columns')
-    df.insert(pos, col, col_new)
     df = df.drop(columns=cols)
+    df.insert(pos, col, col_new)
 
     return df
 
 
-def _compose_check_cols_matches_template(cols, template, verbosity):
+def _error_missing_cols(df, cols, verbosity):
+    for col in cols:
+        if col not in df.columns:
+            msg = f'ERROR: col "{col}" does not exist.'
+            log(msg, 'dk.pandas.compose', verbosity)
+            raise ValueError(msg)
+
+
+def _warning_col_already_exists(df, col, verbosity):
+    if col in df.columns:
+        msg = f'WARNING: col "{col}" already exists.'
+        log(msg, 'dk.pandas.compose', verbosity)
+
+
+def _warning_cols_template_mismatch(cols, template, verbosity):
     num_placeholders = template.count('{')
     if num_placeholders != len(cols):
         msg = (
@@ -458,19 +535,9 @@ def _compose_check_cols_matches_template(cols, template, verbosity):
         log(msg, 'dk.pandas.compose', verbosity)
 
 
-def _compose_check_if_col_alread_exists(df, col, verbosity):
-    if col in df.columns:
-        msg = f'WARNING: col "{col}" already exists and will be overwritten.'
-        log(msg, 'dk.pandas.compose', verbosity)
-
-
-def _compose_get_first_col_pos(df, cols, verbosity=3):
+def _get_first_col_pos(df, cols, verbosity=3):
     pos = len(df.columns)
     for col_temp in cols:
-        if col_temp not in df.columns:
-            msg = f'ERROR: col "{col_temp}" does not exist.'
-            log(msg, 'dk.pandas.compose', verbosity)
-            raise ValueError(f'Col "{col_temp}" does not exist.')
         pos_temp = df.columns.get_loc(col_temp)
         if pos_temp < pos:
             pos = pos_temp
@@ -486,7 +553,8 @@ def decompose(
         verbosity=3,
         ):
 
-    _decomposes_check_if_col_exists(df, col, verbosity)
+    _error_missing_col(df, col, verbosity)
+    _error_col_not_unique(df, col, verbosity)
 
     pos = df.columns.get_loc(col)
     df_unmerged = df[col].str.extract(pattern)
@@ -497,8 +565,9 @@ def decompose(
             in range(1, len(df_unmerged.columns) + 1)
             ]
     else:
-        _decomposes_check_cols_matches_extraction(cols, df_unmerged, verbosity)
-    _decomposes_check_cols_already_exists(df, cols, verbosity)
+        _error_cols_pattern_missmatch(df_unmerged, cols, verbosity)
+        _warning_no_match_found(df_unmerged, verbosity)
+    _warning_cols_already_exist(df, cols, verbosity)
     df_unmerged.columns = cols
 
     df1 = df.iloc[:, :pos]
@@ -508,14 +577,21 @@ def decompose(
     return df_new
 
 
-def _decomposes_check_if_col_exists(df, col, verbosity):
+def _error_missing_col(df, col, verbosity):
     if col not in df.columns:
         msg = f'ERROR: col "{col}" does not exist.'
         log(msg, 'dk.pandas.decompose', verbosity)
         raise ValueError(msg)
 
 
-def _decomposes_check_cols_matches_extraction(cols, df_unmerged, verbosity):
+def _error_col_not_unique(df, col, verbosity):
+    if df.columns.tolist().count(col) > 1:
+        msg = f'ERROR: multiple cols named "{col}" found'
+        log(msg, 'dk.pandas.decompose', verbosity)
+        raise ValueError(msg)
+
+
+def _error_cols_pattern_missmatch(df_unmerged, cols, verbosity):
     if len(cols) != len(df_unmerged.columns):
         msg = (
             f'ERROR: Number of columns provided ({len(cols)}) '
@@ -526,10 +602,17 @@ def _decomposes_check_cols_matches_extraction(cols, df_unmerged, verbosity):
         raise ValueError(msg)
 
 
-def _decomposes_check_cols_already_exists(df, cols, verbosity):
+def _warning_no_match_found(df_unmerged, verbosity):
+    for col in df_unmerged.columns:
+        if df_unmerged[col].isna().all():
+            msg = f'WARNING: No match found for group "{col}".'
+            log(msg, 'dk.pandas.decompose', verbosity)
+
+
+def _warning_cols_already_exist(df, cols, verbosity):
     for col_temp in cols:
         if col_temp in df.columns:
-            msg = f'WARNING: col "{col_temp}" already exists and will be overwritten.'
+            msg = f'WARNING: col "{col_temp}" already exists.'
             log(msg, 'dk.pandas.decompose', verbosity)
 
 

@@ -73,6 +73,22 @@ class DukitAccessor():
             )
 
 
+    def decompose(
+            self,
+            col: str,
+            cols: list[str] | None = None,
+            pattern='(.+)_(.+)',
+            verbosity=3,
+            ):
+        return decompose(
+            self.df,
+            col=col,
+            cols=cols,
+            pattern=pattern,
+            verbosity=verbosity,
+            )
+
+
     def stack(
             self,
             uid: str,

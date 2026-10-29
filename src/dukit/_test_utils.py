@@ -1,6 +1,7 @@
 
 import pandas as pd
 
+from .pandas import get_df
 from .utils import (
     GREEN,
     RED,
@@ -33,7 +34,7 @@ def _setup_xlsx(df_old, df_new, tmpdir):
 
 
 
-def _get_expected_new():
+def _get_diff_new():
 
     uid = pd.Series(
         ['y', 'x2', 'z'],
@@ -68,7 +69,7 @@ def _get_expected_new():
     return expected.convert_dtypes()
 
 
-def _get_expected_newplus():
+def _get_diff_newplus():
 
     uid = pd.Series(
         ['y', 'x2', 'z'],
@@ -112,7 +113,7 @@ def _get_expected_newplus():
     return expected.convert_dtypes()
 
 
-def _get_expected_old():
+def _get_diff_old():
 
     uid = pd.Series(
         ['x', 'y', 'z'],
@@ -147,7 +148,7 @@ def _get_expected_old():
     return expected.convert_dtypes()
 
 
-def _get_expected_mix():
+def _get_diff_mix():
 
     uid = pd.Series(
         ['y', 'x2', 'z', 'x'],
@@ -194,7 +195,7 @@ def _get_expected_mix():
 
 
 
-def _get_expected_style_new():
+def _get_diff_style_new():
 
     uid = pd.Series(
         ['y', 'x2', 'z'],
@@ -224,7 +225,7 @@ def _get_expected_style_new():
 
 
 
-def _get_expected_style_newplus():
+def _get_diff_style_newplus():
 
     uid = pd.Series(
         ['y', 'x2', 'z'],
@@ -262,7 +263,7 @@ def _get_expected_style_newplus():
 
 
 
-def _get_expected_style_old():
+def _get_diff_style_old():
 
     uid = pd.Series(
         ['x', 'y', 'z'],
@@ -292,7 +293,7 @@ def _get_expected_style_old():
 
 
 
-def _get_expected_style_mix():
+def _get_diff_style_mix():
 
     uid = pd.Series(
         ['y', 'x2', 'z', 'x'],
@@ -328,3 +329,144 @@ def _get_expected_style_mix():
     expected = expected.reset_index(drop=True)
 
     return expected.convert_dtypes()
+
+
+
+def _get_decomposed_basic():
+
+    expected = get_df()
+    col_new1 = pd.Series([
+        'John',
+        'Jane',
+        'Alice',
+        'Bob',
+        'eva',
+        'Frank',
+        'Grace',
+        'Harry',
+        'IVY',
+        'JAck',
+        'john',
+        ],
+        dtype='string',
+        )
+    col_new2 = pd.Series([
+        'Doe',
+        'Smith',
+        'Johnson',
+        'Brown',
+        'white',
+        'miller',
+        'TAYLOR',
+        'Clark',
+        'GREEN',
+        'Williams',
+        'Doe',
+        ],
+        dtype='string',
+        )
+    expected = expected.drop(columns=['name'])
+    expected.insert(loc=1, column='first name', value=col_new1)
+    expected.insert(loc=2, column='last name', value=col_new2)
+
+    return expected
+
+
+
+def _get_decomposed_default():
+
+    expected = get_df()
+    col_new1 = pd.Series([
+        'John',
+        'Jane',
+        'Alice',
+        'Bob',
+        'eva',
+        'Frank',
+        'Grace',
+        'Harry',
+        'IVY',
+        'JAck',
+        'john',
+        ],
+        dtype='string',
+        )
+    col_new2 = pd.Series([
+        'Doe',
+        'Smith',
+        'Johnson',
+        'Brown',
+        'white',
+        'miller',
+        'TAYLOR',
+        'Clark',
+        'GREEN',
+        'Williams',
+        'Doe',
+        ],
+        dtype='string',
+        )
+    expected = expected.drop(columns=['name'])
+    expected.insert(loc=1, column='name_1', value=col_new1)
+    expected.insert(loc=2, column='name_2', value=col_new2)
+
+    return expected
+
+
+
+def _get_decomposed_overwrite():
+
+    expected = get_df()
+    col_new1 = pd.Series([
+        'John',
+        'Jane',
+        'Alice',
+        'Bob',
+        'eva',
+        'Frank',
+        'Grace',
+        'Harry',
+        'IVY',
+        'JAck',
+        'john',
+        ],
+        dtype='string',
+        )
+    col_new2 = pd.Series([
+        'Doe',
+        'Smith',
+        'Johnson',
+        'Brown',
+        'white',
+        'miller',
+        'TAYLOR',
+        'Clark',
+        'GREEN',
+        'Williams',
+        'Doe',
+        ],
+        dtype='string',
+        )
+    expected = expected.drop(columns=['name'])
+    expected.insert(loc=1, column='name', value=col_new1)
+    expected.insert(loc=2, column='last name', value=col_new2)
+
+    return expected
+
+
+
+def _get_decomposed_no_match():
+
+    expected = get_df()
+    col_new1 = pd.Series(
+        [pd.NA for col in expected.columns],
+        dtype='string',
+        )
+    col_new2 = pd.Series(
+        [pd.NA for col in expected.columns],
+        dtype='string',
+        )
+    expected['name'] = col_new1
+    expected.insert(loc=2, column='last name', value=col_new2)
+
+    return expected

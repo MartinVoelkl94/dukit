@@ -5,7 +5,7 @@ import dukit as dk
 
 from pandas.testing import assert_frame_equal
 from dukit._test_utils import (
-    _get_expected_new,
+    _get_diff_new,
     )
 from dukit.pandas import get_df_old, get_df_new
 
@@ -43,7 +43,7 @@ def test_index_as_uid():
 
     df_old = get_df_old()
     df_new = get_df_new()
-    expected = _get_expected_new()
+    expected = _get_diff_new()
     expected = expected.rename(columns={'uid': '<index>'})
 
     result = dk.diff(

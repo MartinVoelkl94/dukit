@@ -2,7 +2,7 @@
 import dukit as dk
 
 from pandas.testing import assert_frame_equal
-from dukit._test_utils import _get_expected_new
+from dukit._test_utils import _get_diff_new
 from dukit import get_df_old, get_df_new
 
 
@@ -19,7 +19,7 @@ def test_change_names():
         verbosity=0,
         ).show().data  #type:ignore
 
-    expected = _get_expected_new()
+    expected = _get_diff_new()
     expected = expected.rename(columns={'a': 'alpha', 'b': 'beta'})
 
     assert_frame_equal(result, expected)
@@ -38,7 +38,7 @@ def test_swap_names():
         verbosity=0,
         ).show().data  #type:ignore
 
-    expected = _get_expected_new()
+    expected = _get_diff_new()
     expected = expected.rename(columns={'a': 'b', 'b': 'a'})
 
     assert_frame_equal(result, expected)
