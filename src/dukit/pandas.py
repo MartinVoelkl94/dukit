@@ -510,7 +510,11 @@ def compose(
     return df
 
 
-def _error_missing_cols(df, cols, verbosity):
+def _error_missing_cols(
+        df: pd.DataFrame,
+        cols: list[str],
+        verbosity: int,
+        ):
     for col in cols:
         if col not in df.columns:
             msg = f'ERROR: col "{col}" does not exist.'
@@ -518,13 +522,21 @@ def _error_missing_cols(df, cols, verbosity):
             raise ValueError(msg)
 
 
-def _warning_col_already_exists(df, col, verbosity):
+def _warning_col_already_exists(
+        df: pd.DataFrame,
+        col: str,
+        verbosity: int,
+        ):
     if col in df.columns:
         msg = f'WARNING: col "{col}" already exists.'
         log(msg, 'dk.pandas.compose', verbosity)
 
 
-def _warning_cols_template_mismatch(cols, template, verbosity):
+def _warning_cols_template_mismatch(
+        cols: list[str],
+        template: str,
+        verbosity: int,
+        ):
     num_placeholders = template.count('{')
     if num_placeholders != len(cols):
         msg = (
@@ -535,7 +547,11 @@ def _warning_cols_template_mismatch(cols, template, verbosity):
         log(msg, 'dk.pandas.compose', verbosity)
 
 
-def _get_first_col_pos(df, cols, verbosity=3):
+def _get_first_col_pos(
+        df: pd.DataFrame,
+        cols: list[str],
+        verbosity: int,
+        ):
     pos = len(df.columns)
     for col_temp in cols:
         pos_temp = df.columns.get_loc(col_temp)
@@ -577,21 +593,33 @@ def decompose(
     return df_new
 
 
-def _error_missing_col(df, col, verbosity):
+def _error_missing_col(
+        df: pd.DataFrame,
+        col: str,
+        verbosity: int,
+        ):
     if col not in df.columns:
         msg = f'ERROR: col "{col}" does not exist.'
         log(msg, 'dk.pandas.decompose', verbosity)
         raise ValueError(msg)
 
 
-def _error_col_not_unique(df, col, verbosity):
+def _error_col_not_unique(
+        df: pd.DataFrame,
+        col: str,
+        verbosity: int,
+        ):
     if df.columns.tolist().count(col) > 1:
         msg = f'ERROR: multiple cols named "{col}" found'
         log(msg, 'dk.pandas.decompose', verbosity)
         raise ValueError(msg)
 
 
-def _error_cols_pattern_missmatch(df_unmerged, cols, verbosity):
+def _error_cols_pattern_missmatch(
+        df_unmerged: pd.DataFrame,
+        cols: list[str],
+        verbosity: int,
+        ):
     if len(cols) != len(df_unmerged.columns):
         msg = (
             f'ERROR: Number of columns provided ({len(cols)}) '
@@ -602,14 +630,21 @@ def _error_cols_pattern_missmatch(df_unmerged, cols, verbosity):
         raise ValueError(msg)
 
 
-def _warning_no_match_found(df_unmerged, verbosity):
+def _warning_no_match_found(
+        df_unmerged: pd.DataFrame,
+        verbosity: int,
+        ):
     for col in df_unmerged.columns:
         if df_unmerged[col].isna().all():
             msg = f'WARNING: No match found for group "{col}".'
             log(msg, 'dk.pandas.decompose', verbosity)
 
 
-def _warning_cols_already_exist(df, cols, verbosity):
+def _warning_cols_already_exist(
+        df: pd.DataFrame,
+        cols: list[str],
+        verbosity: int,
+        ):
     for col_temp in cols:
         if col_temp in df.columns:
             msg = f'WARNING: col "{col_temp}" already exists.'
@@ -685,12 +720,16 @@ def stack(
         df_new = df_new.sort_values(by=uid)
     df_new = df_new.reset_index(drop=True)
  
-    _stack_check_uid_unique2(uid, verbosity, df_new)
+    _stack_check_uid_unique2(df_new, uid, verbosity)
 
     return df_new
 
 
-def _stack_check_uid_unique1(df, uid, verbosity):
+def _stack_check_uid_unique1(
+        df: pd.DataFrame,
+        uid: str,
+        verbosity: int,
+        ):
     if not df[uid].is_unique:
         non_unique = df[uid][df[uid].duplicated()].unique()
         msg = (
@@ -700,7 +739,10 @@ def _stack_check_uid_unique1(df, uid, verbosity):
         log(msg, 'dk.pandas.stack', verbosity)
 
 
-def _stack_check_successfull_match(not_matched, verbosity):
+def _stack_check_successfull_match(
+        not_matched: list[str],
+        verbosity: int,
+        ):
     if len(not_matched) > 0:
         msg = (
             'WARNING: Some cols did not '
@@ -709,7 +751,13 @@ def _stack_check_successfull_match(not_matched, verbosity):
         log(msg, 'dk.pandas.stack', verbosity)
 
 
-def _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals1, verbosity):
+def _stack_check_missed_values(
+        df_new: pd.DataFrame,
+        uid: str,
+        cols_keep: list[str],
+        non_na_vals1: int,
+        verbosity: int,
+        ):
     cols_stacked = [
             col for col
             in df_new.columns
@@ -729,7 +777,11 @@ def _stack_check_missed_values(df_new, uid, cols_keep, non_na_vals1, verbosity):
         log(msg, 'dk.pandas.stack', verbosity)
 
 
-def _stack_check_uid_unique2(uid, verbosity, df_new):
+def _stack_check_uid_unique2(
+        df_new: pd.DataFrame,
+        uid: str,
+        verbosity: int,
+        ):
     if not df_new[uid].is_unique:
         non_unique = df_new[uid][df_new[uid].duplicated()].unique()
         msg = (
@@ -754,15 +806,15 @@ def unstack(
     df[uid] = df[uid].astype('string')
     _unstack_check_uid_unique(df, uid, verbosity)
 
-    ids = df[uid].str.extract(uid_pattern)
+    dfs_id = df[uid].str.extract(uid_pattern)
     expected_cols = ['uid', 'subid']
-    _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity)
+    _unstack_check_successfull_extraction(df, uid, dfs_id, expected_cols, verbosity)
 
 
-    ids = ids.set_index('uid')
-    df[uid] = ids.index
+    dfs_id = dfs_id.set_index('uid')
+    df[uid] = dfs_id.index
     df = df.set_index(uid)
-    subid_col = ids['subid']
+    subid_col = dfs_id['subid']
     subid_vals = subid_col.unique()
     cols_keep = list_(cols_keep)
     cols_unstack = [col for col in df.columns if col not in cols_keep]
@@ -808,7 +860,11 @@ def unstack(
     return df_new
 
 
-def _unstack_check_uid_unique(df, uid, verbosity):
+def _unstack_check_uid_unique(
+        df: pd.DataFrame,
+        uid: str,
+        verbosity: int,
+        ):
     if not df[uid].is_unique:
         non_unique = (
             df[uid]
@@ -824,7 +880,13 @@ def _unstack_check_uid_unique(df, uid, verbosity):
         df[uid] = deduplicate(df[uid])
 
 
-def _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity):
+def _unstack_check_successfull_extraction(
+        df: pd.DataFrame,
+        uid: str,
+        ids: pd.DataFrame,
+        expected_cols: list[str],
+        verbosity: int,
+        ):
     if list(ids.columns) != expected_cols:
         msg = (
             'WARNING: uid pattern must contain exactly 2 named '
@@ -843,7 +905,13 @@ def _unstack_check_successfull_extraction(df, uid, ids, expected_cols, verbosity
             log(msg, 'dk.pandas.unstack', verbosity)
 
 
-def _unstack_check_missed_values(df_new, uid, cols_keep, non_na_vals, verbosity):
+def _unstack_check_missed_values(
+        df_new: pd.DataFrame,
+        uid: str,
+        cols_keep: list[str],
+        non_na_vals: int,
+        verbosity: int,
+        ):
     cols_stacked = [
         col for col
         in df_new.columns
