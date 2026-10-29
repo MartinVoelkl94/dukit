@@ -217,6 +217,7 @@ def get_df_patients() -> pd.DataFrame:
 
 
 def get_df_medications1() -> pd.DataFrame:
+
     medications = pd.DataFrame({
         'id': [
             10002,
@@ -251,14 +252,57 @@ def get_df_medications1() -> pd.DataFrame:
             'mg',
             ]
         })
+    medications = medications.convert_dtypes()
+
     return medications
 
 
 
-def get_df_medications2():
+def get_df_medications2() -> pd.DataFrame:
+
+    medications = pd.DataFrame({
+        'id': [
+            '10002_1',
+            '20001_1',
+            '20001_2',
+            '30001_1',
+            '30001_2',
+            '30001_3',
+            ],
+        'medication': [
+            'Aspirin',
+            'Ibuprofen',
+            'Paracetamol',
+            'Amoxicillin',
+            'Ciprofloxacin',
+            'Metformin',
+            ],
+        'dose': [
+            100,
+            200,
+            pd.NA,
+            250,
+            500,
+            1000,
+            ],
+        'unit': [
+            'mg',
+            'mg',
+            '',
+            'mg',
+            'ml',
+            'mg',
+            ]
+        })
+    medications = medications.convert_dtypes()
+
+    return medications
+
+
+
+def get_df_medications3():
 
     expected = pd.DataFrame()
-
     expected['id'] = [
         10002,
         20001,
@@ -490,7 +534,7 @@ def _deduplicate(series, rename_all=True, start_at_1=True):
 
 
 
-def compose(
+def group(
         df: pd.DataFrame,
         col: str,
         cols: list[str],
@@ -518,7 +562,7 @@ def _error_missing_cols(
     for col in cols:
         if col not in df.columns:
             msg = f'ERROR: col "{col}" does not exist.'
-            log(msg, 'dk.pandas.compose', verbosity)
+            log(msg, 'dk.pandas.group', verbosity)
             raise ValueError(msg)
 
 
@@ -529,7 +573,7 @@ def _warning_col_already_exists(
         ):
     if col in df.columns:
         msg = f'WARNING: col "{col}" already exists.'
-        log(msg, 'dk.pandas.compose', verbosity)
+        log(msg, 'dk.pandas.group', verbosity)
 
 
 def _warning_cols_template_mismatch(
@@ -544,7 +588,7 @@ def _warning_cols_template_mismatch(
             f' ({num_placeholders}) does not match number'
             f' of cols ({len(cols)}) provided.'
             )
-        log(msg, 'dk.pandas.compose', verbosity)
+        log(msg, 'dk.pandas.group', verbosity)
 
 
 def _get_first_col_pos(
@@ -561,7 +605,7 @@ def _get_first_col_pos(
 
 
 
-def decompose(
+def ungroup(
         df: pd.DataFrame,
         col: str,
         cols: list[str] | None = None,
@@ -600,7 +644,7 @@ def _error_missing_col(
         ):
     if col not in df.columns:
         msg = f'ERROR: col "{col}" does not exist.'
-        log(msg, 'dk.pandas.decompose', verbosity)
+        log(msg, 'dk.pandas.ungroup', verbosity)
         raise ValueError(msg)
 
 
@@ -611,7 +655,7 @@ def _error_col_not_unique(
         ):
     if df.columns.tolist().count(col) > 1:
         msg = f'ERROR: multiple cols named "{col}" found'
-        log(msg, 'dk.pandas.decompose', verbosity)
+        log(msg, 'dk.pandas.ungroup', verbosity)
         raise ValueError(msg)
 
 
@@ -626,7 +670,7 @@ def _error_cols_pattern_missmatch(
             'does not match number of groups extracted '
             f'({len(df_unmerged.columns)}).'
             )
-        log(msg, 'dk.pandas.decompose', verbosity)
+        log(msg, 'dk.pandas.ungroup', verbosity)
         raise ValueError(msg)
 
 
@@ -637,7 +681,7 @@ def _warning_no_match_found(
     for col in df_unmerged.columns:
         if df_unmerged[col].isna().all():
             msg = f'WARNING: No match found for group "{col}".'
-            log(msg, 'dk.pandas.decompose', verbosity)
+            log(msg, 'dk.pandas.ungroup', verbosity)
 
 
 def _warning_cols_already_exist(
@@ -648,7 +692,7 @@ def _warning_cols_already_exist(
     for col_temp in cols:
         if col_temp in df.columns:
             msg = f'WARNING: col "{col_temp}" already exists.'
-            log(msg, 'dk.pandas.decompose', verbosity)
+            log(msg, 'dk.pandas.ungroup', verbosity)
 
 
 
@@ -1280,7 +1324,7 @@ def _to_lines(
         x,
         template_item='#{counter}: {item}\n',
         ):
-    if not isinstance(x, list):
+    if not isinstance(x, (list, tuple, np.ndarray)):
         return x
     if len(x) == 1:
         return x[0]

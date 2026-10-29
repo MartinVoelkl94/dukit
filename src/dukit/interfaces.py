@@ -9,8 +9,8 @@ from .qlang import (
     qs,
     )
 from .pandas import (
-    compose,
-    decompose,
+    group,
+    ungroup,
     stack,
     unstack,
     transpose,
@@ -57,14 +57,14 @@ class DukitAccessor():
         return qr(self.df, code, verbosity)
 
 
-    def compose(
+    def group(
             self,
             col: str,
             cols: list[str],
             template='{0}_{1}',
             verbosity=3,
             ):
-        return compose(
+        return group(
             self.df,
             col=col,
             cols=cols,
@@ -73,14 +73,14 @@ class DukitAccessor():
             )
 
 
-    def decompose(
+    def ungroup(
             self,
             col: str,
             cols: list[str] | None = None,
             pattern='(.+)_(.+)',
             verbosity=3,
             ):
-        return decompose(
+        return ungroup(
             self.df,
             col=col,
             cols=cols,

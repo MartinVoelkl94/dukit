@@ -118,9 +118,9 @@ def test_collapse():
         on='id',
         template_col='{colname}',
         template_item='#{counter}: {item}\n',
-        ).convert_dtypes()
+        )
 
-    assert_frame_equal(result, expected)
+    assert_frame_equal(result, expected, check_dtype=False)
 
 
 

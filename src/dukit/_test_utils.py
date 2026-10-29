@@ -332,7 +332,7 @@ def _get_diff_style_mix():
 
 
 
-def _get_decomposed_basic():
+def _get_ungrouped_basic():
 
     expected = get_df()
     col_new1 = pd.Series([
@@ -373,7 +373,7 @@ def _get_decomposed_basic():
 
 
 
-def _get_decomposed_default():
+def _get_ungrouped_default():
 
     expected = get_df()
     col_new1 = pd.Series([
@@ -414,7 +414,7 @@ def _get_decomposed_default():
 
 
 
-def _get_decomposed_overwrite():
+def _get_ungrouped_overwrite():
 
     expected = get_df()
     col_new1 = pd.Series([
@@ -455,7 +455,7 @@ def _get_decomposed_overwrite():
 
 
 
-def _get_decomposed_no_match():
+def _get_ungrouped_no_match():
 
     expected = get_df()
     col_new1 = pd.Series(

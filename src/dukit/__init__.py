@@ -24,8 +24,8 @@ from .excel import (
     save,
     )
 from .pandas import (
-    compose,
-    decompose,
+    group,
+    ungroup,
     stack,
     unstack,
     transpose,
@@ -36,6 +36,7 @@ from .pandas import (
     get_df_patients,
     get_df_medications1,
     get_df_medications2,
+    get_df_medications3,
     get_df_old,
     get_df_new,
     split_col,
@@ -94,8 +95,8 @@ __all__ = (
     'format',
     'save',
 
-    'compose',
-    'decompose',
+    'group',
+    'ungroup',
     'stack',
     'unstack',
     'transpose',
@@ -106,6 +107,7 @@ __all__ = (
     'get_df_patients',
     'get_df_medications1',
     'get_df_medications2',
+    'get_df_medications3',
     'get_df_old',
     'get_df_new',
     'split_col',
