@@ -307,3 +307,84 @@ def test_embed_formatted():
         ).convert_dtypes()
 
     assert_frame_equal(result, expected)
+
+
+
+def test_fold_unstack():
+
+    spacer = '\u00A0'
+    spacer_x7 = spacer * 7  #non-breaking space
+    expected = pd.DataFrame()
+
+    expected['id'] = [
+        '10002',
+        '20001',
+        '30001',
+        ]
+    expected.loc[0, 'medication_1'] = (
+        f'medication:{spacer}Aspirin<br>'
+        f'dose:{spacer_x7}100<br>'
+        f'unit:{spacer_x7}mg<br>'
+        )
+    expected.loc[1, 'medication_1'] = (
+        f'medication:{spacer}Ibuprofen<br>'
+        f'dose:{spacer_x7}200<br>'
+        f'unit:{spacer_x7}mg<br>'
+        )
+    expected.loc[2, 'medication_1'] = (
+        f'medication:{spacer}Amoxicillin<br>'
+        f'dose:{spacer_x7}250<br>'
+        f'unit:{spacer_x7}mg<br>'
+        )
+
+    expected.loc[0, 'medication_2'] = pd.NA
+    expected.loc[1, 'medication_2'] = (
+        f'medication:{spacer}Paracetamol<br>'
+        f'dose:{spacer_x7}<NA><br>'
+        f'unit:{spacer_x7}<br>'
+        )
+    expected.loc[2, 'medication_2'] = (
+        f'medication:{spacer}Ciprofloxacin<br>'
+        f'dose:{spacer_x7}500<br>'
+        f'unit:{spacer_x7}ml<br>'
+        )
+
+    expected.loc[0, 'medication_3'] = pd.NA
+    expected.loc[1, 'medication_3'] = pd.NA
+    expected.loc[2, 'medication_3'] = (
+        f'medication:{spacer}Metformin<br>'
+        f'dose:{spacer_x7}1000<br>'
+        f'unit:{spacer_x7}mg<br>'
+        )
+    expected = expected.convert_dtypes()
+
+    medications = get_df_medications1()
+    result = (
+        medications
+        .dk.fold(
+            col='medication',
+            cols_keep=['id']
+            )
+        .dk.unstack(uid='id')
+        )
+
+    assert_frame_equal(result, expected, check_dtype=False)
+
+
+
+def test_transpose():
+
+    df = pd.DataFrame({
+        'uid': ['a', 'b', 'c'],
+        'val1': [1, 2, 3],
+        'val2': [4, 5, 6]
+        })
+    expected = pd.DataFrame({
+        'uid': ['val1', 'val2'],
+        'a': [1, 4],
+        'b': [2, 5],
+        'c': [3, 6]
+        })
+
+    result = df.dk.transpose(header='uid')
+    assert_frame_equal(result, expected)

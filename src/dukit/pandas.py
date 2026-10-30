@@ -534,6 +534,65 @@ def _deduplicate(series, rename_all=True, start_at_1=True):
 
 
 
+def fold(
+        df: pd.DataFrame,
+        col: str = 'new',
+        cols: list[str] = None,
+        cols_keep: str | list[str] = None,
+        template='{col}:{spacer}{val}<br>',
+        spacer_char='\u00A0',  #non-breaking space
+        verbosity=3,
+        ):
+
+    cols_keep = list_(cols_keep)
+    if cols is None:
+        cols = [
+            col for col
+            in df.columns
+            if col not in cols_keep
+            ]
+
+    df_combined_str = pd.DataFrame(
+        {col: ''},
+        index=df.index,
+        dtype='string',
+        )
+
+    len_max_cols = (
+        pd.Series(cols)
+        .astype('string')
+        .str
+        .len()
+        .max()
+        )
+    def format_val(
+            col_combine,
+            spacer,
+            val,
+            ):
+        val_new = template.format(
+            col=col_combine,
+            spacer=spacer,
+            val=val,
+            )
+        return val_new
+
+    for col_combine in cols:
+        spacer_len = (
+            len_max_cols
+            - len(str(col_combine))
+            + 1
+            )
+        spacer = spacer_char * spacer_len
+        vals_new = df[col_combine].apply(lambda val: format_val(col_combine, spacer, val))
+        df_combined_str[col] += vals_new
+
+    df_new = pd.concat([df[cols_keep], df_combined_str], axis='columns')
+
+    return df_new
+
+
+
 def group(
         df: pd.DataFrame,
         col: str,
@@ -981,14 +1040,15 @@ def transpose(
         header='uid',
         ) -> pd.DataFrame:
     """
-    transpose a df while preserving a designated header col.
+    transpose a df while using row
+    identifiers as new header names.
 
     Parameters
     ----------
     df : pandas.DataFrame
         df to transpose.
     header : str, default 'uid'
-        col used as the new header identifier.
+        col containing the new header names.
 
     Returns
     -------
@@ -996,14 +1056,11 @@ def transpose(
         transposed df.
     """
 
-    cols_old = df.columns
     cols_new = df[header].values
-
+    df = df.drop(header, axis='columns')
     df = df.T
     df.columns = cols_new
-    df.insert(0, header, cols_old)
-    df = df.drop(header, axis=0)
-    df = df.reset_index(drop=True)
+    df = df.reset_index(names=header)
 
     return df
 

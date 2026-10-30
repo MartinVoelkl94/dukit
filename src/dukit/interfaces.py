@@ -9,6 +9,7 @@ from .qlang import (
     qs,
     )
 from .pandas import (
+    fold,
     group,
     ungroup,
     stack,
@@ -55,6 +56,26 @@ class DukitAccessor():
             verbosity=3,
             ):
         return qr(self.df, code, verbosity)
+
+
+    def fold(
+            self,
+            col: str = 'new',
+            cols: list[str] = None,
+            cols_keep: str | list[str] = None,
+            template='{col}:{spacer}{val}<br>',
+            spacer_char='\u00A0',  #non-breaking space
+            verbosity=3,
+            ):
+        return fold(
+            self.df,
+            col=col,
+            cols=cols,
+            cols_keep=cols_keep,
+            template=template,
+            spacer_char=spacer_char,
+            verbosity=verbosity,
+            )
 
 
     def group(

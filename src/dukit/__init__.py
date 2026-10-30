@@ -24,6 +24,7 @@ from .excel import (
     save,
     )
 from .pandas import (
+    fold,
     group,
     ungroup,
     stack,
@@ -95,6 +96,7 @@ __all__ = (
     'format',
     'save',
 
+    'fold',
     'group',
     'ungroup',
     'stack',
